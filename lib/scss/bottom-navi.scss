@@ -1,0 +1,28 @@
+.bottom-navi {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    background-color: var(--color-primary-variant);
+    color: var(--color-on-secondary);
+    width: var(--side-navi-width);
+    padding: var(--small-padding);
+}
+
+.bottom-navi div {
+    display: grid;
+    text-align: center;
+    gap: calc(var(--small-padding) / 2);
+}
+
+.bottom-navi div i {
+    font-size: 1.15em;
+} 
+
+.bottom-navi div:hover, 
+header i:hover {
+    cursor: pointer;
+    color: var(--color-secondary);
+}
+
+.active-setting {
+    color: var(--color-secondary-variant);
+}

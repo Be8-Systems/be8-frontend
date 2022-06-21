@@ -986,30 +986,96 @@ null == n || n({ LitElement: s });
     : (globalThis.litElementVersions = [])
 ).push('3.2.0');
 
+function isActiveMenu(div) {
+    return div.classList.contains('active-setting');
+}
+
+function removeActiveMenu(container) {
+    const user = container.querySelector('header i.fa-circle-user');
+    const divs = [
+        ...container.querySelectorAll('.bottom-navi div.active-setting'),
+    ];
+
+    divs.forEach((div) => div.classList.remove('active-setting'));
+    user.classList.remove('active-setting');
+}
+
 class AppLayout extends s {
-    createRenderRoot() {
-        return this;
-    }
-
-    openNavi() {
-        const sideNavi = this.querySelector('nav');
-        const isOpen = sideNavi.getAttribute('data-open');
-
-        if (isOpen === 'true') {
-            sideNavi.setAttribute('data-open', 'false');
-            return document.body.style.setProperty('--side-navi-width', '0');
-        }
-
-        sideNavi.setAttribute('data-open', 'true');
-        document.body.style.setProperty('--side-navi-width', '365px');
-    }
-
     constructor() {
         super();
     }
 
+    createRenderRoot() {
+        return this; // prevents creating a shadow root
+    }
+
+    clickOnChat(e) {
+        const div = e.target.tagName === 'DIV' ? e.target : e.target.parentNode;
+
+        if (isActiveMenu(div)) {
+            return;
+        }
+
+        removeActiveMenu(this);
+        div.classList.add('active-setting');
+    }
+
+    clickOnUser({ target }) {
+        if (isActiveMenu(target)) {
+            return;
+        }
+
+        removeActiveMenu(this);
+        target.classList.add('active-setting');
+    }
+
+    clickOnNewConv() {}
+
+    clickOnSettings(e) {
+        const div = e.target.tagName === 'DIV' ? e.target : e.target.parentNode;
+
+        if (isActiveMenu(div)) {
+            return;
+        }
+
+        removeActiveMenu(this);
+        div.classList.add('active-setting');
+    }
+
+    clickOnInvite(e) {}
+
+    clickOnPanic(e) {}
+
     render() {
-        return $`<header><i @click="${this.openNavi}" class="fa-solid fa-bars"></i></header><nav data-open="true"></nav><main></main>`;
+        const bottomNavi = $`<div class="bottom-navi"><div @click="${(e) =>
+            this.clickOnChat(
+                e
+            )}" class="active-setting"><i class="fa-solid fa-comments"></i><small>Chats</small></div><div @click="${(
+            e
+        ) =>
+            this.clickOnSettings(
+                e
+            )}"><i class="fa-solid fa-gears"></i><small>Settings</small></div><div @click="${(
+            e
+        ) =>
+            this.clickOnInvite(
+                e
+            )}"><i class="fa-solid fa-plus"></i><small>Invite</small></div><div @click="${(
+            e
+        ) =>
+            this.clickOnPanic(
+                e
+            )}"><i class="fa-solid fa-bomb"></i><small>Panic</small></div></div>`;
+        const header = $`<header><i @click="${(e) =>
+            this.clickOnUser(
+                e
+            )}" class="fa-solid fa-circle-user"></i><i @click="${(e) =>
+            this.clickOnNewConv(
+                e
+            )}" class="fa-solid fa-pen-clip float-right"></i></header>`;
+        const menus = $`<div class="messages-menu"></div><div class="settings-menu hide"></div><div class="user-menu hide"></div>`;
+
+        return $`${header}<nav><h1 class="chats-headline">Chats</h1><div class="threads"></div></nav>${bottomNavi}<main>${menus}</main>`;
     }
 }
 
@@ -1070,18 +1136,6 @@ class Modal extends s {
     render() {
         return $`<div class="inner-modal"><small @click="${this.close}" class="close-modal">close</small><div class="modal-content"></div></div>`;
     }
-
-    #berni() {
-        return 3;
-    }
 }
 
 customElements.define('modal-window', Modal);
-
-document.addEventListener('DOMContentLoaded', function () {
-    const modal = document.querySelector('modal-window');
-
-    modal.setAndOpen({
-        HTML: 'welcome to the lit template',
-    });
-});

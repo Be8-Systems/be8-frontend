@@ -1,0 +1,10 @@
+@media (pointer:none), (pointer:coarse) {
+    app-layout {
+        grid-template-columns: 100%;
+    }
+
+    nav,
+    .bottom-navi {
+        width: auto;
+    }
+}

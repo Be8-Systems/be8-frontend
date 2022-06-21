@@ -17,15 +17,15 @@
 }
 :root {
   /* Colors */
-  --color-primary: #6200EE;
-  --color-primary-variant: #3700B3;
-  --color-secondary: #03DAC6;
-  --color-secondary-variant: #018786;
+  --color-primary: #000000;
+  --color-primary-variant: #4b4b4b;
+  --color-secondary: #39af538f;
+  --color-secondary-variant: #39af52;
   --background: #FFF;
   --surface: #FFF;
   --error: #B00020;
   --color-on-primary: #FFF;
-  --color-on-secondary: #000;
+  --color-on-secondary: rgb(166, 156, 156);
   --color-on-background: #000;
   --color-on-surface: #000;
   --color-on-error: #FFF;
@@ -36,6 +36,7 @@
   --gap: 10px;
   --side-navi-width: 365px;
   --top-navi-height: 44px;
+  --bottom-navi-height: 60px;
   --border-radius: 1em;
 }
 
@@ -44,6 +45,11 @@ html, body, main, div, p, span, input, button, select {
   padding: 0;
   margin: 0;
   font-family: var(--font);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  padding: 0;
+  margin: 0;
 }
 
 html, body, main {
@@ -57,6 +63,14 @@ html, body, main {
   display: none;
 }
 
+.float-left {
+  float: left;
+}
+
+.float-right {
+  float: right;
+}
+
 app-layout {
   display: grid;
   row-gap: 0;
@@ -65,6 +79,9 @@ app-layout {
   grid-template-rows: auto 1fr;
   max-height: 100vh;
   height: 100vh;
+  width: 100vw;
+  padding: 0;
+  margin: 0;
 }
 
 header {
@@ -78,17 +95,62 @@ header i {
   padding: calc(var(--top-navi-height) / 3);
 }
 
+nav {
+  grid-area: 2/1/3/2;
+  width: var(--side-navi-width);
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  padding: var(--small-padding);
+  padding-bottom: 0;
+  height: calc(100vh - var(--top-navi-height) - 69px);
+  overflow-y: scroll;
+}
+
+main {
+  grid-area: 2/2/3/3;
+}
+
+.chats-headline {
+  padding-bottom: var(--small-padding);
+  border-bottom: 1px solid var(--color-primary-variant);
+}
+
+.bottom-navi {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  background-color: var(--color-primary-variant);
+  color: var(--color-on-secondary);
+  width: var(--side-navi-width);
+  padding: var(--small-padding);
+}
+
+.bottom-navi div {
+  display: grid;
+  text-align: center;
+  gap: calc(var(--small-padding) / 2);
+}
+
+.bottom-navi div i {
+  font-size: 1.15em;
+}
+
+.bottom-navi div:hover,
 header i:hover {
   cursor: pointer;
   color: var(--color-secondary);
 }
 
-nav {
-  grid-area: 2/1/3/2;
-  width: var(--side-navi-width);
-  background-color: var(--color-secondary);
+.active-setting {
+  color: var(--color-secondary-variant);
 }
 
-main {
-  grid-area: 2/2/3/3;
+@media (pointer: none), (pointer: coarse) {
+  app-layout {
+    grid-template-columns: 100%;
+  }
+
+  nav,
+.bottom-navi {
+    width: auto;
+  }
 }
