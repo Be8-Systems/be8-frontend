@@ -986,6 +986,11 @@ null == n || n({ LitElement: s });
     : (globalThis.litElementVersions = [])
 ).push('3.2.0');
 
+const isPhone =
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+    );
+
 function isActiveMenu(div) {
     return div.classList.contains('active-setting');
 }
@@ -1073,7 +1078,9 @@ class AppLayout extends s {
             this.clickOnNewConv(
                 e
             )}" class="fa-solid fa-pen-clip float-right"></i></header>`;
-        const menus = $`<div class="messages-menu"></div><div class="settings-menu hide"></div><div class="user-menu hide"></div>`;
+        const menus = $`<div class="messages-menu${
+            isPhone ? ' hide' : ''
+        }"></div><div class="settings-menu hide"></div><div class="user-menu hide"></div>`;
 
         return $`${header}<nav><h1 class="chats-headline">Chats</h1><div class="threads"></div></nav>${bottomNavi}<main>${menus}</main>`;
     }
