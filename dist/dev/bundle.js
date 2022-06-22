@@ -1049,18 +1049,74 @@ const isPhone =
     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
         navigator.userAgent
     );
+const mockupPartner = {
+    expire: 'Tue Jul 19 2022 05:33:42 GMT+0000 (Coordinated Universal Time)',
+    id: '10323',
+    nickname: 'Bobo Macbook',
+    sender: '10323',
+    status: 'read',
+    text: 'Hallo Oli',
+    threadID: '10322:10323',
+    ts: 'Mon Jun 20 2022 06:01:34 GMT+0000 (Coordinated Universal Time)',
+    type: 'user',
+    endless: false,
+};
+const icons = Object.freeze({
+    user: 'user',
+    group: 'users-rectangle',
+    channel: 'object-ungroup',
+});
+const domCache = {};
 
 class Messages extends s {
+    static properties = {
+        conversationPartner: {},
+    };
+
     constructor() {
         super();
+        this.conversationPartner = mockupPartner;
     }
 
     createRenderRoot() {
         return this; // prevents creating a shadow root
     }
 
+    clickOnBack() {
+        domCache.navi.classList.remove('hide');
+        domCache.messages.classList.add('hide');
+        domCache.header.classList.remove('hide');
+        domCache.bottomNavi.classList.remove('hide');
+        domCache.bottomNavi
+            .querySelector('div')
+            .classList.add('active-setting');
+    }
+
+    renderConversationPartner() {
+        const check = this.conversationPartner.endless
+            ? $`<i class="fa-solid fa-check"></i>`
+            : '';
+        const icon = $`<i class="fa-solid fa-${
+            icons[this.conversationPartner.type]
+        }"></i>`;
+        const name = $`<p>${this.conversationPartner.nickname} #${this.conversationPartner.id}</p>`;
+        const back = $`<i @click="${
+            this.clickOnBack
+        }" class="fa-solid fa-arrow-left ${
+            isPhone ? '' : 'shrinkToZero'
+        }"></i>`;
+        const user = $`<div class="conversation-partner-user">${icon}${name}${check}</div>`;
+
+        return $`<div class="conversation-partner">${back}${user}</div>`;
+    }
+
+    renderWriteContainer() {
+        return $`<div class="write-container"><input type="text"><div><i class="fa-solid fa-photo-film"></i></div></div>`;
+    }
+
     render() {
-        return $`MESSAGES MENU`;
+        const messagesContainer = $`<div class="messages"></div>`;
+        return $`${this.renderConversationPartner()}${messagesContainer}${this.renderWriteContainer()}`;
     }
 }
 
@@ -1126,19 +1182,38 @@ class SettingsMenu extends s {
 customElements.define('settings-menu', SettingsMenu);
 
 class Threads extends s {
-    #icons = Object.freeze({
-        user: 'user',
-        group: 'users-rectangle',
-        channel: 'object-ungroup',
-    });
-
     static properties = {
-        threads: [],
+        threads: {},
     };
 
     constructor() {
         super();
-        this.threads = [];
+        this.threads = [
+            mockupPartner,
+            {
+                ...mockupPartner,
+                sender: '213213',
+                nickname: 'Berni',
+                endless: true,
+                text: 'guten morgen',
+            },
+        ];
+        this.addEventListener('click', (e) => this.clickOnThreads(e));
+    }
+
+    clickOnThreads(e) {
+        const parent = e.target.expire ? e.target : e.target.closest('.thread');
+        const sender = parent.getAttribute('sender');
+        const thread = this.threads.find((t) => t.sender === sender);
+
+        if (isPhone) {
+            domCache.navi.classList.add('hide');
+            domCache.messages.classList.remove('hide');
+            domCache.header.classList.add('hide');
+            domCache.bottomNavi.classList.add('hide');
+        }
+
+        domCache.messages.conversationPartner = thread;
     }
 
     createRenderRoot() {
@@ -1147,26 +1222,15 @@ class Threads extends s {
 
     render() {
         const HTML = this.threads
-            .map(
-                ({
-                    expire,
-                    nickname,
-                    sender,
-                    status,
-                    text,
-                    threadID,
-                    ts,
-                    type,
-                }) => {
-                    const icon = `<i class="fa-solid fa-${
-                        this.#icons[type]
-                    }"></i>`;
-                    return `<div sender="${sender}" type="${type}" class="thread">${icon}<div><p>${nickname} <span class="float-right">#${sender}<span></p><p>${text.substring(
-                        0,
-                        23
-                    )} <span class="float-right">${ts}</span></p></div></div>`;
-                }
-            )
+            .map(({ expire, nickname, sender, text, threadID, ts, type }) => {
+                const icon = `<i class="fa-solid fa-${icons[type]}"></i>`;
+                return `<div expire="${expire}" id="${threadID}" sender="${sender}" type="${type}" class="thread">${icon}<div><p>${nickname} <span class="float-right">#${sender}<span></p><p>${text.substring(
+                    0,
+                    9
+                )}… <span class="float-right">${new Date(
+                    ts
+                ).toISOString()}</span></p></div></div>`;
+            })
             .join('');
 
         this.innerHTML = HTML;
@@ -1215,7 +1279,6 @@ class AppLayout extends s {
 
         this.#setActiveMenu('messagesMenu');
         removeActiveMenu(this);
-        div.classList.add('active-setting');
     }
 
     clickOnUser({ target }) {
@@ -1248,19 +1311,20 @@ class AppLayout extends s {
         });
 
         if (isPhone && menu !== 'messagesMenu') {
-            this.querySelector('nav').classList.add('hide');
+            domCache.navi.classList.add('hide');
             this.querySelector('main').classList.add(
                 'settings-mobile-menu-active'
             );
         }
         if (isPhone && menu === 'messagesMenu') {
-            this.querySelector('nav').classList.remove('hide');
+            domCache.navi.classList.remove('hide');
             this.querySelector('main').classList.remove(
                 'settings-mobile-menu-active'
             );
         }
-
-        return this.#menus[menu].classList.remove('hide');
+        if (this.#menus[menu]) {
+            return this.#menus[menu].classList.remove('hide');
+        }
     }
 
     clickOnNewConv() {
@@ -1279,7 +1343,6 @@ class AppLayout extends s {
         super.connectedCallback();
         this.#menus = {
             settingsMenu: this.querySelector('settings-menu'),
-            messagesMenu: this.querySelector('messages-menu'),
             userMenu: this.querySelector('user-menu'),
         };
     }
@@ -1322,52 +1385,13 @@ class AppLayout extends s {
 customElements.define('app-layout', AppLayout);
 
 document.addEventListener('DOMContentLoaded', function () {
-    const threads = document.querySelector('threads-menu');
+    const app = document.querySelector('app-layout');
 
-    threads.threads = [
-        {
-            expire: 'Tue Jul 19 2022 05:33:42 GMT+0000 (Coordinated Universal Time)',
-            id: '10323',
-            nickname: 'Bobo Macbook',
-            sender: '10323',
-            status: 'read',
-            text: 'Hallo Oli',
-            threadID: '10322:10323',
-            ts: 'Mon Jun 20 2022 06:01:34 GMT+0000 (Coordinated Universal Time)',
-            type: 'user',
-        },
-        {
-            expire: 'Tue Jul 19 2022 05:33:42 GMT+0000 (Coordinated Universal Time)',
-            id: '10323',
-            nickname: 'Orangen Fans',
-            sender: '13454',
-            status: 'read',
-            text: 'Wie hoch ist euer konsum?',
-            threadID: '10322:10323',
-            ts: 'Mon Jun 20 2022 06:01:34 GMT+0000 (Coordinated Universal Time)',
-            type: 'group',
-        },
-        {
-            expire: 'Tue Jul 19 2022 05:33:42 GMT+0000 (Coordinated Universal Time)',
-            id: '10323',
-            nickname: 'Verschwörung',
-            sender: '1',
-            status: 'read',
-            text: 'Kxc+a22sDxm3bDZj1jj7k2HA0dimrZ92dtFEGdLBC0JkRzEQ/m96583mIqAOHmIxqHJwMQ==',
-            threadID: '10322:10323',
-            ts: 'Mon Jun 20 2022 06:01:34 GMT+0000 (Coordinated Universal Time)',
-            type: 'channel',
-        },
-        {
-            expire: 'Tue Jul 19 2022 05:33:42 GMT+0000 (Coordinated Universal Time)',
-            id: '10323',
-            nickname: 'Oli',
-            sender: '1098765',
-            status: 'read',
-            text: 'Kxc+a22sDxm3bDZj1jj7k2HA0dimrZ92dtFEGdLBC0JkRzEQ/m96583mIqAOHmIxqHJwMQ==',
-            threadID: '10322:10323',
-            ts: 'Mon Jun 20 2022 06:01:34 GMT+0000 (Coordinated Universal Time)',
-            type: 'user',
-        },
-    ];
+    domCache.threads = app.querySelector('threads-menu');
+    domCache.messages = app.querySelector('messages-menu');
+    domCache.navi = app.querySelector('nav');
+    domCache.header = app.querySelector('header');
+    domCache.bottomNavi = app.querySelector('.bottom-navi');
+
+    return Object.freeze(domCache);
 });

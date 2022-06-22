@@ -39,7 +39,12 @@ button {
 }
 
 .hide {
-    display: none;
+    display: none !important;
+}
+
+.shrinkToZero {
+    width: 0;
+    visibility: hidden;
 }
 
 .float-left {

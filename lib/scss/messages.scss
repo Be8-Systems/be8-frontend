@@ -1,0 +1,48 @@
+messages-menu {
+    display: grid;
+    grid-template-rows: 40px 1fr 60px;
+    width: calc(100vw - 395px);
+}
+
+.conversation-partner {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--small-padding);
+    padding: var(--small-padding);
+}
+
+.conversation-partner-user {
+    display: flex;
+    gap: var(--small-padding);
+    justify-content: center;
+}
+
+.fa-check {
+    color: var(--color-error);
+}
+
+.messages {
+    overflow-y: scroll;
+}
+
+.write-container {
+    display: flex;
+    align-self: center;
+    justify-content: space-between;
+    gap: var(--small-padding);
+    padding: var(--small-padding);
+}
+
+.write-container input {
+    padding: var(--verysmall-padding) var(--small-padding);
+    border-radius: var(--small-border-radius);
+    background: var(--color-primary-variant);
+    color: var(--color-on-primary);
+    border-top-style: solid;
+    width: 100%;
+}
+
+.write-container i {
+    margin-top: 3px;
+    font-size: 1.25em
+}

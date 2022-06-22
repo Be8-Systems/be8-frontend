@@ -46,8 +46,12 @@ messages-menu,
 settings-menu,
 user-menu {
     display: block;
-    padding: var(--small-padding);
     color: var(--color-on-primary);
-    height: calc(100vh - 63px);
+    height: calc(100vh - 45px);
     width: calc(100vw - var(--small-padding) * 2);
+}
+
+settings-menu,
+user-menu {
+    padding: var(--small-padding);
 }
