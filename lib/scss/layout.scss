@@ -2,13 +2,14 @@ app-layout {
     display: grid;
     row-gap: 0;
     column-gap: var(--small-padding);
-    grid-template-columns: var(--side-navi-width) 1fr;
+    grid-template-columns: calc(var(--side-navi-width) + var(--small-padding) + var(--small-padding)) 1fr;
     grid-template-rows: auto 1fr;
     max-height: 100vh;
     height: 100vh;
     width: 100vw;
     padding: 0;
     margin: 0;
+    background: var(--color-primary);
 }
 
 header {
@@ -29,15 +30,24 @@ nav {
     color: var(--color-on-primary);
     padding: var(--small-padding);
     padding-bottom: 0;
-    height: calc(100vh - var(--top-navi-height) - 69px);
+    height: calc(100vh - var(--top-navi-height) - 71px);
     overflow-y: scroll;
 }
 
 main {
-    grid-area: 2 / 2 / 3 / 3;
+    grid-area: 2 / 2 / 4 / 3;
 }
 
 .chats-headline {
-    padding-bottom: var(--small-padding);
     border-bottom: 1px solid var(--color-primary-variant);
+}
+
+messages-menu,
+settings-menu,
+user-menu {
+    display: block;
+    padding: var(--small-padding);
+    color: var(--color-on-primary);
+    height: calc(100vh - 63px);
+    width: calc(100vw - var(--small-padding) * 2);
 }

@@ -1,0 +1,23 @@
+.settings-container {
+    display: flex;
+    flex-direction: column;
+    max-width: 400px;
+    gap: var(--small-padding);
+    background-color: var(--color-primary-variant);
+    padding: var(--small-padding);
+    border-radius: var(--small-border-radius);
+    margin-bottom: var(--small-padding);
+}
+
+.settings-container textarea,
+.settings-container input {
+    background: var(--color-primary-variant);
+    border-left: none;
+    border-right: none;
+    color: var(--color-on-primary);
+    border-top-style: solid;
+}
+
+.settings-container textarea {
+    resize: vertical;
+}

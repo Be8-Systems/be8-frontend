@@ -986,110 +986,8 @@ null == n || n({ LitElement: s });
     : (globalThis.litElementVersions = [])
 ).push('3.2.0');
 
-const isPhone =
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
-    );
-
-function isActiveMenu(div) {
-    return div.classList.contains('active-setting');
-}
-
-function removeActiveMenu(container) {
-    const user = container.querySelector('header i.fa-circle-user');
-    const divs = [
-        ...container.querySelectorAll('.bottom-navi div.active-setting'),
-    ];
-
-    divs.forEach((div) => div.classList.remove('active-setting'));
-    user.classList.remove('active-setting');
-}
-
-class AppLayout extends s {
-    constructor() {
-        super();
-    }
-
-    createRenderRoot() {
-        return this; // prevents creating a shadow root
-    }
-
-    clickOnChat(e) {
-        const div = e.target.tagName === 'DIV' ? e.target : e.target.parentNode;
-
-        if (isActiveMenu(div)) {
-            return;
-        }
-
-        removeActiveMenu(this);
-        div.classList.add('active-setting');
-    }
-
-    clickOnUser({ target }) {
-        if (isActiveMenu(target)) {
-            return;
-        }
-
-        removeActiveMenu(this);
-        target.classList.add('active-setting');
-    }
-
-    clickOnNewConv() {}
-
-    clickOnSettings(e) {
-        const div = e.target.tagName === 'DIV' ? e.target : e.target.parentNode;
-
-        if (isActiveMenu(div)) {
-            return;
-        }
-
-        removeActiveMenu(this);
-        div.classList.add('active-setting');
-    }
-
-    clickOnInvite(e) {}
-
-    clickOnPanic(e) {}
-
-    render() {
-        const bottomNavi = $`<div class="bottom-navi"><div @click="${(e) =>
-            this.clickOnChat(
-                e
-            )}" class="active-setting"><i class="fa-solid fa-comments"></i><small>Chats</small></div><div @click="${(
-            e
-        ) =>
-            this.clickOnSettings(
-                e
-            )}"><i class="fa-solid fa-gears"></i><small>Settings</small></div><div @click="${(
-            e
-        ) =>
-            this.clickOnInvite(
-                e
-            )}"><i class="fa-solid fa-plus"></i><small>Invite</small></div><div @click="${(
-            e
-        ) =>
-            this.clickOnPanic(
-                e
-            )}"><i class="fa-solid fa-bomb"></i><small>Panic</small></div></div>`;
-        const header = $`<header><i @click="${(e) =>
-            this.clickOnUser(
-                e
-            )}" class="fa-solid fa-circle-user"></i><i @click="${(e) =>
-            this.clickOnNewConv(
-                e
-            )}" class="fa-solid fa-pen-clip float-right"></i></header>`;
-        const menus = $`<div class="messages-menu${
-            isPhone ? ' hide' : ''
-        }"></div><div class="settings-menu hide"></div><div class="user-menu hide"></div>`;
-
-        return $`${header}<nav><h1 class="chats-headline">Chats</h1><div class="threads"></div></nav>${bottomNavi}<main>${menus}</main>`;
-    }
-}
-
-customElements.define('app-layout', AppLayout);
-
 class Modal extends s {
-    static styles = r$2`:host{position:fixed;top:0;left:0;width:100%;height:100%;display:flex;justify-content:center;align-items:center;background:rgba(0,0,0,.25)}.inner-modal{position:absolute;background:#fff;padding:var(--big-padding);border-radius:var(--border-radius);width:550px;max-width:82%;min-height:32px;word-break:break-word}.close-modal{color:#aaa;line-height:var(--big-padding);position:absolute;right:0;top:0;text-align:center;width:70px}.close-modal:hover{cursor:pointer;color:var(--color-on-background)}`;
+    static styles = r$2`:host{position:fixed;top:0;left:0;width:100%;height:100%;display:flex;justify-content:center;align-items:center;background:rgba(0,0,0,.25)}.inner-modal{position:absolute;background:#fff;padding:var(--big-padding);border-radius:var(--small-border-radius);width:550px;max-width:82%;min-height:32px;word-break:break-word}.close-modal{color:#aaa;line-height:var(--big-padding);position:absolute;right:0;top:0;text-align:center;width:70px}.close-modal:hover{cursor:pointer;color:var(--color-on-background)}`;
 
     constructor() {
         super();
@@ -1146,3 +1044,294 @@ class Modal extends s {
 }
 
 customElements.define('modal-window', Modal);
+
+const isPhone =
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+    );
+
+class Messages extends s {
+    constructor() {
+        super();
+    }
+
+    createRenderRoot() {
+        return this; // prevents creating a shadow root
+    }
+
+    render() {
+        return $`MESSAGES MENU`;
+    }
+}
+
+customElements.define('messages-menu', Messages);
+
+class User extends s {
+    constructor() {
+        super();
+    }
+
+    createRenderRoot() {
+        return this; // prevents creating a shadow root
+    }
+
+    render() {
+        const creds = $`<div class="settings-container"><p>ID: <i>#10344</i></p><p>Nickname: <i>Oliver</i></p><p>Valid until: <i>${new Date().toISOString()}</i></p></div>`;
+        const status = $`<div class="settings-container"><p>Status</p><textarea>Hello World</textarea></div>`;
+
+        return $`<h1>User Menu</h1>${creds}${status}`;
+    }
+}
+
+customElements.define('user-menu', User);
+
+const modal$1 = document.querySelector('modal-window');
+
+class SettingsMenu extends s {
+    static properties = {
+        name: {},
+    };
+
+    constructor() {
+        super();
+        this.name = 'Anon';
+    }
+
+    createRenderRoot() {
+        return this; // prevents creating a shadow root
+    }
+
+    clickOnNotifications() {
+        console.log('Notifications');
+    }
+
+    clickOnCodes() {
+        return modal$1.setAndOpen({ HTML: 'Codes' });
+    }
+
+    changeName(event) {
+        const input = event.target;
+        this.name = input.value;
+    }
+
+    render() {
+        const nickname = $`<div class="settings-container"><p>Nickname is ${this.name}</p><input @input="${this.changeName}" type="text" value="${this.name}" maxlength="20"></div>`;
+        const codes = $`<div class="settings-container"><p>Destroy and Unlock</p><button @click="${this.clickOnCodes}" class="danger">Setup</button></div>`;
+        const notifications = $`<div class="settings-container"><p>Notifications</p><button @click="${this.clickOnNotifications}">Activate</button></div>`;
+
+        return $`<h1>Settings</h1>${nickname}${notifications}${codes}`;
+    }
+}
+
+customElements.define('settings-menu', SettingsMenu);
+
+class Threads extends s {
+    #icons = Object.freeze({
+        user: 'user',
+        group: 'users-between-lines"></i>',
+        channel: 'object-intersect',
+    });
+    #activeThreads = [];
+
+    constructor() {
+        super();
+    }
+
+    createRenderRoot() {
+        return this; // prevents creating a shadow root
+    }
+
+    #_addThreads(threads) {
+        const HTML = threads.map(
+            ({
+                expire,
+                nickname,
+                sender,
+                status,
+                text,
+                threadID,
+                ts,
+                type,
+            }) => {
+                const icon = `<i class="fa-solid fa-${this.#icons[type]}"></i>`;
+                return `<div class="thread">${icon}<p>${nickname} <span>#${sender}<span></p></div>`;
+            }
+        );
+
+        this.innerHTML = HTML;
+    }
+
+    addThreads(threads) {
+        if (!threads || threads.length === 0) {
+            return;
+        }
+
+        return this.#_addThreads(threads);
+    }
+}
+
+customElements.define('threads-menu', Threads);
+
+const modal = document.querySelector('modal-window');
+
+function isActiveMenu(div) {
+    return div.classList.contains('active-setting');
+}
+
+function removeActiveMenu(container) {
+    const user = container.querySelector('header i.fa-circle-user');
+    const divs = [
+        ...container.querySelectorAll('.bottom-navi div.active-setting'),
+    ];
+
+    divs.forEach((div) => div.classList.remove('active-setting'));
+    user.classList.remove('active-setting');
+}
+
+class AppLayout extends s {
+    #menus = {
+        settingsMenu: {},
+        messagesMenu: {},
+        userMenu: {},
+    };
+
+    constructor() {
+        super();
+    }
+
+    createRenderRoot() {
+        return this; // prevents creating a shadow root
+    }
+
+    clickOnChat(e) {
+        const div = e.target.tagName === 'DIV' ? e.target : e.target.parentNode;
+
+        if (isActiveMenu(div)) {
+            return;
+        }
+
+        this.#setActiveMenu('messagesMenu');
+        removeActiveMenu(this);
+        div.classList.add('active-setting');
+    }
+
+    clickOnUser({ target }) {
+        if (isActiveMenu(target)) {
+            return;
+        }
+
+        this.#setActiveMenu('userMenu');
+        removeActiveMenu(this);
+        target.classList.add('active-setting');
+    }
+
+    clickOnSettings(e) {
+        const div = e.target.tagName === 'DIV' ? e.target : e.target.parentNode;
+
+        if (isActiveMenu(div)) {
+            return;
+        }
+
+        this.#setActiveMenu('settingsMenu');
+        removeActiveMenu(this);
+        div.classList.add('active-setting');
+    }
+
+    #setActiveMenu(menu) {
+        Object.values(this.#menus).forEach(function (menu) {
+            if (!menu.classList.contains('hide')) {
+                menu.classList.add('hide');
+            }
+        });
+
+        if (isPhone && menu !== 'messagesMenu') {
+            this.querySelector('nav').classList.add('hide');
+            this.querySelector('main').classList.add(
+                'settings-mobile-menu-active'
+            );
+        }
+        if (isPhone && menu === 'messagesMenu') {
+            this.querySelector('nav').classList.remove('hide');
+            this.querySelector('main').classList.remove(
+                'settings-mobile-menu-active'
+            );
+        }
+
+        return this.#menus[menu].classList.remove('hide');
+    }
+
+    clickOnNewConv() {
+        return modal.setAndOpen({ HTML: 'new conv' });
+    }
+
+    clickOnInvite() {
+        return modal.setAndOpen({ HTML: 'Invite' });
+    }
+
+    clickOnPanic() {
+        return modal.setAndOpen({ HTML: 'Panic' });
+    }
+
+    firstUpdated() {
+        super.connectedCallback();
+        this.#menus = {
+            settingsMenu: this.querySelector('settings-menu'),
+            messagesMenu: this.querySelector('messages-menu'),
+            userMenu: this.querySelector('user-menu'),
+        };
+    }
+
+    render() {
+        const bottomNavi = $`<div class="bottom-navi"><div @click="${(e) =>
+            this.clickOnChat(
+                e
+            )}" class="active-setting"><i class="fa-solid fa-comments"></i><small>Chats</small></div><div @click="${(
+            e
+        ) =>
+            this.clickOnSettings(
+                e
+            )}"><i class="fa-solid fa-gears"></i><small>Settings</small></div><div @click="${(
+            e
+        ) =>
+            this.clickOnInvite(
+                e
+            )}"><i class="fa-solid fa-plus"></i><small>Invite</small></div><div @click="${(
+            e
+        ) =>
+            this.clickOnPanic(
+                e
+            )}"><i class="fa-solid fa-bomb"></i><small>Panic</small></div></div>`;
+        const header = $`<header><i @click="${(e) =>
+            this.clickOnUser(
+                e
+            )}" class="fa-solid fa-circle-user"></i><i @click="${(e) =>
+            this.clickOnNewConv(
+                e
+            )}" class="fa-solid fa-pen-clip float-right"></i></header>`;
+        const menus = $`<messages-menu class="${
+            isPhone ? 'hide' : ''
+        }"></messages-menu><settings-menu class="hide"></settings-menu><user-menu class="hide"></user-menu>`;
+
+        return $`${header}<nav><h1 class="chats-headline">Chats</h1><threads-menu></threads-menu></nav>${bottomNavi}<main>${menus}</main>`;
+    }
+}
+
+customElements.define('app-layout', AppLayout);
+
+document.addEventListener('DOMContentLoaded', function () {
+    const threads = document.querySelector('threads-menu');
+
+    threads.addThreads([
+        {
+            expire: 'Tue Jul 19 2022 05:33:42 GMT+0000 (Coordinated Universal Time)',
+            id: '10323',
+            nickname: 'Bobo Macbook',
+            sender: '10323',
+            status: 'read',
+            text: 'Kxc+a22sDxm3bDZj1jj7k2HA0dimrZ92dtFEGdLBC0JkRzEQ/m96583mIqAOHmIxqHJwMQ==',
+            threadID: '10322:10323',
+            ts: 'Mon Jun 20 2022 06:01:34 GMT+0000 (Coordinated Universal Time)',
+            type: 'user',
+        },
+    ]);
+});
