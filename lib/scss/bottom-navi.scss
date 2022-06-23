@@ -21,9 +21,9 @@
 .bottom-navi div:hover, 
 header i:hover {
     cursor: pointer;
-    color: var(--color-secondary);
+    color: var(--color-highlight-variant);
 }
 
 .active-setting {
-    color: var(--color-secondary-variant);
+    color: var(--color-highlight);
 }

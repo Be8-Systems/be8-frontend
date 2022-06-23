@@ -987,7 +987,7 @@ null == n || n({ LitElement: s });
 ).push('3.2.0');
 
 class Modal extends s {
-    static styles = r$2`:host{position:fixed;top:0;left:0;width:100%;height:100%;display:flex;justify-content:center;align-items:center;background:rgba(0,0,0,.25)}.inner-modal{position:absolute;background:#fff;padding:var(--big-padding);border-radius:var(--small-border-radius);width:550px;max-width:82%;min-height:32px;word-break:break-word}.close-modal{color:#aaa;line-height:var(--big-padding);position:absolute;right:0;top:0;text-align:center;width:70px}.close-modal:hover{cursor:pointer;color:var(--color-on-background)}`;
+    static styles = r$2`:host{position:fixed;top:0;left:0;width:100%;height:100%;display:flex;justify-content:center;align-items:center;background:rgba(0,0,0,.25)}.inner-modal{position:absolute;background:#fff;padding:var(--big-padding);border-radius:var(--small-border-radius);width:550px;max-width:82%;min-height:32px;word-break:break-word;background-color:var(--color-secondary);color:var(--color-on-secondary)}.close-modal{color:#aaa;line-height:var(--big-padding);position:absolute;right:0;top:0;text-align:center;width:70px}.close-modal:hover{cursor:pointer;color:var(--color-on-background)}@media (pointer:none),(pointer:coarse){:host{align-items:self-end}.inner-modal{border-bottom-left-radius:0;border-bottom-right-radius:0}}`;
 
     constructor() {
         super();
@@ -1038,12 +1038,35 @@ class Modal extends s {
         this.open();
     }
 
-    render() {
-        return $`<div class="inner-modal"><small @click="${this.close}" class="close-modal">close</small><div class="modal-content"></div></div>`;
+    render(content = '') {
+        return $`<div class="inner-modal"><small @click="${this.close}" class="close-modal">close</small><div class="modal-content">${content}</div></div>`;
     }
 }
 
 customElements.define('modal-window', Modal);
+
+var LANG = Object.freeze({
+    INVITELINK:
+        'We copyed your <a href="{{link}}">invite link</a> to your clipboard. Go ahead and share it.',
+});
+
+class InviteModal extends Modal {
+    constructor() {
+        super();
+    }
+
+    render() {
+        const url = '';
+        const content = $`<p>${LANG.INVITELINK.replaceAll(
+            '{{link}}',
+            url
+        )}</p><br><div class="qr"></div><br>`;
+
+        return super.render(content);
+    }
+}
+
+customElements.define('invite-modal-window', InviteModal);
 
 const isPhone =
     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
@@ -1111,7 +1134,11 @@ class Messages extends s {
     }
 
     renderWriteContainer() {
-        return $`<div class="write-container"><input type="text"><div><i class="fa-solid fa-photo-film"></i></div></div>`;
+        return $`<div class="write-container"><input class="write-message-input" type="text"><div><i class="fa-solid fa-photo-film"></i></div></div>`;
+    }
+
+    focus() {
+        return this.querySelector('.write-message-input').focus();
     }
 
     render() {
@@ -1214,6 +1241,7 @@ class Threads extends s {
         }
 
         domCache.messages.conversationPartner = thread;
+        domCache.messages.focus();
     }
 
     createRenderRoot() {
@@ -1240,6 +1268,7 @@ class Threads extends s {
 customElements.define('threads-menu', Threads);
 
 const modal = document.querySelector('modal-window');
+const inviteModal = document.querySelector('invite-modal-window');
 
 function isActiveMenu(div) {
     return div.classList.contains('active-setting');
@@ -1332,7 +1361,7 @@ class AppLayout extends s {
     }
 
     clickOnInvite() {
-        return modal.setAndOpen({ HTML: 'Invite' });
+        return inviteModal.open();
     }
 
     clickOnPanic() {
@@ -1387,6 +1416,7 @@ customElements.define('app-layout', AppLayout);
 document.addEventListener('DOMContentLoaded', function () {
     const app = document.querySelector('app-layout');
 
+    domCache.app = app;
     domCache.threads = app.querySelector('threads-menu');
     domCache.messages = app.querySelector('messages-menu');
     domCache.navi = app.querySelector('nav');
