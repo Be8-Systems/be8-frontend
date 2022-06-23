@@ -1051,15 +1051,16 @@ var LANG = Object.freeze({
 });
 
 class InviteModal extends Modal {
+    #url = '';
+
     constructor() {
         super();
     }
 
     render() {
-        const url = '';
         const content = $`<p>${LANG.INVITELINK.replaceAll(
             '{{link}}',
-            url
+            this.#url
         )}</p><br><div class="qr"></div><br>`;
 
         return super.render(content);
@@ -1338,7 +1339,7 @@ class AppLayout extends s {
                 menu.classList.add('hide');
             }
         });
-
+        console.log(this.#menus[menu]);
         if (isPhone && menu !== 'messagesMenu') {
             domCache.navi.classList.add('hide');
             this.querySelector('main').classList.add(
@@ -1350,7 +1351,9 @@ class AppLayout extends s {
             this.querySelector('main').classList.remove(
                 'settings-mobile-menu-active'
             );
+            return;
         }
+
         if (this.#menus[menu]) {
             return this.#menus[menu].classList.remove('hide');
         }
@@ -1371,6 +1374,7 @@ class AppLayout extends s {
     firstUpdated() {
         super.connectedCallback();
         this.#menus = {
+            messagesMenu: this.querySelector('messages-menu'),
             settingsMenu: this.querySelector('settings-menu'),
             userMenu: this.querySelector('user-menu'),
         };
