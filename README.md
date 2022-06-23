@@ -1,7 +1,5 @@
-# Lit Template
-The idea of my lit template is to generate a boilerplate
-that fits my needs. Everything I put into it, is my personal 
-preference. 
+# Be8-Frontend
+
 
 ## NPM Scripts
 ### serve
