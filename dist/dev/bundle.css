@@ -111,6 +111,10 @@ a:hover {
   float: right;
 }
 
+.unselectable {
+  user-select: none;
+}
+
 .hover-background:hover {
   cursor: pointer;
   background-color: var(--color-highlight);
@@ -336,22 +340,10 @@ input {
   color: var(--color-on-secondary);
 }
 
-@keyframes fadeInAnimation {
-  0% {
-    bottom: -50%;
-  }
-  100% {
-    bottom: 0;
-  }
+.modal-content {
+  position: relative;
 }
-@keyframes fadeOutAnimation {
-  0% {
-    bottom: 0;
-  }
-  100% {
-    bottom: -60%;
-  }
-}
+
 .close-modal {
   color: #aaa;
   line-height: var(--big-padding);
@@ -376,6 +368,53 @@ input {
   border-radius: var(--small-border-radius);
 }
 
+.create-group-content {
+  display: grid;
+  gap: var(--small-padding);
+  position: relative;
+}
+
+.create-group-headline {
+  text-align: center;
+  margin-bottom: var(--big-padding);
+}
+
+.create-group-headline i {
+  margin-top: 2px;
+}
+
+@keyframes fadeUpAnimation {
+  0% {
+    bottom: -50%;
+  }
+  100% {
+    bottom: 0;
+  }
+}
+@keyframes fadeDownAnimation {
+  0% {
+    bottom: 0;
+  }
+  100% {
+    bottom: -60%;
+  }
+}
+@keyframes fadeLeftAnimation {
+  0% {
+    left: 0%;
+  }
+  100% {
+    left: -200%;
+  }
+}
+@keyframes fadeRightAnimation {
+  0% {
+    right: -200%;
+  }
+  100% {
+    right: 0%;
+  }
+}
 @media (pointer: none), (pointer: coarse) {
   app-layout {
     grid-template-columns: 100%;
@@ -413,7 +452,7 @@ user-menu {
   }
 
   .inner-modal {
-    max-width: 100%;
+    width: calc(100vw - 70px);
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
   }

@@ -64,6 +64,10 @@ a:hover {
     float: right;
 }
 
+.unselectable {
+    user-select: none;
+}
+
 .hover-background:hover {
     cursor: pointer;
     background-color: var(--color-highlight);

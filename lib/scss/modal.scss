@@ -33,22 +33,8 @@ input {
     color: var(--color-on-secondary);
 }
 
-@keyframes fadeInAnimation {
-    0% {
-        bottom: -50%;
-    }
-    100% {
-        bottom: 0;
-    }
-}
-
-@keyframes fadeOutAnimation {
-    0% {
-        bottom: 0;
-    }
-    100% {
-        bottom: -60%;
-    }
+.modal-content {
+    position: relative;
 }
 
 .close-modal {
@@ -73,4 +59,56 @@ input {
 .create-group {
     padding: var(--small-padding);
     border-radius: var(--small-border-radius);
+}
+
+.create-group-content {
+    display: grid;
+    gap: var(--small-padding);
+    position: relative;
+}
+
+.create-group-headline {
+    text-align: center;
+    margin-bottom: var(--big-padding);
+}
+
+.create-group-headline i {
+    margin-top: 2px;
+}
+
+
+@keyframes fadeUpAnimation {
+    0% {
+        bottom: -50%;
+    }
+    100% {
+        bottom: 0;
+    }
+}
+
+@keyframes fadeDownAnimation {
+    0% {
+        bottom: 0;
+    }
+    100% {
+        bottom: -60%;
+    }
+}
+
+@keyframes fadeLeftAnimation {
+    0% {
+        left: 0%;
+    }
+    100% {
+        left: -200%;
+    }
+}
+
+@keyframes fadeRightAnimation {
+    0% {
+        right: -200%;
+    }
+    100% {
+        right: 0%;
+    }
 }

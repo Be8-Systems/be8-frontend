@@ -995,7 +995,7 @@ class Modal extends s {
 
         requestAnimationFrame(() => {
             this.classList.remove('hide');
-            innerModal.style = 'animation: fadeInAnimation 0.3s !important;';
+            innerModal.style = 'animation: fadeUpAnimation 0.3s !important;';
             return this.setAttribute('data-open', 'true');
         });
     }
@@ -1008,7 +1008,7 @@ class Modal extends s {
             return;
         }
 
-        innerModal.style = 'animation: fadeOutAnimation 0.3s !important;';
+        innerModal.style = 'animation: fadeDownAnimation 0.3s !important;';
         setTimeout(() => {
             innerModal.style = '';
             this.classList.add('hide');
@@ -1025,8 +1025,8 @@ class Modal extends s {
         this.open();
     }
 
-    render(content = '') {
-        return $`<div class="inner-modal"><small @click="${this.close}" class="close-modal">close</small><div class="modal-content">${content}</div></div>`;
+    render(content = '', sideContent = '') {
+        return $`<div class="inner-modal"><small @click="${this.close}" class="close-modal unselectable">close</small><div class="modal-content">${content}</div><div class="modal-side">${sideContent}</div></div>`;
     }
 }
 
@@ -1105,7 +1105,7 @@ var LANG = Object.freeze({
         'We copied your <a href="{{link}}">invite link</a> to your clipboard. Go ahead and share it.',
     PANICTEXT:
         'Enter your Be8 id {{id}} to destroy your account and everythink associated with it. Attention there is no way to restore your data!',
-    CONVERSATION: 'Enter a Be8 id to start a 1on1 chatting',
+    CONVERSATION: 'Enter a Be8 id to start a 1on1 chatting.',
 });
 
 /* eslint-disable no-use-before-define */
@@ -7088,6 +7088,19 @@ class InviteModal extends Modal {
 
 customElements.define('invite-modal-window', InviteModal);
 
+function isKeyDownNumber(evt) {
+    const charCode = evt.which ? evt.which : evt.keyCode;
+
+    if (evt.target.selectionStart === 0 && charCode === 35) {
+        return true;
+    }
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+        return false;
+    }
+
+    return true;
+}
+
 var ME = {
     id: '0',
     nickname: 'Mockup Boy',
@@ -7104,21 +7117,8 @@ class PanicModal extends Modal {
         return this; // prevents creating a shadow root
     }
 
-    #isNumberKey(evt) {
-        const charCode = evt.which ? evt.which : evt.keyCode;
-
-        if (evt.target.selectionStart === 0 && charCode === 35) {
-            return true;
-        }
-        if (charCode > 31 && (charCode < 48 || charCode > 57)) {
-            return false;
-        }
-
-        return true;
-    }
-
     onKeyPress(e) {
-        if (!this.#isNumberKey(e)) {
+        if (!isKeyDownNumber(e)) {
             e.preventDefault();
             e.stopPropagation();
             return false;
@@ -7157,6 +7157,12 @@ class PanicModal extends Modal {
 customElements.define('panic-modal-window', PanicModal);
 
 class ConversationModal extends Modal {
+    #modalContent = {};
+    #createGroup = {};
+    #dialogInput = {};
+    #groupNameInput = {};
+    #groupType = {};
+
     constructor() {
         super();
     }
@@ -7167,12 +7173,74 @@ class ConversationModal extends Modal {
 
     open() {
         super.open();
-        requestAnimationFrame(() => this.querySelector('input').focus());
+        requestAnimationFrame(() => this.#dialogInput.focus());
+    }
+
+    clickOnGoToGroup() {
+        this.#modalContent.style =
+            'animation: fadeLeftAnimation 0.3s !important;';
+
+        setTimeout(() => {
+            this.#modalContent.classList.add('hide');
+            this.#createGroup.classList.remove('hide');
+            this.#createGroup.style =
+                'animation: fadeRightAnimation 0.3s !important;';
+            requestAnimationFrame(() => this.#groupNameInput.focus());
+        }, 300);
+    }
+
+    clickOnCreateGroup() {
+        const name = this.#groupNameInput.value.trim();
+        const type = this.#groupType.value;
+
+        if (name.length === 0) {
+            return;
+        }
+        console.log(name, type);
+        this.#groupNameInput.value = '';
+        return this.close();
+    }
+
+    clickOnBackToMain() {
+        this.#modalContent.classList.remove('hide');
+        this.#createGroup.classList.add('hide');
+        requestAnimationFrame(() => this.#dialogInput.focus());
+    }
+
+    firstUpdated() {
+        this.#modalContent = this.querySelector('.modal-content');
+        this.#createGroup = this.querySelector('.create-group-content');
+        this.#dialogInput = this.#modalContent.querySelector('input');
+        this.#groupNameInput = this.#createGroup.querySelector('input');
+        this.#groupType = this.#createGroup.querySelector('select');
+    }
+
+    close() {
+        super.close();
+        this.clickOnBackToMain();
+    }
+
+    keyDownOn1to1(e) {
+        if (!isKeyDownNumber(e)) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+        if (e.keyCode === 13) {
+            console.log(this.#dialogInput.value);
+            return this.close();
+        }
     }
 
     render() {
-        const content = $`<p>${LANG.CONVERSATION}</p><input tabindex="0" type="text"><div class="create-group hover-background">Create a group <i class="fa-solid fa-arrow-right float-right"></i></div>`;
-        return super.render(content);
+        const content = $`<p>${LANG.CONVERSATION}</p><input @keydown="${(e) =>
+            this.keyDownOn1to1(e)}" tabindex="0" type="text"><div @click="${
+            this.clickOnGoToGroup
+        }" class="create-group hover-background">Create a group <i class="fa-solid fa-arrow-right float-right"></i></div>`;
+        const groupsettings = $`<div><p>Name</p><input type="text" maxlength="20"></div><p>Type</p><select><option value="public">public</option><option value="private">private</option></select><button @click="${this.clickOnCreateGroup}">create group</button>`;
+        const group = $`<div class="create-group-content hide"><p class="create-group-headline"><i @click="${this.clickOnBackToMain}" class="fa-solid fa-arrow-left hover-font float-left"></i> <span>Create a group</span></p>${groupsettings}</div>`;
+
+        return super.render(content, group);
     }
 }
 
@@ -7268,9 +7336,15 @@ class User extends s {
         return this; // prevents creating a shadow root
     }
 
+    keyDownStatus(e) {
+        console.log(e.target.value);
+    }
+
     render() {
         const creds = $`<div class="settings-container"><p>ID: <i>#10344</i></p><p>Nickname: <i>Oliver</i></p><p>Valid until: <i>${new Date().toISOString()}</i></p></div>`;
-        const status = $`<div class="settings-container"><p>Status</p><textarea>Hello World</textarea></div>`;
+        const status = $`<div class="settings-container"><p>Status</p><textarea @keydown="${(
+            e
+        ) => this.keyDownStatus(e)}">Hello World</textarea></div>`;
 
         return $`<h1>User Menu</h1>${creds}${status}`;
     }

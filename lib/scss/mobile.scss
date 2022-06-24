@@ -35,7 +35,7 @@
     }
 
     .inner-modal {
-        max-width: 100%;
+        width: calc(100vw - 70px);
         border-bottom-left-radius: 0; 
         border-bottom-right-radius: 0; 
     }
