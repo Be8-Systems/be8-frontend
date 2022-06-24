@@ -330,7 +330,6 @@ input {
   border-radius: var(--small-border-radius);
   min-width: 300px;
   max-width: 600px;
-  max-width: 82%;
   min-height: 32px;
   word-break: break-word;
   background-color: var(--color-secondary);
@@ -414,7 +413,7 @@ user-menu {
   }
 
   .inner-modal {
-    width: 100%;
+    max-width: 100%;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
   }
