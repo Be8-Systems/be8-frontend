@@ -33,27 +33,6 @@ class s$3 {
     }
 }
 const o$4 = (t) => new s$3('string' == typeof t ? t : t + '', e$4),
-    r$2 = (t, ...n) => {
-        const o =
-            1 === t.length
-                ? t[0]
-                : n.reduce(
-                      (e, n, s) =>
-                          e +
-                          ((t) => {
-                              if (!0 === t._$cssResult$) return t.cssText;
-                              if ('number' == typeof t) return t;
-                              throw Error(
-                                  "Value passed to 'css' function must be a 'css' function result: " +
-                                      t +
-                                      ". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security."
-                              );
-                          })(n) +
-                          t[s + 1],
-                      t[0]
-                  );
-        return new s$3(o, e$4);
-    },
     i$2 = (e, n) => {
         t$2
             ? (e.adoptedStyleSheets = n.map((t) =>
@@ -988,10 +967,12 @@ null == n$1 || n$1({ LitElement: s });
 ).push('3.2.0');
 
 class Modal extends s {
-    static styles = r$2`:host{position:fixed;top:0;left:0;width:100%;height:100%;display:flex;justify-content:center;align-items:center;background:rgba(0,0,0,.25)}.inner-modal{position:absolute;background:#fff;padding:var(--big-padding);border-radius:var(--small-border-radius);width:550px;max-width:82%;min-height:32px;word-break:break-word;background-color:var(--color-secondary);color:var(--color-on-secondary)}@keyframes fadeInAnimation{0%{bottom:-50%}100%{bottom:0}}@keyframes fadeOutAnimation{0%{bottom:0}100%{bottom:-60%}}.close-modal{color:#aaa;line-height:var(--big-padding);position:absolute;right:0;top:0;text-align:center;width:70px}.close-modal:hover{cursor:pointer;color:var(--color-on-background)}a,a:active,a:hover,a:link,a:visited{color:var(--color-highlight-variant)!important;text-decoration:none}@media (pointer:none),(pointer:coarse){:host{align-items:self-end}.inner-modal{border-bottom-left-radius:0;border-bottom-right-radius:0;animation:fadeInAnimation .3s}}`;
-
     constructor() {
         super();
+    }
+
+    createRenderRoot() {
+        return this; // prevents creating a shadow root
     }
 
     toggle() {
@@ -1006,6 +987,7 @@ class Modal extends s {
 
     open() {
         const isOpen = this.getAttribute('data-open') === 'true';
+        const innerModal = this.querySelector('.inner-modal');
 
         if (isOpen) {
             return;
@@ -1013,13 +995,14 @@ class Modal extends s {
 
         requestAnimationFrame(() => {
             this.classList.remove('hide');
+            innerModal.style = 'animation: fadeInAnimation 0.3s !important;';
             return this.setAttribute('data-open', 'true');
         });
     }
 
     close() {
         const isClosed = this.getAttribute('data-open') === 'false';
-        const innerModal = this.shadowRoot.querySelector('.inner-modal');
+        const innerModal = this.querySelector('.inner-modal');
 
         if (isClosed) {
             return;
@@ -1027,14 +1010,14 @@ class Modal extends s {
 
         innerModal.style = 'animation: fadeOutAnimation 0.3s !important;';
         setTimeout(() => {
-            this.classList.add('hide');
             innerModal.style = '';
+            this.classList.add('hide');
             return this.setAttribute('data-open', 'false');
         }, 300);
     }
 
     set({ HTML }) {
-        this.shadowRoot.querySelector('.modal-content').innerHTML = HTML;
+        this.querySelector('.modal-content').innerHTML = HTML;
     }
 
     setAndOpen(options) {
@@ -1120,6 +1103,9 @@ const o = e$1(e);
 var LANG = Object.freeze({
     INVITELINK:
         'We copied your <a href="{{link}}">invite link</a> to your clipboard. Go ahead and share it.',
+    PANICTEXT:
+        'Enter your Be8 id {{id}} to destroy your account and everythink associated with it. Attention there is no way to restore your data!',
+    CONVERSATION: 'Enter a Be8 id to start a 1on1 chatting',
 });
 
 /* eslint-disable no-use-before-define */
@@ -7048,7 +7034,6 @@ var Crypto = {
 };
 
 class InviteModal extends Modal {
-    static styles = [super.styles, r$2`.qr img{margin:0 auto}`];
     static properties = {
         url: {},
         isGenerated: {},
@@ -7057,6 +7042,10 @@ class InviteModal extends Modal {
     constructor() {
         super();
         this.isGenerated = false;
+    }
+
+    createRenderRoot() {
+        return this; // prevents creating a shadow root
     }
 
     #generateSafeLink(parameterName, content) {
@@ -7082,7 +7071,7 @@ class InviteModal extends Modal {
         const options = {
             text: url,
         };
-        new QRCode(this.shadowRoot.querySelector('.qr'), options);
+        new QRCode(this.querySelector('.qr'), options);
 
         this.url = url;
         this.isGenerated = true;
@@ -7098,6 +7087,96 @@ class InviteModal extends Modal {
 }
 
 customElements.define('invite-modal-window', InviteModal);
+
+var ME = {
+    id: '0',
+    nickname: 'Mockup Boy',
+    expire: 'Mon Jul 24 2022 09:02:52 GMT+0000 (Coordinated Universal Time)',
+    type: 'user',
+};
+
+class PanicModal extends Modal {
+    constructor() {
+        super();
+    }
+
+    createRenderRoot() {
+        return this; // prevents creating a shadow root
+    }
+
+    #isNumberKey(evt) {
+        const charCode = evt.which ? evt.which : evt.keyCode;
+
+        if (evt.target.selectionStart === 0 && charCode === 35) {
+            return true;
+        }
+        if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    onKeyPress(e) {
+        if (!this.#isNumberKey(e)) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+        if (e.keyCode === 13) {
+            return this.onClickDestroy();
+        }
+    }
+
+    onClickDestroy() {
+        const id = this.querySelector('input').value;
+
+        if (id === ME.id) {
+            console.log('destroy');
+            return this.close();
+        }
+    }
+
+    open() {
+        super.open();
+        requestAnimationFrame(() => this.querySelector('input').focus());
+    }
+
+    render() {
+        const text = LANG.PANICTEXT.replaceAll('{{id}}', ME.id);
+        const content = $`<p>${text}</p><div><input tabindex="0" @keydown="${(
+            e
+        ) => this.onKeyPress(e)}" type="text"></div><button @click="${
+            this.onClickDestroy
+        }" class="danger">destroy everything</button>`;
+
+        return super.render(content);
+    }
+}
+
+customElements.define('panic-modal-window', PanicModal);
+
+class ConversationModal extends Modal {
+    constructor() {
+        super();
+    }
+
+    createRenderRoot() {
+        return this; // prevents creating a shadow root
+    }
+
+    open() {
+        super.open();
+        requestAnimationFrame(() => this.querySelector('input').focus());
+    }
+
+    render() {
+        const content = $`<p>${LANG.CONVERSATION}</p><input tabindex="0" type="text"><div class="create-group hover-background">Create a group <i class="fa-solid fa-arrow-right float-right"></i></div>`;
+        return super.render(content);
+    }
+}
+
+customElements.define('conversation-modal-window', ConversationModal);
 
 const isPhone =
     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
@@ -7199,7 +7278,7 @@ class User extends s {
 
 customElements.define('user-menu', User);
 
-const modal$1 = document.querySelector('modal-window');
+const modal = document.querySelector('modal-window');
 
 class SettingsMenu extends s {
     static properties = {
@@ -7220,7 +7299,7 @@ class SettingsMenu extends s {
     }
 
     clickOnCodes() {
-        return modal$1.setAndOpen({ HTML: 'Codes' });
+        return modal.setAndOpen({ HTML: 'Codes' });
     }
 
     changeName(event) {
@@ -7283,7 +7362,7 @@ class Threads extends s {
         const HTML = this.threads
             .map(({ expire, nickname, sender, text, threadID, ts, type }) => {
                 const icon = `<i class="fa-solid fa-${icons[type]}"></i>`;
-                return `<div expire="${expire}" id="${threadID}" sender="${sender}" type="${type}" class="thread">${icon}<div><p>${nickname} <span class="float-right">#${sender}<span></p><p>${text.substring(
+                return `<div expire="${expire}" id="${threadID}" sender="${sender}" type="${type}" class="thread hover-background">${icon}<div><p>${nickname} <span class="float-right">#${sender}<span></p><p>${text.substring(
                     0,
                     9
                 )}… <span class="float-right">${new Date(
@@ -7297,16 +7376,6 @@ class Threads extends s {
 }
 
 customElements.define('threads-menu', Threads);
-
-var ME = {
-    id: '0',
-    nickname: 'Mockup Boy',
-    expire: 'Mon Jul 24 2022 09:02:52 GMT+0000 (Coordinated Universal Time)',
-    type: 'user',
-};
-
-const modal = document.querySelector('modal-window');
-const inviteModal = document.querySelector('invite-modal-window');
 
 function isActiveMenu(div) {
     return div.classList.contains('active-setting');
@@ -7328,6 +7397,10 @@ class AppLayout extends s {
         messagesMenu: {},
         userMenu: {},
     };
+    #modal = document.querySelector('modal-window');
+    #inviteModal = document.querySelector('invite-modal-window');
+    #panicModal = document.querySelector('panic-modal-window');
+    #converModal = document.querySelector('conversation-modal-window');
 
     constructor() {
         super();
@@ -7397,15 +7470,15 @@ class AppLayout extends s {
     }
 
     clickOnNewConv() {
-        return modal.setAndOpen({ HTML: 'new conv' });
+        return this.#converModal.open();
     }
 
     clickOnInvite() {
-        return inviteModal.open('join', ME.id);
+        return this.#inviteModal.open('join', ME.id);
     }
 
     clickOnPanic() {
-        return modal.setAndOpen({ HTML: 'Panic' });
+        return this.#panicModal.open();
     }
 
     firstUpdated() {

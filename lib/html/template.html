@@ -20,9 +20,11 @@
 </head>
 <body>
     <app-layout></app-layout>
-    <modal-window class="hide" data-open="false"></modal-window>
-    <invite-modal-window class="hide" data-open="false"></invite-modal-window>
-    <script async type="module" src="bundle.js{{timestamp}}" referrerpolicy="no-referrer"></script>
+    <modal-window class="hide modal" data-open="false"></modal-window>
+    <invite-modal-window class="hide modal" data-open="false"></invite-modal-window>
+    <panic-modal-window class="hide modal" data-open="false"></panic-modal-window>
+    <conversation-modal-window class="hide modal" data-open="false"></conversation-modal-window>
+    <script type="module" src="bundle.js{{timestamp}}" referrerpolicy="no-referrer"></script>
     <script async src="../assets/js/qr.js" referrerpolicy="no-referrer"></script>
 </body>
 </html>

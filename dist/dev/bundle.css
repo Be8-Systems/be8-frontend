@@ -85,6 +85,15 @@ button {
   color: var(--color-on-error);
 }
 
+a,
+a:link,
+a:active,
+a:visited,
+a:hover {
+  color: var(--color-highlight-variant) !important;
+  text-decoration: none;
+}
+
 .hide {
   display: none !important;
 }
@@ -100,6 +109,16 @@ button {
 
 .float-right {
   float: right;
+}
+
+.hover-background:hover {
+  cursor: pointer;
+  background-color: var(--color-highlight);
+}
+
+.hover-font:hover {
+  cursor: pointer;
+  color: var(--color-highlight);
 }
 
 .danger {
@@ -209,11 +228,6 @@ header i:hover {
   margin-top: 8px;
 }
 
-.thread:hover {
-  cursor: pointer;
-  background-color: var(--color-highlight);
-}
-
 .settings-container {
   display: flex;
   flex-direction: column;
@@ -287,6 +301,82 @@ messages-menu {
   font-size: 1.25em;
 }
 
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+input {
+  margin: var(--small-padding) 0;
+  background-color: var(--color-secondary);
+  border-left: none;
+  border-right: none;
+  color: var(--color-on-primary);
+  border-top-style: solid;
+  width: 100%;
+}
+
+.inner-modal {
+  position: absolute;
+  background: white;
+  padding: var(--big-padding);
+  border-radius: var(--small-border-radius);
+  min-width: 300px;
+  max-width: 600px;
+  max-width: 82%;
+  min-height: 32px;
+  word-break: break-word;
+  background-color: var(--color-secondary);
+  color: var(--color-on-secondary);
+}
+
+@keyframes fadeInAnimation {
+  0% {
+    bottom: -50%;
+  }
+  100% {
+    bottom: 0;
+  }
+}
+@keyframes fadeOutAnimation {
+  0% {
+    bottom: 0;
+  }
+  100% {
+    bottom: -60%;
+  }
+}
+.close-modal {
+  color: #aaa;
+  line-height: var(--big-padding);
+  position: absolute;
+  right: 0;
+  top: 0;
+  text-align: center;
+  width: 70px;
+}
+
+.close-modal:hover {
+  cursor: pointer;
+  color: var(--color-on-background);
+}
+
+.qr img {
+  margin: 0 auto;
+}
+
+.create-group {
+  padding: var(--small-padding);
+  border-radius: var(--small-border-radius);
+}
+
 @media (pointer: none), (pointer: coarse) {
   app-layout {
     grid-template-columns: 100%;
@@ -317,5 +407,15 @@ user-menu {
     left: 0;
     width: 100%;
     height: 100vh;
+  }
+
+  .modal {
+    align-items: self-end;
+  }
+
+  .inner-modal {
+    width: 100%;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
   }
 }
