@@ -51,12 +51,17 @@ const prettierConfig = {
   tabWidth: 4,
   singleQuote: true,
   parser: 'babel',
+  printWidth: 140,
+  arrowParens: 'avoid'
 };
 const config = {
   input: 'lib/js/bundle.js',
   output: {
     dir: 'dist/prod/',
     format: 'esm',
+    globals: {
+      QRCode: 'QRCode'
+    }
   },
   plugins: [
     copy(copyConfig),

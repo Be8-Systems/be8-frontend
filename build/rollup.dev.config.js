@@ -26,7 +26,10 @@ const config = {
   input: 'lib/js/bundle.js',
   output: {
     dir: 'dist/dev',
-    format: 'esm'
+    format: 'esm',
+    globals: {
+      QRCode: 'QRCode'
+    }
   },
   plugins: [
     scss(scssConfig),
