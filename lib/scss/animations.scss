@@ -1,0 +1,55 @@
+
+
+@keyframes fadeUpAnimation {
+    0% {
+        bottom: -50%;
+    }
+    100% {
+        bottom: 0;
+    }
+}
+
+@keyframes fadeDownAnimation {
+    0% {
+        bottom: 0;
+    }
+    100% {
+        bottom: -60%;
+    }
+}
+
+@keyframes fadeLeftinAnimation {
+    0% {
+        left: -200%;
+    }
+    100% {
+        left: 0%;
+    }
+}
+
+@keyframes fadeLeftOutAnimation {
+    0% {
+        left: 0%;
+    }
+    100% {
+        left: -200%;
+    }
+}
+
+@keyframes fadeRightInAnimation {
+    0% {
+        right: -200%;
+    }
+    100% {
+        right: 0%;
+    }
+}
+
+@keyframes fadeRightOutAnimation {
+    0% {
+        right: 0%;
+    }
+    100% {
+        right: -200%;
+    }
+}

@@ -131,6 +131,10 @@ a:hover {
   color: var(--color-on-error);
 }
 
+.full-width {
+  width: 100%;
+}
+
 app-layout {
   display: grid;
   row-gap: 0;
@@ -301,7 +305,7 @@ messages-menu {
 }
 
 .write-container i {
-  margin-top: 3px;
+  margin-top: 13px;
   font-size: 1.25em;
 }
 
@@ -309,6 +313,7 @@ messages-menu {
   position: fixed;
   top: 0;
   left: 0;
+  z-index: 9999999;
   width: 100%;
   height: 100%;
   display: flex;
@@ -363,7 +368,7 @@ input {
   margin: 0 auto;
 }
 
-.create-group {
+.sub-modal-button {
   padding: var(--small-padding);
   border-radius: var(--small-border-radius);
 }
@@ -383,6 +388,15 @@ input {
   margin-top: 2px;
 }
 
+.unlock-side,
+.destroy-side {
+  position: relative;
+}
+
+.setup-unlock-container {
+  margin-bottom: var(--big-padding);
+}
+
 @keyframes fadeUpAnimation {
   0% {
     bottom: -50%;
@@ -399,7 +413,15 @@ input {
     bottom: -60%;
   }
 }
-@keyframes fadeLeftAnimation {
+@keyframes fadeLeftinAnimation {
+  0% {
+    left: -200%;
+  }
+  100% {
+    left: 0%;
+  }
+}
+@keyframes fadeLeftOutAnimation {
   0% {
     left: 0%;
   }
@@ -407,12 +429,20 @@ input {
     left: -200%;
   }
 }
-@keyframes fadeRightAnimation {
+@keyframes fadeRightInAnimation {
   0% {
     right: -200%;
   }
   100% {
     right: 0%;
+  }
+}
+@keyframes fadeRightOutAnimation {
+  0% {
+    right: 0%;
+  }
+  100% {
+    right: -200%;
   }
 }
 @media (pointer: none), (pointer: coarse) {

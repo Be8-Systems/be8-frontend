@@ -1106,7 +1106,17 @@ var LANG = Object.freeze({
     PANICTEXT:
         'Enter your Be8 id {{id}} to destroy your account and everythink associated with it. Attention there is no way to restore your data!',
     CONVERSATION: 'Enter a Be8 id to start a 1on1 chatting.',
+    UNLOCKSETUPTEXT:
+        'You have to remind your unlock code otherwise there is no way to access your account again! Enter your destroy code to destroy your acc! There is no way to recover destroyed accs',
 });
+
+var ME = {
+    id: '0',
+    nickname: 'Mockup Boy',
+    expire: 'Mon Jul 24 2022 09:02:52 GMT+0000 (Coordinated Universal Time)',
+    type: 'user',
+    codes: true,
+};
 
 /* eslint-disable no-use-before-define */
 
@@ -7036,11 +7046,13 @@ var Crypto = {
 class InviteModal extends Modal {
     static properties = {
         url: {},
-        isGenerated: {},
+        ME: {},
     };
 
     constructor() {
         super();
+
+        this.ME = ME;
         this.isGenerated = false;
     }
 
@@ -7060,33 +7072,41 @@ class InviteModal extends Modal {
         )}`;
     }
 
-    open(parameter, data) {
+    open() {
         super.open();
 
-        if (this.isGenerated) {
-            return;
-        }
-
-        const url = this.#generateSafeLink(parameter, data);
-        const options = {
-            text: url,
-        };
-        new QRCode(this.querySelector('.qr'), options);
-
-        this.url = url;
-        this.isGenerated = true;
+        this.querySelector('.qr').innerHTML = '';
+        new QRCode(this.querySelector('.qr'), { text: this.url });
     }
 
     render() {
+        const url = this.#generateSafeLink('join', this.ME.id);
         const content = $`<p>${o(
             LANG.INVITELINK.replaceAll('{{link}}', this.url)
         )}</p><br><div class="qr"></div><br>`;
+
+        this.url = url;
 
         return super.render(content);
     }
 }
 
 customElements.define('invite-modal-window', InviteModal);
+
+const animations = Object.freeze({
+    fadeLeftOut: function () {
+        return 'animation: fadeLeftOutAnimation 0.3s !important;';
+    },
+    fadeLeftIn: function () {
+        return 'animation: fadeLeftInAnimation 0.3s !important;';
+    },
+    fadeRightOut: function () {
+        return 'animation: fadeRightOutAnimation 0.3s !important;';
+    },
+    fadeRightIn: function () {
+        return 'animation: fadeRightInAnimation 0.3s !important;';
+    },
+});
 
 function isKeyDownNumber(evt) {
     const charCode = evt.which ? evt.which : evt.keyCode;
@@ -7101,16 +7121,48 @@ function isKeyDownNumber(evt) {
     return true;
 }
 
-var ME = {
-    id: '0',
-    nickname: 'Mockup Boy',
-    expire: 'Mon Jul 24 2022 09:02:52 GMT+0000 (Coordinated Universal Time)',
-    type: 'user',
-};
+function animateSideToMain(main, side, focus) {
+    side.style = animations.fadeRightOut();
+
+    setTimeout(() => {
+        side.classList.add('hide');
+        main.classList.remove('hide');
+
+        side.style = '';
+        main.style = animations.fadeLeftIn();
+
+        requestAnimationFrame(() => {
+            focus?.focus();
+            main.style = '';
+        });
+    }, 300);
+}
+
+function animateMainToSide(main, side, focus) {
+    main.style = animations.fadeLeftOut();
+
+    setTimeout(() => {
+        main.classList.add('hide');
+        side.classList.remove('hide');
+
+        main.style = '';
+        side.style = animations.fadeRightIn();
+
+        requestAnimationFrame(() => {
+            focus?.focus();
+            side.style = '';
+        });
+    }, 300);
+}
 
 class PanicModal extends Modal {
+    static properties = {
+        ME: {},
+    };
+
     constructor() {
         super();
+        this.ME = ME;
     }
 
     createRenderRoot() {
@@ -7131,7 +7183,7 @@ class PanicModal extends Modal {
     onClickDestroy() {
         const id = this.querySelector('input').value;
 
-        if (id === ME.id) {
+        if (id === this.ME.id) {
             console.log('destroy');
             return this.close();
         }
@@ -7143,7 +7195,7 @@ class PanicModal extends Modal {
     }
 
     render() {
-        const text = LANG.PANICTEXT.replaceAll('{{id}}', ME.id);
+        const text = LANG.PANICTEXT.replaceAll('{{id}}', this.ME.id);
         const content = $`<p>${text}</p><div><input tabindex="0" @keydown="${(
             e
         ) => this.onKeyPress(e)}" type="text"></div><button @click="${
@@ -7177,16 +7229,19 @@ class ConversationModal extends Modal {
     }
 
     clickOnGoToGroup() {
-        this.#modalContent.style =
-            'animation: fadeLeftAnimation 0.3s !important;';
+        animateMainToSide(
+            this.#modalContent,
+            this.#createGroup,
+            this.#dialogInput
+        );
+    }
 
-        setTimeout(() => {
-            this.#modalContent.classList.add('hide');
-            this.#createGroup.classList.remove('hide');
-            this.#createGroup.style =
-                'animation: fadeRightAnimation 0.3s !important;';
-            requestAnimationFrame(() => this.#groupNameInput.focus());
-        }, 300);
+    clickOnBackToMain() {
+        animateSideToMain(
+            this.#modalContent,
+            this.#createGroup,
+            this.#groupNameInput
+        );
     }
 
     clickOnCreateGroup() {
@@ -7199,12 +7254,6 @@ class ConversationModal extends Modal {
         console.log(name, type);
         this.#groupNameInput.value = '';
         return this.close();
-    }
-
-    clickOnBackToMain() {
-        this.#modalContent.classList.remove('hide');
-        this.#createGroup.classList.add('hide');
-        requestAnimationFrame(() => this.#dialogInput.focus());
     }
 
     firstUpdated() {
@@ -7236,7 +7285,7 @@ class ConversationModal extends Modal {
         const content = $`<p>${LANG.CONVERSATION}</p><input @keydown="${(e) =>
             this.keyDownOn1to1(e)}" tabindex="0" type="text"><div @click="${
             this.clickOnGoToGroup
-        }" class="create-group hover-background">Create a group <i class="fa-solid fa-arrow-right float-right"></i></div>`;
+        }" class="sub-modal-button hover-background">Create a group <i class="fa-solid fa-arrow-right float-right"></i></div>`;
         const groupsettings = $`<div><p>Name</p><input type="text" maxlength="20"></div><p>Type</p><select><option value="public">public</option><option value="private">private</option></select><button @click="${this.clickOnCreateGroup}">create group</button>`;
         const group = $`<div class="create-group-content hide"><p class="create-group-headline"><i @click="${this.clickOnBackToMain}" class="fa-solid fa-arrow-left hover-font float-left"></i> <span>Create a group</span></p>${groupsettings}</div>`;
 
@@ -7245,6 +7294,150 @@ class ConversationModal extends Modal {
 }
 
 customElements.define('conversation-modal-window', ConversationModal);
+
+class Codes extends Modal {
+    static properties = {
+        ME: {},
+        state: {},
+    };
+
+    #modalContent = {};
+    #updateUnlock = {};
+    #updateDestroy = {};
+
+    constructor() {
+        super();
+        this.ME = ME;
+    }
+
+    clickOnUpdateUnlock() {
+        const [oldInput, newCodeInput, newCodeConfInput] = [
+            ...this.#updateUnlock.querySelectorAll('input'),
+        ];
+        const newCode = oldInput.value;
+        const newCodeConf = newCodeInput.value;
+        const old = newCodeConfInput.value;
+
+        if (newCode !== newCodeConf) {
+            return;
+        }
+
+        console.log(old, newCode, newCodeConf);
+    }
+
+    clickOnUpdateDestroy() {
+        const [oldInput, newCodeInput, newCodeConfInput] = [
+            ...this.#updateDestroy.querySelectorAll('input'),
+        ];
+        const newCode = oldInput.value;
+        const newCodeConf = newCodeInput.value;
+        const old = newCodeConfInput.value;
+
+        if (newCode !== newCodeConf) {
+            return;
+        }
+
+        console.log(old, newCode, newCodeConf);
+    }
+
+    goToUpdateUnlock() {
+        const input = this.#updateUnlock.querySelector('input');
+
+        this.state = 'unlock';
+        animateMainToSide(this.#modalContent, this.#updateUnlock, input);
+    }
+
+    goToUpdateDestroy() {
+        const input = this.#updateUnlock.querySelector('input');
+
+        this.state = 'destroy';
+        animateMainToSide(this.#modalContent, this.#updateDestroy, input);
+    }
+
+    backToUpdateSelect() {
+        if (this.state === 'unlock') {
+            animateSideToMain(this.#modalContent, this.#updateUnlock);
+        }
+        if (this.state === 'destroy') {
+            animateSideToMain(this.#modalContent, this.#updateDestroy);
+        }
+
+        this.state = 'main';
+    }
+
+    renderUpdateSide() {
+        const unlock = $`<div class="unlock-side hide"><p class="create-group-headline"><i @click="${this.backToUpdateSelect}" class="fa-solid fa-arrow-left hover-font float-left"></i> <span>Update Unlock</span></p><small>Old Code</small><input type="password" maxlength="40"><small>New Code</small><input type="password" maxlength="40"> <small>New Code re-type</small><input type="password" maxlength="40"><button @click="${this.clickOnUpdateUnlock}" class="full-width">Update</button></div>`;
+        const destroy = $`<div class="destroy-side hide"><p class="create-group-headline"><i @click="${this.backToUpdateSelect}" class="fa-solid fa-arrow-left hover-font float-left"></i> <span>Update Destroy</span></p><small>Old Code</small><input type="password" maxlength="40"><small>New Code</small><input type="password" maxlength="40"> <small>New Code re-type</small><input type="password" maxlength="40"><button @click="${this.clickOnUpdateDestroy}" class="full-width">Update</button></div>`;
+
+        return $`${unlock}${destroy}`;
+    }
+
+    renderUpdate() {
+        const unlockCode = $`<p @click="${this.goToUpdateUnlock}" class="sub-modal-button hover-background"><span>Unlock Code</span> <i class="fa-solid fa-arrow-right hover-font float-right"></i></p>`;
+        const destroyCode = $`<p @click="${this.goToUpdateDestroy}" class="sub-modal-button hover-background"><span>Destroy Code</span> <i class="fa-solid fa-arrow-right hover-font float-right"></i></p>`;
+
+        return $`<p class="create-group-headline">Update</p>${unlockCode}${destroyCode}`;
+    }
+
+    open() {
+        super.open();
+
+        this.state = 'main';
+        requestAnimationFrame(() => this.querySelector('input')?.focus());
+    }
+
+    close() {
+        super.close();
+        this.backToUpdateSelect();
+    }
+
+    setup() {
+        const inputs = [...this.querySelectorAll('input')];
+        const [
+            passwordInput,
+            passwordInputConf,
+            destroyInput,
+            destroyInputConf,
+        ] = inputs;
+        const password = passwordInput.value === passwordInputConf.value;
+        const destroy = destroyInput.value === destroyInputConf.value;
+
+        if (!password) {
+            return;
+        }
+        if (!destroy) {
+            return;
+        }
+
+        inputs.forEach((input) => (input.value = ''));
+        this.close();
+    }
+
+    renderSetup() {
+        const headline = $`<div class="setup-unlock-container"><p class="create-group-headline">Setup</p><small>${LANG.UNLOCKSETUPTEXT}</small></div>`;
+        const unlock = $`<div class="setup-unlock-container"><p>Unlock Code</p><small>new password</small><input type="password" maxlength="40"><small>re-type</small><input type="password" maxlength="40"></div>`;
+        const destroy = $`<div><p>Destroy Code</p><small>new destory code</small><input type="password" maxlength="40"><small>re-type</small><input type="password" maxlength="40"></div>`;
+
+        return $`${headline}${unlock}${destroy}<button @click="${this.setup}" class="full-width">Setup</button>`;
+    }
+
+    firstUpdated() {
+        this.#modalContent = this.querySelector('.modal-content');
+        this.#updateUnlock = this.querySelector('.unlock-side');
+        this.#updateDestroy = this.querySelector('.destroy-side');
+    }
+
+    render() {
+        const content = this.ME.codes
+            ? this.renderUpdate()
+            : this.renderSetup();
+        const sideContent = this.ME.codes ? this.renderUpdateSide() : '';
+
+        return super.render(content, sideContent);
+    }
+}
+
+customElements.define('codes-modal-window', Codes);
 
 const isPhone =
     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
@@ -7285,7 +7478,7 @@ class Messages extends s {
 
     clickOnBack() {
         domCache.navi.classList.remove('hide');
-        domCache.messages.classList.add('hide');
+        domCache.menus.messagesMenu.classList.add('hide');
         domCache.header.classList.remove('hide');
         domCache.bottomNavi.classList.remove('hide');
         domCache.bottomNavi
@@ -7328,8 +7521,14 @@ class Messages extends s {
 customElements.define('messages-menu', Messages);
 
 class User extends s {
+    static properties = {
+        ME: {},
+    };
+
     constructor() {
         super();
+
+        this.ME = ME;
     }
 
     createRenderRoot() {
@@ -7341,7 +7540,8 @@ class User extends s {
     }
 
     render() {
-        const creds = $`<div class="settings-container"><p>ID: <i>#10344</i></p><p>Nickname: <i>Oliver</i></p><p>Valid until: <i>${new Date().toISOString()}</i></p></div>`;
+        const expireDate = new Date(this.ME.expire).toISOString();
+        const creds = $`<div class="settings-container"><p>ID: <i>#${this.ME.id}</i></p><p>Nickname: <i>${this.ME.nickname}</i></p><p>Valid until: <i>${expireDate}</i></p></div>`;
         const status = $`<div class="settings-container"><p>Status</p><textarea @keydown="${(
             e
         ) => this.keyDownStatus(e)}">Hello World</textarea></div>`;
@@ -7352,16 +7552,16 @@ class User extends s {
 
 customElements.define('user-menu', User);
 
-const modal = document.querySelector('modal-window');
-
 class SettingsMenu extends s {
     static properties = {
-        name: {},
+        ME: {},
     };
+
+    #codesModal = document.querySelector('codes-modal-window');
 
     constructor() {
         super();
-        this.name = 'Anon';
+        this.ME = ME;
     }
 
     createRenderRoot() {
@@ -7373,16 +7573,27 @@ class SettingsMenu extends s {
     }
 
     clickOnCodes() {
-        return modal.setAndOpen({ HTML: 'Codes' });
+        return this.#codesModal.open();
     }
 
     changeName(event) {
-        const input = event.target;
-        this.name = input.value;
+        let timer;
+
+        clearTimeout(timer);
+
+        timer = setTimeout(() => {
+            const input = event.target;
+
+            this.ME.nickname = input.value;
+            this.ME = {
+                ...this.ME,
+                nickname: input.value,
+            };
+        }, 300);
     }
 
     render() {
-        const nickname = $`<div class="settings-container"><p>Nickname is ${this.name}</p><input @input="${this.changeName}" type="text" value="${this.name}" maxlength="20"></div>`;
+        const nickname = $`<div class="settings-container"><p>Nickname is ${this.ME.nickname}</p><input @input="${this.changeName}" type="text" value="${this.ME.nickname}" maxlength="20"></div>`;
         const codes = $`<div class="settings-container"><p>Destroy and Unlock</p><button @click="${this.clickOnCodes}" class="danger">Setup</button></div>`;
         const notifications = $`<div class="settings-container"><p>Notifications</p><button @click="${this.clickOnNotifications}">Activate</button></div>`;
 
@@ -7419,13 +7630,18 @@ class Threads extends s {
 
         if (isPhone) {
             domCache.navi.classList.add('hide');
-            domCache.messages.classList.remove('hide');
+            domCache.menus.messagesMenu.classList.remove('hide');
             domCache.header.classList.add('hide');
             domCache.bottomNavi.classList.add('hide');
+        } else {
+            domCache.app.clickOnChat(e);
+            domCache.bottomNavi
+                .querySelector('div')
+                .classList.add('active-setting');
         }
 
-        domCache.messages.conversationPartner = thread;
-        domCache.messages.focus();
+        domCache.menus.messagesMenu.conversationPartner = thread;
+        domCache.menus.messagesMenu.focus();
     }
 
     createRenderRoot() {
@@ -7466,18 +7682,32 @@ function removeActiveMenu(container) {
 }
 
 class AppLayout extends s {
+    static properties = {
+        ME: {},
+    };
+
     #menus = {
         settingsMenu: {},
         messagesMenu: {},
         userMenu: {},
     };
-    #modal = document.querySelector('modal-window');
     #inviteModal = document.querySelector('invite-modal-window');
     #panicModal = document.querySelector('panic-modal-window');
     #converModal = document.querySelector('conversation-modal-window');
 
+    set ME(val) {
+        Object.values(this.#menus).forEach(function (menu) {
+            menu.ME = val;
+        });
+        this.#panicModal.ME = val;
+        this.#inviteModal.ME = val;
+        this.requestUpdate('ME', val);
+    }
+
     constructor() {
         super();
+
+        this.ME = ME;
     }
 
     createRenderRoot() {
@@ -7491,7 +7721,7 @@ class AppLayout extends s {
             return;
         }
 
-        this.#setActiveMenu('messagesMenu');
+        this.setActiveMenu('messagesMenu');
         removeActiveMenu(this);
     }
 
@@ -7500,7 +7730,7 @@ class AppLayout extends s {
             return;
         }
 
-        this.#setActiveMenu('userMenu');
+        this.setActiveMenu('userMenu');
         removeActiveMenu(this);
         target.classList.add('active-setting');
     }
@@ -7512,12 +7742,12 @@ class AppLayout extends s {
             return;
         }
 
-        this.#setActiveMenu('settingsMenu');
+        this.setActiveMenu('settingsMenu');
         removeActiveMenu(this);
         div.classList.add('active-setting');
     }
 
-    #setActiveMenu(menu) {
+    setActiveMenu(menu) {
         Object.values(this.#menus).forEach(function (menu) {
             if (!menu.classList.contains('hide')) {
                 menu.classList.add('hide');
@@ -7537,8 +7767,7 @@ class AppLayout extends s {
             );
             return;
         }
-
-        if (this.#menus[menu]) {
+        if (this.#menus[menu] && this.#menus[menu].classList.contains('hide')) {
             return this.#menus[menu].classList.remove('hide');
         }
     }
@@ -7548,7 +7777,7 @@ class AppLayout extends s {
     }
 
     clickOnInvite() {
-        return this.#inviteModal.open('join', ME.id);
+        return this.#inviteModal.open('join');
     }
 
     clickOnPanic() {
@@ -7557,11 +7786,23 @@ class AppLayout extends s {
 
     firstUpdated() {
         super.connectedCallback();
-        this.#menus = {
+
+        const menus = {
             messagesMenu: this.querySelector('messages-menu'),
             settingsMenu: this.querySelector('settings-menu'),
             userMenu: this.querySelector('user-menu'),
         };
+
+        domCache.app = this;
+        domCache.menus = menus;
+        domCache.threads = this.querySelector('threads-menu');
+        domCache.settings = this.querySelector('settings-menu');
+        domCache.user = this.querySelector('user-menu');
+        domCache.navi = this.querySelector('nav');
+        domCache.header = this.querySelector('header');
+        domCache.bottomNavi = this.querySelector('.bottom-navi');
+
+        this.#menus = menus;
     }
 
     render() {
@@ -7604,12 +7845,8 @@ customElements.define('app-layout', AppLayout);
 document.addEventListener('DOMContentLoaded', function () {
     const app = document.querySelector('app-layout');
 
-    domCache.app = app;
-    domCache.threads = app.querySelector('threads-menu');
-    domCache.messages = app.querySelector('messages-menu');
-    domCache.navi = app.querySelector('nav');
-    domCache.header = app.querySelector('header');
-    domCache.bottomNavi = app.querySelector('.bottom-navi');
-
-    return Object.freeze(domCache);
+    setTimeout(function () {
+        console.log('me update');
+        app.ME = { id: '123123', nickname: 'Johannes', expire: new Date() };
+    }, 3000);
 });
