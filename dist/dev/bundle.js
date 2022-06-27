@@ -966,6 +966,79 @@ null == n$1 || n$1({ LitElement: s });
     : (globalThis.litElementVersions = [])
 ).push('3.2.0');
 
+let timer1, timer2;
+
+class Toast extends s {
+    static properties = {
+        notification: {},
+    };
+
+    #icons = {
+        success: 'check',
+        error: 'times',
+        warning: 'triangle-exclamation',
+    };
+    #openTime = 5000;
+    #progress = {};
+
+    constructor() {
+        super();
+
+        this.notification = {
+            type: 'success',
+            text: 'Your changes has been saved',
+        };
+    }
+
+    createRenderRoot() {
+        return this; // prevents creating a shadow root
+    }
+
+    open() {
+        this.classList.add('active');
+        this.#progress.classList.add('active');
+
+        timer1 = setTimeout(() => {
+            this.classList.remove('active');
+        }, this.#openTime);
+
+        timer2 = setTimeout(() => {
+            this.#progress.classList.remove('active');
+        }, this.#openTime + 300);
+    }
+
+    close() {
+        this.classList.remove('active');
+
+        setTimeout(() => {
+            this.#progress.classList.remove('active');
+        }, 300);
+
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+    }
+
+    firstUpdated() {
+        this.#progress = this.querySelector('.progress');
+    }
+
+    render() {
+        const icon = this.#icons[this.notification.type];
+
+        return $`<div class="toast-content"><i class="fas fa-solid fa-${icon} ${
+            this.notification.type
+        }"></i><div class="toast-message"><span class="text text-1">${this.notification.type.toUpperCase()}</span> <span class="text text-2">${
+            this.notification.text
+        }</span></div></div><i @click="${
+            this.close
+        }" class="fa-solid fa-xmark close hover-font"></i><div class="progress active ${
+            this.notification.type
+        }"></div>`;
+    }
+}
+
+customElements.define('toast-notification', Toast);
+
 class Modal extends s {
     constructor() {
         super();
@@ -1013,7 +1086,7 @@ class Modal extends s {
             innerModal.style = '';
             this.classList.add('hide');
             return this.setAttribute('data-open', 'false');
-        }, 300);
+        }, 275);
     }
 
     set({ HTML }) {
@@ -1100,7 +1173,7 @@ class i {
 (e.directiveName = 'unsafeHTML'), (e.resultType = 1);
 const o = e$1(e);
 
-var LANG = Object.freeze({
+var ME$1 = Object.freeze({
     INVITELINK:
         'We copied your <a href="{{link}}">invite link</a> to your clipboard. Go ahead and share it.',
     PANICTEXT:
@@ -1115,6 +1188,7 @@ var ME = {
     nickname: 'Mockup Boy',
     expire: 'Mon Jul 24 2022 09:02:52 GMT+0000 (Coordinated Universal Time)',
     type: 'user',
+    status: 'Hello World',
     endless: false,
     codes: false,
 };
@@ -7083,7 +7157,7 @@ class InviteModal extends Modal {
     render() {
         const url = this.#generateSafeLink('join', this.ME.id);
         const content = $`<p>${o(
-            LANG.INVITELINK.replaceAll('{{link}}', this.url)
+            ME$1.INVITELINK.replaceAll('{{link}}', this.url)
         )}</p><br><div class="qr"></div><br>`;
 
         this.url = url;
@@ -7196,7 +7270,7 @@ class PanicModal extends Modal {
     }
 
     render() {
-        const text = LANG.PANICTEXT.replaceAll('{{id}}', this.ME.id);
+        const text = ME$1.PANICTEXT.replaceAll('{{id}}', this.ME.id);
         const content = $`<p>${text}</p><div><input tabindex="0" @keydown="${(
             e
         ) => this.onKeyPress(e)}" type="text"></div><button @click="${
@@ -7283,7 +7357,7 @@ class ConversationModal extends Modal {
     }
 
     render() {
-        const content = $`<p>${LANG.CONVERSATION}</p><input @keydown="${(e) =>
+        const content = $`<p>${ME$1.CONVERSATION}</p><input @keydown="${(e) =>
             this.keyDownOn1to1(e)}" tabindex="0" type="text"><div @click="${
             this.clickOnGoToGroup
         }" class="sub-modal-button hover-background">Create a group <i class="fa-solid fa-arrow-right float-right"></i></div>`;
@@ -7415,7 +7489,7 @@ class Codes extends Modal {
     }
 
     renderSetup() {
-        const headline = $`<div class="setup-unlock-container"><p class="create-group-headline">Setup</p><small>${LANG.UNLOCKSETUPTEXT}</small></div>`;
+        const headline = $`<div class="setup-unlock-container"><p class="create-group-headline">Setup</p><small>${ME$1.UNLOCKSETUPTEXT}</small></div>`;
         const unlock = $`<div class="setup-unlock-container"><p>Unlock Code</p><small>new password</small><input type="password" maxlength="40"><small>re-type</small><input type="password" maxlength="40"></div>`;
         const destroy = $`<div><p>Destroy Code</p><small>new destory code</small><input type="password" maxlength="40"><small>re-type</small><input type="password" maxlength="40"></div>`;
 
@@ -7446,12 +7520,12 @@ const isPhone =
     );
 const mockupPartner = {
     expire: 'Tue Jul 19 2022 05:33:42 GMT+0000 (Coordinated Universal Time)',
-    id: '10323',
+    id: '10444',
     nickname: 'Bobo Macbook',
-    sender: '10323',
-    status: 'read',
+    sender: '10444',
+    status: 'Working on something great',
     text: 'Hallo Oli',
-    threadID: '10322:10323',
+    threadID: '10322:10444',
     ts: 'Mon Jun 20 2022 06:01:34 GMT+0000 (Coordinated Universal Time)',
     type: 'user',
     endless: false,
@@ -7463,10 +7537,47 @@ const icons = Object.freeze({
 });
 const domCache = {};
 
+class Usermodal extends Modal {
+    static properties = {
+        conversationPartner: {},
+    };
+
+    constructor() {
+        super();
+
+        this.conversationPartner = ME$1;
+    }
+
+    render() {
+        const dateTime = new Date(this.conversationPartner.expire);
+        const date = dateTime.toDateString();
+        const time = dateTime.toLocaleTimeString();
+        const icon = $`<i class="fa-solid fa-${
+            icons[this.conversationPartner.type]
+        }"></i>`;
+        const hl = $`<p class="create-group-headline">${icon} ${this.conversationPartner.nickname}</p>`;
+        const id = $`<p><span>ID:</span> <span>${this.conversationPartner.id}</span></p>`;
+        const nickname = $`<p><span>Nickname:</span> <span>${this.conversationPartner.nickname}</span></p>`;
+        const status = $`<p><span>Status:</span> <span>"${this.conversationPartner.status}"</span></p>`;
+        const expire = $`<p><span>Valid Account:</span> <span>${date} ${time}</span></p>`;
+        const endlessIcon = this.conversationPartner.endless
+            ? $`<i class="fa-solid fa-check danger-color"></i>`
+            : $`<i class="fa-solid fa-times"></i>`;
+        const endless = $`<p><span>Endless until:</span> ${endlessIcon}</p>`;
+        const content = $`${hl}${id}${nickname}${status}${expire}${endless}`;
+
+        return super.render(content);
+    }
+}
+
+customElements.define('user-modal-window', Usermodal);
+
 class Messages extends s {
     static properties = {
         conversationPartner: {},
     };
+
+    #userModal = {};
 
     constructor() {
         super();
@@ -7487,6 +7598,23 @@ class Messages extends s {
             .classList.add('active-setting');
     }
 
+    clickOnUser() {
+        this.#userModal.conversationPartner = this.conversationPartner;
+        this.#userModal.open();
+    }
+
+    focus() {
+        return this.querySelector('.write-message-input').focus();
+    }
+
+    firstUpdated() {
+        this.#userModal = document.querySelector('user-modal-window');
+    }
+
+    renderWriteContainer() {
+        return $`<div class="write-container"><input class="write-message-input" type="text"><div><i class="fa-solid fa-photo-film hover-font"></i></div></div>`;
+    }
+
     renderConversationPartner() {
         const check = this.conversationPartner.endless
             ? $`<i class="fa-solid fa-check"></i>`
@@ -7494,7 +7622,7 @@ class Messages extends s {
         const icon = $`<i class="fa-solid fa-${
             icons[this.conversationPartner.type]
         }"></i>`;
-        const name = $`<p>${this.conversationPartner.nickname} #${this.conversationPartner.id}</p>`;
+        const name = $`<p @click="${this.clickOnUser}" class="hover-font">${this.conversationPartner.nickname} #${this.conversationPartner.id}</p>`;
         const back = $`<i @click="${
             this.clickOnBack
         }" class="fa-solid fa-arrow-left ${
@@ -7503,14 +7631,6 @@ class Messages extends s {
         const user = $`<div class="conversation-partner-user">${icon}${name}${check}</div>`;
 
         return $`<div class="conversation-partner">${back}${user}</div>`;
-    }
-
-    renderWriteContainer() {
-        return $`<div class="write-container"><input class="write-message-input" type="text"><div><i class="fa-solid fa-photo-film"></i></div></div>`;
-    }
-
-    focus() {
-        return this.querySelector('.write-message-input').focus();
     }
 
     render() {
@@ -7548,7 +7668,7 @@ class User extends s {
         const creds = $`<div class="settings-container"><p>ID: <i>#${this.ME.id}</i></p><p>Nickname: <i>${this.ME.nickname}</i></p><p>Valid until: <i>${expireDate}</i></p><p>Endless Account: ${endlessIcon}</p></div>`;
         const status = $`<div class="settings-container"><p>Status</p><textarea @keydown="${(
             e
-        ) => this.keyDownStatus(e)}">Hello World</textarea></div>`;
+        ) => this.keyDownStatus(e)}">${this.ME.status}</textarea></div>`;
         const endlessToken = $`<div class="settings-container"><p>Endless Token</p><input type="text" maxlength="100"><button>Check</button></div>`;
 
         return $`<h1>User Menu</h1>${creds}${status}${endlessToken}`;
@@ -7620,6 +7740,7 @@ class Threads extends s {
             {
                 ...mockupPartner,
                 sender: '213213',
+                id: '213213',
                 nickname: 'Berni',
                 endless: true,
                 text: 'guten morgen',
@@ -7849,14 +7970,28 @@ customElements.define('app-layout', AppLayout);
 
 document.addEventListener('DOMContentLoaded', function () {
     const app = document.querySelector('app-layout');
+    const toast = document.querySelector('toast-notification');
+    toast.open();
 
     setTimeout(function () {
         console.log('me update');
+
         app.ME = {
             id: '123123',
             nickname: 'Johannes',
             expire: new Date(),
             codes: false,
+            status: 'working',
         };
-    }, 3000);
+
+        toast.open();
+        toast.notification = {
+            type: 'warning',
+            text: 'why are your? So long text with me you beautiful',
+        };
+    }, 5500);
+    setTimeout(function () {
+        toast.open();
+        toast.notification = { type: 'error', text: 'much error' };
+    }, 12000);
 });
