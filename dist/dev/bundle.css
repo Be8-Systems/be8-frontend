@@ -131,6 +131,10 @@ a:hover {
   color: var(--color-on-error);
 }
 
+.danger-color {
+  color: var(--color-error);
+}
+
 .full-width {
   width: 100%;
 }

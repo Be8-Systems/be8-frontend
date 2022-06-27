@@ -1104,7 +1104,7 @@ var LANG = Object.freeze({
     INVITELINK:
         'We copied your <a href="{{link}}">invite link</a> to your clipboard. Go ahead and share it.',
     PANICTEXT:
-        'Enter your Be8 id {{id}} to destroy your account and everythink associated with it. Attention there is no way to restore your data!',
+        'Enter your Be8 id {{id}} to destroy your account and everything associated with it. Attention there is no way to restore your data!',
     CONVERSATION: 'Enter a Be8 id to start a 1on1 chatting.',
     UNLOCKSETUPTEXT:
         'You have to remind your unlock code otherwise there is no way to access your account again! Enter your destroy code to destroy your acc! There is no way to recover destroyed accs',
@@ -1115,7 +1115,8 @@ var ME = {
     nickname: 'Mockup Boy',
     expire: 'Mon Jul 24 2022 09:02:52 GMT+0000 (Coordinated Universal Time)',
     type: 'user',
-    codes: true,
+    endless: false,
+    codes: false,
 };
 
 /* eslint-disable no-use-before-define */
@@ -7541,12 +7542,16 @@ class User extends s {
 
     render() {
         const expireDate = new Date(this.ME.expire).toISOString();
-        const creds = $`<div class="settings-container"><p>ID: <i>#${this.ME.id}</i></p><p>Nickname: <i>${this.ME.nickname}</i></p><p>Valid until: <i>${expireDate}</i></p></div>`;
+        const endlessIcon = this.ME.endless
+            ? $`<i class="fa-solid fa-check danger-color"></i>`
+            : $`<i class="fa-solid fa-times"></i>`;
+        const creds = $`<div class="settings-container"><p>ID: <i>#${this.ME.id}</i></p><p>Nickname: <i>${this.ME.nickname}</i></p><p>Valid until: <i>${expireDate}</i></p><p>Endless Account: ${endlessIcon}</p></div>`;
         const status = $`<div class="settings-container"><p>Status</p><textarea @keydown="${(
             e
         ) => this.keyDownStatus(e)}">Hello World</textarea></div>`;
+        const endlessToken = $`<div class="settings-container"><p>Endless Token</p><input type="text" maxlength="100"><button>Check</button></div>`;
 
-        return $`<h1>User Menu</h1>${creds}${status}`;
+        return $`<h1>User Menu</h1>${creds}${status}${endlessToken}`;
     }
 }
 
@@ -7847,6 +7852,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     setTimeout(function () {
         console.log('me update');
-        app.ME = { id: '123123', nickname: 'Johannes', expire: new Date() };
+        app.ME = {
+            id: '123123',
+            nickname: 'Johannes',
+            expire: new Date(),
+            codes: false,
+        };
     }, 3000);
 });
