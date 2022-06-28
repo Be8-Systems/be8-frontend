@@ -1055,8 +1055,14 @@ class Toast extends s {
 customElements.define('toast-notification', Toast);
 
 class Modal extends s {
-    constructor() {
+    #hasClose = true;
+
+    constructor(hasClose = true) {
         super();
+
+        this.#hasClose = hasClose;
+        this.classList = 'hide modal';
+        this.setAttribute('data-open', 'false');
     }
 
     createRenderRoot() {
@@ -1114,7 +1120,10 @@ class Modal extends s {
     }
 
     render(content = '', sideContent = '') {
-        return $`<div class="inner-modal"><small @click="${this.close}" class="close-modal unselectable">close</small><div class="modal-content">${content}</div><div class="modal-side">${sideContent}</div></div>`;
+        const close = this.#hasClose
+            ? $`<small @click="${this.close}" class="close-modal unselectable">close</small>`
+            : $``;
+        return $`<div class="inner-modal">${close}<div class="modal-content">${content}</div><div class="modal-side">${sideContent}</div></div>`;
     }
 }
 
@@ -7631,6 +7640,59 @@ class Codes extends Modal {
 
 customElements.define('codes-modal-window', Codes);
 
+class Lock extends Modal {
+    #unlockInput = {};
+
+    constructor() {
+        super(false);
+    }
+
+    createRenderRoot() {
+        return this; // prevents creating a shadow root
+    }
+
+    enterUnlockCode(e) {
+        if (e.keyCode === 13) {
+            const code = this.#unlockInput.value;
+
+            if (code === '1000') {
+                domCache.toast.notification = {
+                    type: 'success',
+                    text: 'be8 unlocked',
+                };
+
+                domCache.toast.open();
+                return this.close();
+            }
+
+            domCache.toast.notification = {
+                type: 'error',
+                text: 'wrong unlock code',
+            };
+
+            domCache.toast.open();
+        }
+    }
+
+    open() {
+        super.open();
+        requestAnimationFrame(() => this.#unlockInput.focus());
+    }
+
+    firstUpdated() {
+        this.#unlockInput = this.querySelector('input');
+    }
+
+    render() {
+        const content = $`<p class="create-group-headline">Unlock be8</p><small>Enter your unlock code to use be8</small><input type="text" @keydown="${(
+            e
+        ) => this.enterUnlockCode(e)}" maxlength="40">`;
+        return super.render(content);
+    }
+}
+
+customElements.define('lock-modal-window', Lock);
+
 class Usermodal extends Modal {
     static properties = {
         conversationPartner: {},
@@ -8094,6 +8156,7 @@ customElements.define('app-layout', AppLayout);
 
 document.addEventListener('DOMContentLoaded', function () {
     const app = document.querySelector('app-layout');
+    const lockModal = document.querySelector('lock-modal-window');
 
     setTimeout(function () {
         console.log('me update');
@@ -8104,5 +8167,7 @@ document.addEventListener('DOMContentLoaded', function () {
             codes: false,
             status: 'working',
         };
-    }, 1500);
+
+        lockModal.open();
+    }, 1000);
 });

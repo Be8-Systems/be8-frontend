@@ -1,5 +1,5 @@
 export default function () {
-    return before(() => {
+    return beforeEach(() => {
         cy.viewport('iphone-8');
         cy.visit('http://localhost:3000/prod/', {
             onBeforeLoad: (win) => {
