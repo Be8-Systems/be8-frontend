@@ -568,7 +568,7 @@ toast-notification .progress.error:before {
     right: 100%;
   }
 }
-@media (pointer: none), (pointer: coarse) {
+@media (max-width: 749px) {
   app-layout {
     grid-template-columns: 100%;
   }

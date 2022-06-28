@@ -7657,7 +7657,7 @@ class Usermodal extends Modal {
         const endlessIcon = this.conversationPartner.endless
             ? $`<i class="fa-solid fa-check danger-color"></i>`
             : $`<i class="fa-solid fa-times"></i>`;
-        const endless = $`<p><span>Endless until:</span> ${endlessIcon}</p>`;
+        const endless = $`<p><span>Endless until: </span>${endlessIcon}</p>`;
         const content = $`${hl}${id}${nickname}${status}${expire}${endless}`;
 
         return super.render(content);
@@ -7706,7 +7706,7 @@ class Messages extends s {
     }
 
     renderWriteContainer() {
-        return $`<div class="write-container"><input class="write-message-input" type="text"><div><i class="fa-solid fa-photo-film hover-font"></i></div></div>`;
+        return $`<div class="write-container"><input class="write-message-input" type="text" maxlength="1000"><div><i class="fa-solid fa-photo-film hover-font"></i></div></div>`;
     }
 
     renderConversationPartner() {
