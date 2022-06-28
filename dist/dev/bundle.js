@@ -966,13 +966,12 @@ null == n$1 || n$1({ LitElement: s });
     : (globalThis.litElementVersions = [])
 ).push('3.2.0');
 
-let timer1, timer2;
-
 class Toast extends s {
     static properties = {
         notification: {},
     };
 
+    #isOpen = false;
     #icons = {
         success: 'check',
         error: 'times',
@@ -980,6 +979,8 @@ class Toast extends s {
     };
     #openTime = 5000;
     #progress = {};
+    #timer1;
+    #timer2;
 
     constructor() {
         super();
@@ -995,27 +996,41 @@ class Toast extends s {
     }
 
     open() {
+        if (this.#isOpen) {
+            this.#progress.style.animation = 'none';
+            this.#progress.style.width = '100%';
+            this.#progress.style.animation = null;
+
+            this.#progress.classList.remove('active');
+            this.classList.remove('active');
+            clearTimeout(this.#timer1);
+            clearTimeout(this.#timer2);
+        }
+
         this.classList.add('active');
         this.#progress.classList.add('active');
 
-        timer1 = setTimeout(() => {
+        this.#isOpen = true;
+        this.#timer1 = setTimeout(() => {
             this.classList.remove('active');
+            this.isOpen = false;
         }, this.#openTime);
-
-        timer2 = setTimeout(() => {
-            this.#progress.classList.remove('active');
-        }, this.#openTime + 300);
+        this.#timer2 = setTimeout(
+            () => this.#progress.classList.remove('active'),
+            this.#openTime + 300
+        );
     }
 
     close() {
         this.classList.remove('active');
+        clearTimeout(this.#timer1);
+        clearTimeout(this.#timer2);
 
-        setTimeout(() => {
-            this.#progress.classList.remove('active');
-        }, 300);
+        setTimeout(() => this.#progress.classList.remove('active'), 300);
 
-        clearTimeout(timer1);
-        clearTimeout(timer2);
+        this.#timer1 = null;
+        this.#timer2 = null;
+        this.#isOpen = false;
     }
 
     firstUpdated() {
@@ -7230,6 +7245,39 @@ function animateMainToSide(main, side, focus) {
     }, 300);
 }
 
+const isPhone =
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+    );
+const mockupPartner = {
+    expire: 'Tue Jul 19 2022 05:33:42 GMT+0000 (Coordinated Universal Time)',
+    id: '10444',
+    nickname: 'Bobo Macbook',
+    sender: '10444',
+    status: 'Working on something great',
+    text: 'Hallo Oli',
+    threadID: '10322:10444',
+    ts: 'Mon Jun 20 2022 06:01:34 GMT+0000 (Coordinated Universal Time)',
+    type: 'user',
+    endless: false,
+};
+const icons = Object.freeze({
+    user: 'user',
+    group: 'users-rectangle',
+    channel: 'object-ungroup',
+});
+const domCache = {
+    app: {},
+    menus: {},
+    threads: {},
+    settings: {},
+    user: {},
+    navi: {},
+    header: {},
+    bottomNavi: {},
+    toast: {},
+};
+
 class PanicModal extends Modal {
     static properties = {
         ME: {},
@@ -7261,6 +7309,12 @@ class PanicModal extends Modal {
         if (id === this.ME.id) {
             console.log('destroy');
             return this.close();
+        } else {
+            domCache.toast.notification = {
+                type: 'error',
+                text: 'Wrong code',
+            };
+            return domCache.toast.open();
         }
     }
 
@@ -7324,19 +7378,24 @@ class ConversationModal extends Modal {
         const type = this.#groupType.value;
 
         if (name.length === 0) {
-            return;
+            domCache.toast.notification = {
+                type: 'error',
+                text: 'Enter a valid name for your group',
+            };
+
+            return domCache.toast.open();
         }
+
+        domCache.toast.notification = {
+            type: 'success',
+            text: 'You created the group ' + name,
+        };
+
+        domCache.toast.open();
+
         console.log(name, type);
         this.#groupNameInput.value = '';
         return this.close();
-    }
-
-    firstUpdated() {
-        this.#modalContent = this.querySelector('.modal-content');
-        this.#createGroup = this.querySelector('.create-group-content');
-        this.#dialogInput = this.#modalContent.querySelector('input');
-        this.#groupNameInput = this.#createGroup.querySelector('input');
-        this.#groupType = this.#createGroup.querySelector('select');
     }
 
     close() {
@@ -7351,9 +7410,34 @@ class ConversationModal extends Modal {
             return false;
         }
         if (e.keyCode === 13) {
-            console.log(this.#dialogInput.value);
+            const id = this.#dialogInput.value.trim();
+
+            if (id.length === 0) {
+                domCache.toast.notification = {
+                    type: 'error',
+                    text: 'Enter a be8 id',
+                };
+
+                return domCache.toast.open();
+            }
+
+            domCache.toast.notification = {
+                type: 'success',
+                text: 'Your are now chatting with ' + id,
+            };
+            this.#dialogInput.value = '';
+
+            domCache.toast.open();
             return this.close();
         }
+    }
+
+    firstUpdated() {
+        this.#modalContent = this.querySelector('.modal-content');
+        this.#createGroup = this.querySelector('.create-group-content');
+        this.#dialogInput = this.#modalContent.querySelector('input');
+        this.#groupNameInput = this.#createGroup.querySelector('input');
+        this.#groupType = this.#createGroup.querySelector('select');
     }
 
     render() {
@@ -7440,20 +7524,6 @@ class Codes extends Modal {
         this.state = 'main';
     }
 
-    renderUpdateSide() {
-        const unlock = $`<div class="unlock-side hide"><p class="create-group-headline"><i @click="${this.backToUpdateSelect}" class="fa-solid fa-arrow-left hover-font float-left"></i> <span>Update Unlock</span></p><small>Old Code</small><input type="password" maxlength="40"><small>New Code</small><input type="password" maxlength="40"> <small>New Code re-type</small><input type="password" maxlength="40"><button @click="${this.clickOnUpdateUnlock}" class="full-width">Update</button></div>`;
-        const destroy = $`<div class="destroy-side hide"><p class="create-group-headline"><i @click="${this.backToUpdateSelect}" class="fa-solid fa-arrow-left hover-font float-left"></i> <span>Update Destroy</span></p><small>Old Code</small><input type="password" maxlength="40"><small>New Code</small><input type="password" maxlength="40"> <small>New Code re-type</small><input type="password" maxlength="40"><button @click="${this.clickOnUpdateDestroy}" class="full-width">Update</button></div>`;
-
-        return $`${unlock}${destroy}`;
-    }
-
-    renderUpdate() {
-        const unlockCode = $`<p @click="${this.goToUpdateUnlock}" class="sub-modal-button hover-background"><span>Unlock Code</span> <i class="fa-solid fa-arrow-right hover-font float-right"></i></p>`;
-        const destroyCode = $`<p @click="${this.goToUpdateDestroy}" class="sub-modal-button hover-background"><span>Destroy Code</span> <i class="fa-solid fa-arrow-right hover-font float-right"></i></p>`;
-
-        return $`<p class="create-group-headline">Update</p>${unlockCode}${destroyCode}`;
-    }
-
     open() {
         super.open();
 
@@ -7468,24 +7538,70 @@ class Codes extends Modal {
 
     setup() {
         const inputs = [...this.querySelectorAll('input')];
-        const [
-            passwordInput,
-            passwordInputConf,
-            destroyInput,
-            destroyInputConf,
-        ] = inputs;
-        const password = passwordInput.value === passwordInputConf.value;
-        const destroy = destroyInput.value === destroyInputConf.value;
+        const [unlockInput, unlockInputConf, destroyInput, destroyInputConf] =
+            inputs;
+        const unlock = unlockInput.value;
+        const unlockConf = unlockInputConf.value;
+        const destroy = destroyInput.value;
+        const destroyConf = destroyInputConf.value;
+        const sameUnlock = unlock === unlockConf;
+        const sameDestroy = destroy === destroyConf;
 
-        if (!password) {
-            return;
+        if (!sameUnlock) {
+            domCache.toast.notification = {
+                type: 'error',
+                text: 'Unlock and unlock re-type are not equal',
+            };
+
+            return domCache.toast.open();
         }
-        if (!destroy) {
-            return;
+        if (!sameDestroy) {
+            domCache.toast.notification = {
+                type: 'error',
+                text: 'Destroy and destroy re-type are not equal',
+            };
+
+            return domCache.toast.open();
+        }
+        if (unlock.length === 0 || unlockConf.length === 0) {
+            domCache.toast.notification = {
+                type: 'error',
+                text: 'You have to enter an unlock code',
+            };
+
+            return domCache.toast.open();
+        }
+        if (destroy.length === 0 || destroyConf.length === 0) {
+            domCache.toast.notification = {
+                type: 'error',
+                text: 'You have to enter a destroy code',
+            };
+
+            return domCache.toast.open();
         }
 
+        domCache.toast.notification = {
+            type: 'success',
+            text: 'Your unlock code and destroy code are set. Auto refresh in 2s.',
+        };
+
+        domCache.toast.open();
         inputs.forEach((input) => (input.value = ''));
-        this.close();
+        return this.close();
+    }
+
+    renderUpdateSide() {
+        const unlock = $`<div class="unlock-side hide"><p class="create-group-headline"><i @click="${this.backToUpdateSelect}" class="fa-solid fa-arrow-left hover-font float-left"></i> <span>Update Unlock</span></p><small>Old Code</small><input type="password" maxlength="40"><small>New Code</small><input type="password" maxlength="40"> <small>New Code re-type</small><input type="password" maxlength="40"><button @click="${this.clickOnUpdateUnlock}" class="full-width">Update</button></div>`;
+        const destroy = $`<div class="destroy-side hide"><p class="create-group-headline"><i @click="${this.backToUpdateSelect}" class="fa-solid fa-arrow-left hover-font float-left"></i> <span>Update Destroy</span></p><small>Old Code</small><input type="password" maxlength="40"><small>New Code</small><input type="password" maxlength="40"> <small>New Code re-type</small><input type="password" maxlength="40"><button @click="${this.clickOnUpdateDestroy}" class="full-width">Update</button></div>`;
+
+        return $`${unlock}${destroy}`;
+    }
+
+    renderUpdate() {
+        const unlockCode = $`<p @click="${this.goToUpdateUnlock}" class="sub-modal-button hover-background"><span>Unlock Code</span> <i class="fa-solid fa-arrow-right hover-font float-right"></i></p>`;
+        const destroyCode = $`<p @click="${this.goToUpdateDestroy}" class="sub-modal-button hover-background"><span>Destroy Code</span> <i class="fa-solid fa-arrow-right hover-font float-right"></i></p>`;
+
+        return $`<p class="create-group-headline">Update</p>${unlockCode}${destroyCode}`;
     }
 
     renderSetup() {
@@ -7513,29 +7629,6 @@ class Codes extends Modal {
 }
 
 customElements.define('codes-modal-window', Codes);
-
-const isPhone =
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
-    );
-const mockupPartner = {
-    expire: 'Tue Jul 19 2022 05:33:42 GMT+0000 (Coordinated Universal Time)',
-    id: '10444',
-    nickname: 'Bobo Macbook',
-    sender: '10444',
-    status: 'Working on something great',
-    text: 'Hallo Oli',
-    threadID: '10322:10444',
-    ts: 'Mon Jun 20 2022 06:01:34 GMT+0000 (Coordinated Universal Time)',
-    type: 'user',
-    endless: false,
-};
-const icons = Object.freeze({
-    user: 'user',
-    group: 'users-rectangle',
-    channel: 'object-ungroup',
-});
-const domCache = {};
 
 class Usermodal extends Modal {
     static properties = {
@@ -7646,6 +7739,8 @@ class User extends s {
         ME: {},
     };
 
+    #tokenInput = {};
+
     constructor() {
         super();
 
@@ -7656,8 +7751,35 @@ class User extends s {
         return this; // prevents creating a shadow root
     }
 
+    clickOnEndlessToken() {
+        const value = this.#tokenInput.value.trim();
+
+        if (value.length < 10) {
+            domCache.toast.notification = {
+                type: 'error',
+                text: 'Your token is too short',
+            };
+
+            return domCache.toast.open();
+        }
+
+        requestAnimationFrame(() => {
+            domCache.toast.notification = {
+                type: 'success',
+                text: 'Your acc is upgraded to endless',
+            };
+
+            this.#tokenInput.value = '';
+            return domCache.toast.open();
+        });
+    }
+
     keyDownStatus(e) {
         console.log(e.target.value);
+    }
+
+    firstUpdated() {
+        this.#tokenInput = this.querySelector('input');
     }
 
     render() {
@@ -7669,7 +7791,7 @@ class User extends s {
         const status = $`<div class="settings-container"><p>Status</p><textarea @keydown="${(
             e
         ) => this.keyDownStatus(e)}">${this.ME.status}</textarea></div>`;
-        const endlessToken = $`<div class="settings-container"><p>Endless Token</p><input type="text" maxlength="100"><button>Check</button></div>`;
+        const endlessToken = $`<div class="settings-container"><p>Endless Token</p><input type="text" maxlength="100"><button @click="${this.clickOnEndlessToken}">Check</button></div>`;
 
         return $`<h1>User Menu</h1>${creds}${status}${endlessToken}`;
     }
@@ -7927,6 +8049,7 @@ class AppLayout extends s {
         domCache.navi = this.querySelector('nav');
         domCache.header = this.querySelector('header');
         domCache.bottomNavi = this.querySelector('.bottom-navi');
+        domCache.toast = document.querySelector('toast-notification');
 
         this.#menus = menus;
     }
@@ -7970,12 +8093,9 @@ customElements.define('app-layout', AppLayout);
 
 document.addEventListener('DOMContentLoaded', function () {
     const app = document.querySelector('app-layout');
-    const toast = document.querySelector('toast-notification');
-    toast.open();
 
     setTimeout(function () {
         console.log('me update');
-
         app.ME = {
             id: '123123',
             nickname: 'Johannes',
@@ -7983,15 +8103,5 @@ document.addEventListener('DOMContentLoaded', function () {
             codes: false,
             status: 'working',
         };
-
-        toast.open();
-        toast.notification = {
-            type: 'warning',
-            text: 'why are your? So long text with me you beautiful',
-        };
-    }, 5500);
-    setTimeout(function () {
-        toast.open();
-        toast.notification = { type: 'error', text: 'much error' };
-    }, 12000);
+    }, 1500);
 });
