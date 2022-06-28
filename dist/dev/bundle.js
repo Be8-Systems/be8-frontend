@@ -1188,7 +1188,8 @@ class i {
 (e.directiveName = 'unsafeHTML'), (e.resultType = 1);
 const o = e$1(e);
 
-var ME$1 = Object.freeze({
+var LANG = Object.freeze({
+    THREADSTITLE: 'Chats',
     INVITELINK:
         'We copied your <a href="{{link}}">invite link</a> to your clipboard. Go ahead and share it.',
     PANICTEXT:
@@ -7172,7 +7173,7 @@ class InviteModal extends Modal {
     render() {
         const url = this.#generateSafeLink('join', this.ME.id);
         const content = $`<p>${o(
-            ME$1.INVITELINK.replaceAll('{{link}}', this.url)
+            LANG.INVITELINK.replaceAll('{{link}}', this.url)
         )}</p><br><div class="qr"></div><br>`;
 
         this.url = url;
@@ -7324,7 +7325,7 @@ class PanicModal extends Modal {
     }
 
     render() {
-        const text = ME$1.PANICTEXT.replaceAll('{{id}}', this.ME.id);
+        const text = LANG.PANICTEXT.replaceAll('{{id}}', this.ME.id);
         const content = $`<p>${text}</p><div><input tabindex="0" @keydown="${(
             e
         ) => this.onKeyPress(e)}" type="text"></div><button @click="${
@@ -7441,7 +7442,7 @@ class ConversationModal extends Modal {
     }
 
     render() {
-        const content = $`<p>${ME$1.CONVERSATION}</p><input @keydown="${(e) =>
+        const content = $`<p>${LANG.CONVERSATION}</p><input @keydown="${(e) =>
             this.keyDownOn1to1(e)}" tabindex="0" type="text"><div @click="${
             this.clickOnGoToGroup
         }" class="sub-modal-button hover-background">Create a group <i class="fa-solid fa-arrow-right float-right"></i></div>`;
@@ -7605,7 +7606,7 @@ class Codes extends Modal {
     }
 
     renderSetup() {
-        const headline = $`<div class="setup-unlock-container"><p class="create-group-headline">Setup</p><small>${ME$1.UNLOCKSETUPTEXT}</small></div>`;
+        const headline = $`<div class="setup-unlock-container"><p class="create-group-headline">Setup</p><small>${LANG.UNLOCKSETUPTEXT}</small></div>`;
         const unlock = $`<div class="setup-unlock-container"><p>Unlock Code</p><small>new password</small><input type="password" maxlength="40"><small>re-type</small><input type="password" maxlength="40"></div>`;
         const destroy = $`<div><p>Destroy Code</p><small>new destory code</small><input type="password" maxlength="40"><small>re-type</small><input type="password" maxlength="40"></div>`;
 
@@ -7638,7 +7639,7 @@ class Usermodal extends Modal {
     constructor() {
         super();
 
-        this.conversationPartner = ME$1;
+        this.conversationPartner = LANG;
     }
 
     render() {
@@ -8058,9 +8059,9 @@ class AppLayout extends s {
         const bottomNavi = $`<div class="bottom-navi"><div @click="${(e) =>
             this.clickOnChat(
                 e
-            )}" class="active-setting"><i class="fa-solid fa-comments"></i><small>Chats</small></div><div @click="${(
-            e
-        ) =>
+            )}" class="active-setting"><i class="fa-solid fa-comments"></i><small>${
+            LANG.THREADSTITLE
+        }</small></div><div @click="${(e) =>
             this.clickOnSettings(
                 e
             )}"><i class="fa-solid fa-gears"></i><small>Settings</small></div><div @click="${(
