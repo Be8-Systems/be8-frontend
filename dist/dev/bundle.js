@@ -7641,10 +7641,15 @@ class Codes extends Modal {
 customElements.define('codes-modal-window', Codes);
 
 class Lock extends Modal {
+    static properties = {
+        ME: {},
+    };
+
     #unlockInput = {};
 
     constructor() {
         super(false);
+        this.ME = {};
     }
 
     createRenderRoot() {
@@ -7675,8 +7680,10 @@ class Lock extends Modal {
     }
 
     open() {
-        super.open();
-        requestAnimationFrame(() => this.#unlockInput.focus());
+        if (this.ME.codes) {
+            super.open();
+            requestAnimationFrame(() => this.#unlockInput.focus());
+        }
     }
 
     firstUpdated() {
@@ -7961,15 +7968,30 @@ class Threads extends s {
 
     render() {
         const HTML = this.threads
-            .map(({ expire, nickname, sender, text, threadID, ts, type }) => {
-                const icon = `<i class="fa-solid fa-${icons[type]}"></i>`;
-                return `<div expire="${expire}" id="${threadID}" sender="${sender}" type="${type}" class="thread hover-background">${icon}<div><p>${nickname} <span class="float-right">#${sender}<span></p><p>${text.substring(
-                    0,
-                    9
-                )}… <span class="float-right">${new Date(
-                    ts
-                ).toISOString()}</span></p></div></div>`;
-            })
+            .map(
+                ({
+                    endless,
+                    expire,
+                    nickname,
+                    sender,
+                    text,
+                    threadID,
+                    ts,
+                    type,
+                }) => {
+                    const icon = `<i class="fa-solid fa-${icons[type]} thread-avatar"></i>`;
+                    const endlessIcon = endless
+                        ? '<i class="fa-solid fa-check color-danger-font"></i>'
+                        : '';
+
+                    return `<div expire="${expire}" id="${threadID}" sender="${sender}" type="${type}" class="thread hover-background">${icon}<div><p>${nickname} ${endlessIcon}<span class="float-right">#${sender}<span></p><p>${text.substring(
+                        0,
+                        9
+                    )}… <span class="float-right">${new Date(
+                        ts
+                    ).toISOString()}</span></p></div></div>`;
+                }
+            )
             .join('');
 
         this.innerHTML = HTML;
@@ -8157,16 +8179,18 @@ customElements.define('app-layout', AppLayout);
 document.addEventListener('DOMContentLoaded', function () {
     const app = document.querySelector('app-layout');
     const lockModal = document.querySelector('lock-modal-window');
+    const me = {
+        codes: false,
+        id: '123123',
+        nickname: 'Johannes',
+        expire: new Date(),
+        status: 'working',
+    };
 
     setTimeout(function () {
         console.log('me update');
-        app.ME = {
-            id: '123123',
-            nickname: 'Johannes',
-            expire: new Date(),
-            codes: false,
-            status: 'working',
-        };
+        app.ME = me;
+        lockModal.ME = me;
 
         lockModal.open();
     }, 1000);
