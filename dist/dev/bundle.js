@@ -8,11 +8,11 @@ const t$2 =
         (void 0 === window.ShadyCSS || window.ShadyCSS.nativeShadow) &&
         'adoptedStyleSheets' in Document.prototype &&
         'replace' in CSSStyleSheet.prototype,
-    e$4 = Symbol(),
+    e$5 = Symbol(),
     n$4 = new Map();
-class s$3 {
+class s$4 {
     constructor(t, n) {
-        if (((this._$cssResult$ = !0), n !== e$4))
+        if (((this._$cssResult$ = !0), n !== e$5))
             throw Error(
                 'CSSResult is not constructable. Use `unsafeCSS` or `css` instead.'
             );
@@ -32,8 +32,8 @@ class s$3 {
         return this.cssText;
     }
 }
-const o$4 = (t) => new s$3('string' == typeof t ? t : t + '', e$4),
-    i$2 = (e, n) => {
+const o$4 = (t) => new s$4('string' == typeof t ? t : t + '', e$5),
+    i$3 = (e, n) => {
         t$2
             ? (e.adoptedStyleSheets = n.map((t) =>
                   t instanceof CSSStyleSheet ? t : t.styleSheet
@@ -61,9 +61,9 @@ const o$4 = (t) => new s$3('string' == typeof t ? t : t + '', e$4),
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */ var s$2;
-const e$3 = window.trustedTypes,
-    r$1 = e$3 ? e$3.emptyScript : '',
+ */ var s$3;
+const e$4 = window.trustedTypes,
+    r$1 = e$4 ? e$4.emptyScript : '',
     h$1 = window.reactiveElementPolyfillSupport,
     o$3 = {
         toAttribute(t, i) {
@@ -105,7 +105,7 @@ const e$3 = window.trustedTypes,
         reflect: !1,
         hasChanged: n$3,
     };
-class a$1 extends HTMLElement {
+class a$2 extends HTMLElement {
     constructor() {
         super(),
             (this._$Et = new Map()),
@@ -232,7 +232,7 @@ class a$1 extends HTMLElement {
             null !== (t = this.shadowRoot) && void 0 !== t
                 ? t
                 : this.attachShadow(this.constructor.shadowRootOptions);
-        return i$2(s, this.constructor.elementStyles), s;
+        return i$3(s, this.constructor.elementStyles), s;
     }
     connectedCallback() {
         var t;
@@ -396,13 +396,13 @@ class a$1 extends HTMLElement {
     updated(t) {}
     firstUpdated(t) {}
 }
-(a$1.finalized = !0),
-    (a$1.elementProperties = new Map()),
-    (a$1.elementStyles = []),
-    (a$1.shadowRootOptions = { mode: 'open' }),
-    null == h$1 || h$1({ ReactiveElement: a$1 }),
-    (null !== (s$2 = globalThis.reactiveElementVersions) && void 0 !== s$2
-        ? s$2
+(a$2.finalized = !0),
+    (a$2.elementProperties = new Map()),
+    (a$2.elementStyles = []),
+    (a$2.shadowRootOptions = { mode: 'open' }),
+    null == h$1 || h$1({ ReactiveElement: a$2 }),
+    (null !== (s$3 = globalThis.reactiveElementVersions) && void 0 !== s$3
+        ? s$3
         : (globalThis.reactiveElementVersions = [])
     ).push('1.3.2');
 
@@ -412,16 +412,16 @@ class a$1 extends HTMLElement {
  * SPDX-License-Identifier: BSD-3-Clause
  */
 var t$1;
-const i$1 = globalThis.trustedTypes,
-    s$1 = i$1 ? i$1.createPolicy('lit-html', { createHTML: (t) => t }) : void 0,
-    e$2 = `lit$${(Math.random() + '').slice(9)}$`,
-    o$2 = '?' + e$2,
+const i$2 = globalThis.trustedTypes,
+    s$2 = i$2 ? i$2.createPolicy('lit-html', { createHTML: (t) => t }) : void 0,
+    e$3 = `lit$${(Math.random() + '').slice(9)}$`,
+    o$2 = '?' + e$3,
     n$2 = `<${o$2}>`,
     l$1 = document,
     h = (t = '') => l$1.createComment(t),
     r = (t) => null === t || ('object' != typeof t && 'function' != typeof t),
     d$1 = Array.isArray,
-    u = (t) => {
+    u$2 = (t) => {
         var i;
         return (
             d$1(t) ||
@@ -431,13 +431,13 @@ const i$1 = globalThis.trustedTypes,
                     : i[Symbol.iterator])
         );
     },
-    c = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,
+    c$2 = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,
     v = /-->/g,
-    a = />/g,
+    a$1 = />/g,
     f =
         />|[ 	\n\r](?:([^\s"'>=/]+)([ 	\n\r]*=[ 	\n\r]*(?:[^ 	\n\r"'`<>=]|("|')|))|$)/g,
     _ = /'/g,
-    m = /"/g,
+    m$1 = /"/g,
     g = /^(?:script|style|textarea|title)$/i,
     p =
         (t) =>
@@ -474,7 +474,7 @@ const i$1 = globalThis.trustedTypes,
             l = [];
         let h,
             r = 2 === i ? '<svg>' : '',
-            d = c;
+            d = c$2;
         for (let i = 0; i < o; i++) {
             const s = t[i];
             let o,
@@ -488,41 +488,42 @@ const i$1 = globalThis.trustedTypes,
 
             )
                 ($ = d.lastIndex),
-                    d === c
+                    d === c$2
                         ? '!--' === u[1]
                             ? (d = v)
                             : void 0 !== u[1]
-                            ? (d = a)
+                            ? (d = a$1)
                             : void 0 !== u[2]
                             ? (g.test(u[2]) && (h = RegExp('</' + u[2], 'g')),
                               (d = f))
                             : void 0 !== u[3] && (d = f)
                         : d === f
                         ? '>' === u[0]
-                            ? ((d = null != h ? h : c), (p = -1))
+                            ? ((d = null != h ? h : c$2), (p = -1))
                             : void 0 === u[1]
                             ? (p = -2)
                             : ((p = d.lastIndex - u[2].length),
                               (o = u[1]),
-                              (d = void 0 === u[3] ? f : '"' === u[3] ? m : _))
-                        : d === m || d === _
+                              (d =
+                                  void 0 === u[3] ? f : '"' === u[3] ? m$1 : _))
+                        : d === m$1 || d === _
                         ? (d = f)
-                        : d === v || d === a
-                        ? (d = c)
+                        : d === v || d === a$1
+                        ? (d = c$2)
                         : ((d = f), (h = void 0));
             const y = d === f && t[i + 1].startsWith('/>') ? ' ' : '';
             r +=
-                d === c
+                d === c$2
                     ? s + n$2
                     : p >= 0
                     ? (l.push(o),
-                      s.slice(0, p) + '$lit$' + s.slice(p) + e$2 + y)
-                    : s + e$2 + (-2 === p ? (l.push(void 0), i) : y);
+                      s.slice(0, p) + '$lit$' + s.slice(p) + e$3 + y)
+                    : s + e$3 + (-2 === p ? (l.push(void 0), i) : y);
         }
         const u = r + (t[o] || '<?>') + (2 === i ? '</svg>' : '');
         if (!Array.isArray(t) || !t.hasOwnProperty('raw'))
             throw Error('invalid template strings array');
-        return [void 0 !== s$1 ? s$1.createHTML(u) : u, l];
+        return [void 0 !== s$2 ? s$2.createHTML(u) : u, l];
     };
 class E {
     constructor({ strings: t, _$litType$: s }, n) {
@@ -547,12 +548,12 @@ class E {
                 if (l.hasAttributes()) {
                     const t = [];
                     for (const i of l.getAttributeNames())
-                        if (i.endsWith('$lit$') || i.startsWith(e$2)) {
+                        if (i.endsWith('$lit$') || i.startsWith(e$3)) {
                             const s = a[d++];
                             if ((t.push(i), void 0 !== s)) {
                                 const t = l
                                         .getAttribute(s.toLowerCase() + '$lit$')
-                                        .split(e$2),
+                                        .split(e$3),
                                     i = /([.?@])?(.*)/.exec(s);
                                 c.push({
                                     type: 1,
@@ -573,10 +574,10 @@ class E {
                     for (const i of t) l.removeAttribute(i);
                 }
                 if (g.test(l.tagName)) {
-                    const t = l.textContent.split(e$2),
+                    const t = l.textContent.split(e$3),
                         s = t.length - 1;
                     if (s > 0) {
-                        l.textContent = i$1 ? i$1.emptyScript : '';
+                        l.textContent = i$2 ? i$2.emptyScript : '';
                         for (let i = 0; i < s; i++)
                             l.append(t[i], h()),
                                 A.nextNode(),
@@ -588,8 +589,8 @@ class E {
                 if (l.data === o$2) c.push({ type: 2, index: r });
                 else {
                     let t = -1;
-                    for (; -1 !== (t = l.data.indexOf(e$2, t + 1)); )
-                        c.push({ type: 7, index: r }), (t += e$2.length - 1);
+                    for (; -1 !== (t = l.data.indexOf(e$3, t + 1)); )
+                        c.push({ type: 7, index: r }), (t += e$3.length - 1);
                 }
             r++;
         }
@@ -720,7 +721,7 @@ class N {
                 ? this.T(t)
                 : void 0 !== t.nodeType
                 ? this.k(t)
-                : u(t)
+                : u$2(t)
                 ? this.S(t)
                 : this.$(t);
     }
@@ -845,7 +846,7 @@ class M extends S$2 {
         this.element[this.name] = t === w ? void 0 : t;
     }
 }
-const k = i$1 ? i$1.emptyScript : '';
+const k = i$2 ? i$2.emptyScript : '';
 class H$1 extends S$2 {
     constructor() {
         super(...arguments), (this.type = 4);
@@ -906,7 +907,23 @@ class L {
         P(this, t);
     }
 }
-const z = window.litHtmlPolyfillSupport;
+const R = {
+        L: '$lit$',
+        P: e$3,
+        V: o$2,
+        I: 1,
+        N: C,
+        R: V,
+        j: u$2,
+        D: P,
+        H: N,
+        F: S$2,
+        O: H$1,
+        W: I,
+        B: M,
+        Z: L,
+    },
+    z = window.litHtmlPolyfillSupport;
 null == z || z(E, N),
     (null !== (t$1 = globalThis.litHtmlVersions) && void 0 !== t$1
         ? t$1
@@ -918,7 +935,7 @@ null == z || z(E, N),
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */ var l, o$1;
-class s extends a$1 {
+class s$1 extends a$2 {
     constructor() {
         super(...arguments),
             (this.renderOptions = { host: this }),
@@ -954,21 +971,21 @@ class s extends a$1 {
         return b;
     }
 }
-(s.finalized = !0),
-    (s._$litElement$ = !0),
+(s$1.finalized = !0),
+    (s$1._$litElement$ = !0),
     null === (l = globalThis.litElementHydrateSupport) ||
         void 0 === l ||
-        l.call(globalThis, { LitElement: s });
+        l.call(globalThis, { LitElement: s$1 });
 const n$1 = globalThis.litElementPolyfillSupport;
-null == n$1 || n$1({ LitElement: s });
+null == n$1 || n$1({ LitElement: s$1 });
 (null !== (o$1 = globalThis.litElementVersions) && void 0 !== o$1
     ? o$1
     : (globalThis.litElementVersions = [])
 ).push('3.2.0');
 
-class Toast extends s {
+class Toast extends s$1 {
     static properties = {
-        notification: {},
+        notification: { type: Object },
     };
 
     #isOpen = false;
@@ -1054,7 +1071,7 @@ class Toast extends s {
 
 customElements.define('toast-notification', Toast);
 
-class Modal extends s {
+class Modal extends s$1 {
     #hasClose = true;
 
     constructor(hasClose = true) {
@@ -1142,10 +1159,10 @@ const t = {
         EVENT: 5,
         ELEMENT: 6,
     },
-    e$1 =
+    e$2 =
         (t) =>
         (...e) => ({ _$litDirective$: t, values: e });
-class i {
+class i$1 {
     constructor(t) {}
     get _$AU() {
         return this._$AM._$AU;
@@ -1165,7 +1182,7 @@ class i {
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */ class e extends i {
+ */ class e$1 extends i$1 {
     constructor(i) {
         if ((super(i), (this.it = w), i.type !== t.CHILD))
             throw Error(
@@ -1194,8 +1211,8 @@ class i {
         );
     }
 }
-(e.directiveName = 'unsafeHTML'), (e.resultType = 1);
-const o = e$1(e);
+(e$1.directiveName = 'unsafeHTML'), (e$1.resultType = 1);
+const o = e$2(e$1);
 
 var LANG = Object.freeze({
     THREADSTITLE: 'Chats',
@@ -1210,10 +1227,10 @@ var LANG = Object.freeze({
 
 var ME = {
     id: '0',
-    nickname: 'Mockup Boy',
-    expire: 'Mon Jul 24 2022 09:02:52 GMT+0000 (Coordinated Universal Time)',
+    nickname: 'User Name',
+    expire: 'Mon Jan 01 2222 00:00:00 GMT+0000 (Coordinated Universal Time)',
     type: 'user',
-    status: 'Hello World',
+    status: 'Status Mockup',
     endless: false,
     codes: false,
 };
@@ -7145,8 +7162,8 @@ var Crypto = {
 
 class InviteModal extends Modal {
     static properties = {
-        url: {},
-        ME: {},
+        url: { type: String },
+        ME: { type: Object },
     };
 
     constructor() {
@@ -7221,6 +7238,30 @@ function isKeyDownNumber(evt) {
     return true;
 }
 
+function humanReadAbleLastTime(ts) {
+    const dateTime = new Date(ts);
+    const hours = Math.abs(new Date(ts) - new Date()) / 36e5;
+    const date = dateTime.toDateString();
+    const time = dateTime.toLocaleTimeString();
+
+    if (hours < 24) {
+        return time.substring(0, 5);
+    }
+    if (hours < 168) {
+        return dateTime.toLocaleDateString('en', { weekday: 'long' });
+    }
+
+    return date;
+}
+
+function sanitizeTime(ts) {
+    const dateTime = new Date(ts);
+    const date = dateTime.toDateString();
+    const time = dateTime.toLocaleTimeString();
+
+    return `${date} ${time}`;
+}
+
 function animateSideToMain(main, side, focus) {
     side.style = animations.fadeRightOut();
 
@@ -7259,18 +7300,7 @@ const isPhone =
     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
         navigator.userAgent
     );
-const mockupPartner = {
-    expire: 'Tue Jul 19 2022 05:33:42 GMT+0000 (Coordinated Universal Time)',
-    id: '10444',
-    nickname: 'Bobo Macbook',
-    sender: '10444',
-    status: 'Working on something great',
-    text: 'Hallo Oli',
-    threadID: '10322:10444',
-    ts: 'Mon Jun 20 2022 06:01:34 GMT+0000 (Coordinated Universal Time)',
-    type: 'user',
-    endless: false,
-};
+const isDesktop = !isPhone;
 const icons = Object.freeze({
     user: 'user',
     group: 'users-rectangle',
@@ -7290,7 +7320,7 @@ const domCache = {
 
 class PanicModal extends Modal {
     static properties = {
-        ME: {},
+        ME: { type: Object },
     };
 
     constructor() {
@@ -7466,8 +7496,8 @@ customElements.define('conversation-modal-window', ConversationModal);
 
 class Codes extends Modal {
     static properties = {
-        ME: {},
-        state: {},
+        ME: { type: Object },
+        state: { type: String },
     };
 
     #modalContent = {};
@@ -7642,7 +7672,7 @@ customElements.define('codes-modal-window', Codes);
 
 class Lock extends Modal {
     static properties = {
-        ME: {},
+        ME: { type: Object },
     };
 
     #unlockInput = {};
@@ -7702,19 +7732,16 @@ customElements.define('lock-modal-window', Lock);
 
 class Usermodal extends Modal {
     static properties = {
-        conversationPartner: {},
+        conversationPartner: { type: Object },
     };
 
     constructor() {
         super();
-
         this.conversationPartner = LANG;
     }
 
     render() {
-        const dateTime = new Date(this.conversationPartner.expire);
-        const date = dateTime.toDateString();
-        const time = dateTime.toLocaleTimeString();
+        const dateTime = sanitizeTime(this.conversationPartner.expire);
         const icon = $`<i class="fa-solid fa-${
             icons[this.conversationPartner.type]
         }"></i>`;
@@ -7722,7 +7749,9 @@ class Usermodal extends Modal {
         const id = $`<p><span>ID:</span> <span>${this.conversationPartner.id}</span></p>`;
         const nickname = $`<p><span>Nickname:</span> <span>${this.conversationPartner.nickname}</span></p>`;
         const status = $`<p><span>Status:</span> <span>"${this.conversationPartner.status}"</span></p>`;
-        const expire = $`<p><span>Valid Account:</span> <span>${date} ${time}</span></p>`;
+        const expire = this.conversationPartner.endless
+            ? ''
+            : $`<p><span>Valid Account:</span> <span>${dateTime}</span></p>`;
         const endlessIcon = this.conversationPartner.endless
             ? $`<i class="fa-solid fa-check danger-color"></i>`
             : $`<i class="fa-solid fa-times"></i>`;
@@ -7735,22 +7764,169 @@ class Usermodal extends Modal {
 
 customElements.define('user-modal-window', Usermodal);
 
-class Messages extends s {
+/**
+ * @license
+ * Copyright 2020 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */ const { H: i } = R,
+    e = () => document.createComment(''),
+    u$1 = (o, t, n) => {
+        var v;
+        const l = o._$AA.parentNode,
+            d = void 0 === t ? o._$AB : t._$AA;
+        if (void 0 === n) {
+            const t = l.insertBefore(e(), d),
+                v = l.insertBefore(e(), d);
+            n = new i(t, v, o, o.options);
+        } else {
+            const i = n._$AB.nextSibling,
+                t = n._$AM,
+                r = t !== o;
+            if (r) {
+                let i;
+                null === (v = n._$AQ) || void 0 === v || v.call(n, o),
+                    (n._$AM = o),
+                    void 0 !== n._$AP && (i = o._$AU) !== t._$AU && n._$AP(i);
+            }
+            if (i !== d || r) {
+                let o = n._$AA;
+                for (; o !== i; ) {
+                    const i = o.nextSibling;
+                    l.insertBefore(o, d), (o = i);
+                }
+            }
+        }
+        return n;
+    },
+    c$1 = (o, i, t = o) => (o._$AI(i, t), o),
+    s = (o, i) => (o._$AH = i),
+    a = (o) => o._$AH,
+    m = (o) => {
+        var i;
+        null === (i = o._$AP) || void 0 === i || i.call(o, !1, !0);
+        let t = o._$AA;
+        const n = o._$AB.nextSibling;
+        for (; t !== n; ) {
+            const o = t.nextSibling;
+            t.remove(), (t = o);
+        }
+    };
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+const u = (e, s, t) => {
+        const r = new Map();
+        for (let l = s; l <= t; l++) r.set(e[l], l);
+        return r;
+    },
+    c = e$2(
+        class extends i$1 {
+            constructor(e) {
+                if ((super(e), e.type !== t.CHILD))
+                    throw Error(
+                        'repeat() can only be used in text expressions'
+                    );
+            }
+            dt(e, s, t) {
+                let r;
+                void 0 === t ? (t = s) : void 0 !== s && (r = s);
+                const l = [],
+                    o = [];
+                let i = 0;
+                for (const s of e)
+                    (l[i] = r ? r(s, i) : i), (o[i] = t(s, i)), i++;
+                return { values: o, keys: l };
+            }
+            render(e, s, t) {
+                return this.dt(e, s, t).values;
+            }
+            update(s$1, [t, r, c]) {
+                var d;
+                const a$1 = a(s$1),
+                    { values: p, keys: v } = this.dt(t, r, c);
+                if (!Array.isArray(a$1)) return (this.ut = v), p;
+                const h =
+                        null !== (d = this.ut) && void 0 !== d
+                            ? d
+                            : (this.ut = []),
+                    m$1 = [];
+                let y,
+                    x,
+                    j = 0,
+                    k = a$1.length - 1,
+                    w = 0,
+                    A = p.length - 1;
+                for (; j <= k && w <= A; )
+                    if (null === a$1[j]) j++;
+                    else if (null === a$1[k]) k--;
+                    else if (h[j] === v[w])
+                        (m$1[w] = c$1(a$1[j], p[w])), j++, w++;
+                    else if (h[k] === v[A])
+                        (m$1[A] = c$1(a$1[k], p[A])), k--, A--;
+                    else if (h[j] === v[A])
+                        (m$1[A] = c$1(a$1[j], p[A])),
+                            u$1(s$1, m$1[A + 1], a$1[j]),
+                            j++,
+                            A--;
+                    else if (h[k] === v[w])
+                        (m$1[w] = c$1(a$1[k], p[w])),
+                            u$1(s$1, a$1[j], a$1[k]),
+                            k--,
+                            w++;
+                    else if (
+                        (void 0 === y && ((y = u(v, w, A)), (x = u(h, j, k))),
+                        y.has(h[j]))
+                    )
+                        if (y.has(h[k])) {
+                            const e = x.get(v[w]),
+                                t = void 0 !== e ? a$1[e] : null;
+                            if (null === t) {
+                                const e = u$1(s$1, a$1[j]);
+                                c$1(e, p[w]), (m$1[w] = e);
+                            } else
+                                (m$1[w] = c$1(t, p[w])),
+                                    u$1(s$1, a$1[j], t),
+                                    (a$1[e] = null);
+                            w++;
+                        } else m(a$1[k]), k--;
+                    else m(a$1[j]), j++;
+                for (; w <= A; ) {
+                    const e = u$1(s$1, m$1[A + 1]);
+                    c$1(e, p[w]), (m$1[w++] = e);
+                }
+                for (; j <= k; ) {
+                    const e = a$1[j++];
+                    null !== e && m(e);
+                }
+                return (this.ut = v), s(s$1, m$1), b;
+            }
+        }
+    );
+
+class Messages extends s$1 {
     static properties = {
-        conversationPartner: {},
+        conversationPartner: { type: Object },
+        messages: { type: Array },
+        ME: { type: Object },
     };
 
     #userModal = {};
+    #messageInput = {};
 
     constructor() {
         super();
-        this.conversationPartner = mockupPartner;
+        this.conversationPartner = {};
+        this.messages = [];
     }
 
     createRenderRoot() {
         return this; // prevents creating a shadow root
     }
 
+    // only triggerable via mobile
     clickOnBack() {
         domCache.navi.classList.remove('hide');
         domCache.menus.messagesMenu.classList.add('hide');
@@ -7766,16 +7942,43 @@ class Messages extends s {
         this.#userModal.open();
     }
 
+    setInput(text = '') {
+        return (this.#messageInput.value = text);
+    }
+
     focus() {
-        return this.querySelector('.write-message-input').focus();
+        return this.#messageInput.focus();
     }
 
     firstUpdated() {
+        this.#messageInput = this.querySelector('.write-message-input');
         this.#userModal = document.querySelector('user-modal-window');
     }
 
+    writeMessage(e) {
+        if (e.keyCode === 13) {
+            const message = this.#messageInput.value.trim();
+
+            this.#messageInput.value = '';
+
+            return console.log(message);
+        }
+    }
+
+    uploadMedia() {
+        return console.log('upload');
+    }
+
+    scrollToBottom() {
+        requestAnimationFrame(() => {
+            const messages = this.querySelector('.messages');
+
+            messages.scrollTop = messages.scrollHeight;
+        });
+    }
+
     renderWriteContainer() {
-        return $`<div class="write-container"><input class="write-message-input" type="text" maxlength="1000"><div><i class="fa-solid fa-photo-film hover-font"></i></div></div>`;
+        return $`<div class="write-container"><input @keydown="${this.writeMessage}" class="write-message-input" type="text" maxlength="1000"><div><i @click="${this.uploadMedia}" class="fa-solid fa-photo-film hover-font"></i></div></div>`;
     }
 
     renderConversationPartner() {
@@ -7785,35 +7988,79 @@ class Messages extends s {
         const icon = $`<i class="fa-solid fa-${
             icons[this.conversationPartner.type]
         }"></i>`;
-        const name = $`<p @click="${this.clickOnUser}" class="hover-font">${this.conversationPartner.nickname} #${this.conversationPartner.id}</p>`;
+        const name = $`<p @click="${this.clickOnUser}" class="hover-font">${icon} ${this.conversationPartner.nickname} #${this.conversationPartner.id}</p>`;
         const back = $`<i @click="${
             this.clickOnBack
         }" class="fa-solid fa-arrow-left ${
             isPhone ? '' : 'shrinkToZero'
         }"></i>`;
-        const user = $`<div class="conversation-partner-user">${icon}${name}${check}</div>`;
+        const user = $`<div class="conversation-partner-user">${name}${check}</div>`;
 
         return $`<div class="conversation-partner">${back}${user}</div>`;
     }
 
+    #renderSecondLine({ text, type, contentID }) {
+        if (type === 'imageMessage') {
+            const image =
+                'data:image/png;base64,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';
+            return $`<img data-contentid="${contentID}" src="${image}">`;
+        }
+
+        return $`<p>${text}</p>`;
+    }
+
+    #renderStatusIndicator(amIsender, status, isGroup) {
+        if (!amIsender) {
+            return '';
+        }
+        if (!isGroup && status.length === 1) {
+            return $`  <i class="fa-solid fa-check"></i><i class="fa-solid fa-check"></i>`;
+        }
+
+        return $`  <i class="fa-solid fa-check"></i>`;
+    }
+
     render() {
-        const messagesContainer = $`<div class="messages"></div>`;
+        const isGroup = this.conversationPartner.type === 'group';
+        const messages = c(
+            this.messages,
+            (message) => message.messageID,
+            (message) => {
+                const { messageID, nickname, sender, status, ts } = message;
+                const dateTime = new Date(ts);
+                const amIsender = sender === this.ME.id;
+                const time = dateTime.toLocaleTimeString();
+                const firstLine = $``;
+                const secondLine = this.#renderSecondLine(message);
+                const statusIndicator = this.#renderStatusIndicator(
+                    amIsender,
+                    status,
+                    isGroup
+                );
+                const thirdLine = $`<p><small class="float-right unselectable">${time}${statusIndicator}</small></p>`;
+
+                return $`<div alt="${nickname}" data-messageid="${messageID}" class="message-container"><div class="message ${
+                    amIsender ? 'sent-message' : 'received-message'
+                }">${firstLine}${secondLine}${thirdLine}</div></div>`;
+            }
+        );
+        const messagesContainer = $`<div class="messages">${messages}</div>`;
+
         return $`${this.renderConversationPartner()}${messagesContainer}${this.renderWriteContainer()}`;
     }
 }
 
 customElements.define('messages-menu', Messages);
 
-class User extends s {
+class User extends s$1 {
     static properties = {
-        ME: {},
+        ME: { type: Object },
     };
 
     #tokenInput = {};
 
     constructor() {
         super();
-
         this.ME = ME;
     }
 
@@ -7853,14 +8100,16 @@ class User extends s {
     }
 
     render() {
-        const expireDate = new Date(this.ME.expire).toISOString();
+        const expireDate = sanitizeTime(this.ME.expire);
         const endlessIcon = this.ME.endless
             ? $`<i class="fa-solid fa-check danger-color"></i>`
             : $`<i class="fa-solid fa-times"></i>`;
         const creds = $`<div class="settings-container"><p>ID: <i>#${this.ME.id}</i></p><p>Nickname: <i>${this.ME.nickname}</i></p><p>Valid until: <i>${expireDate}</i></p><p>Endless Account: ${endlessIcon}</p></div>`;
         const status = $`<div class="settings-container"><p>Status</p><textarea @keydown="${(
             e
-        ) => this.keyDownStatus(e)}">${this.ME.status}</textarea></div>`;
+        ) => this.keyDownStatus(e)}" maxlength="280">${
+            this.ME.status
+        }</textarea></div>`;
         const endlessToken = $`<div class="settings-container"><p>Endless Token</p><input type="text" maxlength="100"><button @click="${this.clickOnEndlessToken}">Check</button></div>`;
 
         return $`<h1>User Menu</h1>${creds}${status}${endlessToken}`;
@@ -7869,9 +8118,9 @@ class User extends s {
 
 customElements.define('user-menu', User);
 
-class SettingsMenu extends s {
+class SettingsMenu extends s$1 {
     static properties = {
-        ME: {},
+        ME: { type: Object },
     };
 
     #codesModal = document.querySelector('codes-modal-window');
@@ -7920,25 +8169,26 @@ class SettingsMenu extends s {
 
 customElements.define('settings-menu', SettingsMenu);
 
-class Threads extends s {
+class Threads extends s$1 {
     static properties = {
-        threads: {},
+        threads: { type: Array },
     };
+
+    #bootStraped = false;
 
     constructor() {
         super();
-        this.threads = [
-            mockupPartner,
-            {
-                ...mockupPartner,
-                sender: '213213',
-                id: '213213',
-                nickname: 'Berni',
-                endless: true,
-                text: 'guten morgen',
-            },
-        ];
+        this.threads = [];
         this.addEventListener('click', (e) => this.clickOnThreads(e));
+    }
+
+    #setActiveThread(active) {
+        if (isDesktop) {
+            const oldActive = this.querySelector('.active-thread');
+
+            oldActive?.classList.remove('active-thread');
+            active?.classList.add('active-thread');
+        }
     }
 
     clickOnThreads(e) {
@@ -7951,50 +8201,62 @@ class Threads extends s {
             domCache.menus.messagesMenu.classList.remove('hide');
             domCache.header.classList.add('hide');
             domCache.bottomNavi.classList.add('hide');
-        } else {
+        }
+        if (isDesktop) {
             domCache.app.clickOnChat(e);
             domCache.bottomNavi
                 .querySelector('div')
                 .classList.add('active-setting');
         }
 
+        this.#setActiveThread(parent);
+        domCache.menus.messagesMenu.messages = [];
         domCache.menus.messagesMenu.conversationPartner = thread;
         domCache.menus.messagesMenu.focus();
+        domCache.menus.messagesMenu.setInput();
     }
 
     createRenderRoot() {
         return this; // prevents creating a shadow root
     }
 
+    bootStrap() {
+        requestAnimationFrame(() => {
+            const firstThread = this.querySelector('.thread');
+
+            if (!this.#bootStraped && firstThread && isDesktop) {
+                firstThread.click();
+                this.#bootStraped = true;
+            }
+        });
+    }
+
     render() {
-        const HTML = this.threads
-            .map(
-                ({
-                    endless,
-                    expire,
-                    nickname,
-                    sender,
-                    text,
-                    threadID,
-                    ts,
-                    type,
-                }) => {
-                    const icon = `<i class="fa-solid fa-${icons[type]} thread-avatar"></i>`;
-                    const endlessIcon = endless
-                        ? '<i class="fa-solid fa-check color-danger-font"></i>'
-                        : '';
+        return c(
+            this.threads,
+            (thread) => thread.id,
+            ({
+                endless,
+                expire,
+                nickname,
+                sender,
+                text,
+                threadID,
+                ts,
+                type,
+            }) => {
+                const dateTime = humanReadAbleLastTime(ts);
+                const icon = $`<i class="fa-solid fa-${icons[type]} thread-avatar"></i>`;
+                const endlessIcon = endless
+                    ? $`<i class="fa-solid fa-check color-danger-font"></i>`
+                    : '';
 
-                    return `<div expire="${expire}" id="${threadID}" sender="${sender}" type="${type}" class="thread hover-background">${icon}<div><p>${nickname} ${endlessIcon}<span class="float-right">#${sender}<span></p><p>${text.substring(
-                        0,
-                        9
-                    )}… <span class="float-right">${new Date(
-                        ts
-                    ).toISOString()}</span></p></div></div>`;
-                }
-            )
-            .join('');
-
-        this.innerHTML = HTML;
+                return $`<div expire="${expire}" id="${threadID}" sender="${sender}" type="${type}" class="thread hover-background">${icon}<div><p>${nickname}  ${endlessIcon}<span class="float-right">#${sender}<span></span></span></p><p>${text.substring(
+                    0,
+                    23
+                )}… <span class="float-right unselectable">${dateTime}</span></p></div></div>`;
+            }
+        );
     }
 }
 
@@ -8014,7 +8276,7 @@ function removeActiveMenu(container) {
     user.classList.remove('active-setting');
 }
 
-class AppLayout extends s {
+class AppLayout extends s$1 {
     static properties = {
         ME: {},
     };
@@ -8024,6 +8286,7 @@ class AppLayout extends s {
         messagesMenu: {},
         userMenu: {},
     };
+    #threads = {};
     #inviteModal = document.querySelector('invite-modal-window');
     #panicModal = document.querySelector('panic-modal-window');
     #converModal = document.querySelector('conversation-modal-window');
@@ -8039,8 +8302,7 @@ class AppLayout extends s {
 
     constructor() {
         super();
-
-        this.ME = ME;
+        this.ME = {};
     }
 
     createRenderRoot() {
@@ -8137,60 +8399,203 @@ class AppLayout extends s {
         domCache.toast = document.querySelector('toast-notification');
 
         this.#menus = menus;
+        this.#threads = this.querySelector('threads-menu');
+
+        requestAnimationFrame(function () {
+            if (isPhone) {
+                return;
+            }
+
+            menus.messagesMenu.focus();
+        });
+    }
+
+    setMessages(messages) {
+        requestAnimationFrame(() => {
+            this.#menus.messagesMenu.messages = messages;
+            this.#menus.messagesMenu.scrollToBottom();
+        });
+    }
+
+    setThreads(threads) {
+        this.#threads.threads = threads;
+        this.#threads.bootStrap();
     }
 
     render() {
         const bottomNavi = $`<div class="bottom-navi"><div @click="${(e) =>
             this.clickOnChat(
                 e
-            )}" class="active-setting"><i class="fa-solid fa-comments"></i><small>${
+            )}" class="active-setting hover-font"><i class="fa-solid fa-comments"></i><small>${
             LANG.THREADSTITLE
         }</small></div><div @click="${(e) =>
             this.clickOnSettings(
                 e
-            )}"><i class="fa-solid fa-gears"></i><small>Settings</small></div><div @click="${(
+            )}" class="hover-font"><i class="fa-solid fa-gears"></i><small>Settings</small></div><div @click="${(
             e
         ) =>
             this.clickOnInvite(
                 e
-            )}"><i class="fa-solid fa-plus"></i><small>Invite</small></div><div @click="${(
+            )}" class="hover-font"><i class="fa-solid fa-plus"></i><small>Invite</small></div><div @click="${(
             e
         ) =>
             this.clickOnPanic(
                 e
-            )}"><i class="fa-solid fa-bomb"></i><small>Panic</small></div></div>`;
+            )}" class="hover-font"><i class="fa-solid fa-bomb"></i><small>Panic</small></div></div>`;
         const header = $`<header><i @click="${(e) =>
             this.clickOnUser(
                 e
-            )}" class="fa-solid fa-circle-user"></i><i @click="${(e) =>
+            )}" class="fa-solid fa-circle-user hover-font"></i><i @click="${(
+            e
+        ) =>
             this.clickOnNewConv(
                 e
-            )}" class="fa-solid fa-pen-clip float-right"></i></header>`;
+            )}" class="fa-solid fa-pen-clip float-right hover-font"></i></header>`;
         const menus = $`<messages-menu class="${
             isPhone ? 'hide' : ''
         }"></messages-menu><settings-menu class="hide"></settings-menu><user-menu class="hide"></user-menu>`;
 
-        return $`${header}<nav><h1 class="chats-headline">Chats</h1><threads-menu></threads-menu></nav>${bottomNavi}<main>${menus}</main>`;
+        return $`${header}<nav><h1 class="chats-headline unselectable">Chats</h1><threads-menu></threads-menu></nav>${bottomNavi}<main>${menus}</main>`;
     }
 }
 
 customElements.define('app-layout', AppLayout);
 
+const messages = [
+    {
+        messageID: '1',
+        ts: new Date(),
+        text: 'hello',
+        sender: '1337',
+        status: ['2'],
+    },
+    {
+        messageID: '2',
+        ts: new Date(),
+        text: 'willkomen zuhause soldat!',
+        sender: '2',
+        status: [],
+    },
+    {
+        messageID: '3',
+        ts: new Date(),
+        text: 'Bitte nicht mehr schreiben',
+        sender: '2',
+        status: [],
+    },
+    {
+        messageID: '4',
+        ts: new Date(),
+        text: `Das feste, dunkle Äußere des Brotes heißt Kruste oder Rinde. Sie enthält Röstaromen, die durch die Maillard-Reaktion beim Backen entstehen. Durch Einschneiden der Brotoberfläche vor dem Backprozess oder durch das zufällig Aufreißen beim Gehen ergeben sich in der Kruste Ausbünde, die die Oberfläche des gebackenen Brotes vergrößern. Die Dicke der Kruste ergibt sich aus der Backdauer, und ihre Farbe ergibt sich aus der Backtemperatur.
+
+    Das weiche, lockere Innere des Brotes ist die Krume. Sie enthält je nach Brotsorte mehr oder weniger Poren mit regelmäßiger oder unregelmäßiger Größe, die beim Gären entstanden sind, und gegebenenfalls weitere Bestandteile, wie zum Beispiel ganze Getreide- oder Saatkörner. Die Krume kann eher luftig und leicht oder aber auch kompakt und saftig sein.
+    
+    Brotkrümel heißen auch Brosamen (aus dem Mittelhochdeutschen) oder Brösel. Die meisten Brotteige können auch in Form kleinerer, etwa handtellergroßer Portionen als Brötchen gebacken werden.`,
+        sender: '1337',
+        status: ['1'],
+    },
+    {
+        messageID: '5',
+        ts: new Date(),
+        text: `Das feste, dunkle Äußere des Brotes heißt Kruste oder Rinde. Sie enthält Röstaromen, die durch die Maillard-Reaktion beim Backen entstehen. Durch Einschneiden der Brotoberfläche vor dem Backprozess oder durch das zufällig Aufreißen beim Gehen ergeben sich in der Kruste Ausbünde, die die Oberfläche des gebackenen Brotes vergrößern. Die Dicke der Kruste ergibt sich aus der Backdauer, und ihre Farbe ergibt sich aus der Backtemperatur.
+
+    Das weiche, lockere Innere des Brotes ist die Krume. Sie enthält je nach Brotsorte mehr oder weniger Poren mit regelmäßiger oder unregelmäßiger Größe, die beim Gären entstanden sind, und gegebenenfalls weitere Bestandteile, wie zum Beispiel ganze Getreide- oder Saatkörner. Die Krume kann eher luftig und leicht oder aber auch kompakt und saftig sein.
+    
+    Brotkrümel heißen auch Brosamen (aus dem Mittelhochdeutschen) oder Brösel. Die meisten Brotteige können auch in Form kleinerer, etwa handtellergroßer Portionen als Brötchen gebacken werden.`,
+        sender: '2',
+        status: [],
+    },
+    {
+        messageID: '6',
+        ts: new Date(),
+        text: 'Steht das brot angebot noch?',
+        sender: '2',
+        status: [],
+    },
+    {
+        messageID: '6',
+        ts: new Date(),
+        text: `Das feste, dunkle Äußere des Brotes heißt Kruste oder Rinde. Sie enthält Röstaromen, die durch die Maillard-Reaktion beim Backen entstehen. Durch Einschneiden der Brotoberfläche vor dem Backprozess oder durch das zufällig Aufreißen beim Gehen ergeben sich in der Kruste Ausbünde, die die Oberfläche des gebackenen Brotes vergrößern. Die Dicke der Kruste ergibt sich aus der Backdauer, und ihre Farbe ergibt sich aus der Backtemperatur.
+
+    Das weiche, lockere Innere des Brotes ist die Krume. Sie enthält je nach Brotsorte mehr oder weniger Poren mit regelmäßiger oder unregelmäßiger Größe, die beim Gären entstanden sind, und gegebenenfalls weitere Bestandteile, wie zum Beispiel ganze Getreide- oder Saatkörner. Die Krume kann eher luftig und leicht oder aber auch kompakt und saftig sein.
+    
+    Brotkrümel heißen auch Brosamen (aus dem Mittelhochdeutschen) oder Brösel. Die meisten Brotteige können auch in Form kleinerer, etwa handtellergroßer Portionen als Brötchen gebacken werden.`,
+        sender: '2',
+        status: [],
+    },
+    {
+        contentID: '8CKX5Mw9I5FIwq3erXY0',
+        contentType: 'image',
+        ts: 'Wed Jun 29 2022 14:32:29 GMT+0000 (Coordinated Universal Time)',
+        type: 'imageMessage',
+        messageID: '7',
+        ts: new Date(),
+        text: '',
+        sender: '1',
+        status: [],
+    },
+];
+const me = {
+    codes: false,
+    id: '1337',
+    nickname: 'Johannes',
+    expire: new Date(),
+    status: 'working',
+};
+const partner = {
+    expire: 'Tue Jul 19 2022 05:33:42 GMT+0000 (Coordinated Universal Time)',
+    id: '1',
+    nickname: 'Boris',
+    sender: '1',
+    status: 'Working on something great',
+    text: 'Hallo Oli, wolltest du nicht',
+    threadID: '1:1337',
+    ts: (() => {
+        const now = new Date();
+        now.setTime(now.getTime() - 1000 * 10);
+        return now;
+    })(),
+    type: 'user',
+    endless: false,
+};
+
 document.addEventListener('DOMContentLoaded', function () {
     const app = document.querySelector('app-layout');
     const lockModal = document.querySelector('lock-modal-window');
-    const me = {
-        codes: false,
-        id: '123123',
-        nickname: 'Johannes',
-        expire: new Date(),
-        status: 'working',
-    };
 
     setTimeout(function () {
         console.log('me update');
         app.ME = me;
         lockModal.ME = me;
+
+        app.setThreads([
+            partner,
+            {
+                ...partner,
+                sender: '2',
+                id: '2',
+                threadID: '2:1337',
+                nickname: 'Karl',
+                endless: true,
+                ts: (() => {
+                    const now = new Date();
+                    now.setTime(now.getTime() - 1000 * 60 * 60 * 24 + 1);
+                    return now;
+                })(),
+                text: 'Guten Morgen, ich bin gerade am weg',
+            },
+            {
+                ...partner,
+                sender: '3',
+                id: '3',
+                nickname: 'Dieter',
+                threadID: '3:1337',
+                endless: true,
+                ts: 'Mon Jun 20 2022 06:01:34 GMT+0000 (Coordinated Universal Time)',
+                text: 'Kannst du mir bitte deine',
+            },
+        ]);
+        app.setMessages(messages);
 
         lockModal.open();
     }, 1000);

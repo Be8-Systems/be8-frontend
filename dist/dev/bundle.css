@@ -218,14 +218,8 @@ user-menu {
   font-size: 1.15em;
 }
 
-.bottom-navi div:hover,
-header i:hover {
-  cursor: pointer;
-  color: var(--color-highlight-variant);
-}
-
 .active-setting {
-  color: var(--color-highlight);
+  color: var(--color-highlight-variant);
 }
 
 .thread {
@@ -233,6 +227,10 @@ header i:hover {
   grid-template-columns: auto 1fr;
   gap: var(--small-padding);
   padding: var(--small-padding);
+}
+
+.active-thread {
+  background-color: var(--color-highlight-variant);
 }
 
 .thread-avatar {
@@ -290,6 +288,47 @@ messages-menu {
 
 .messages {
   overflow-y: scroll;
+  padding: var(--small-padding);
+}
+
+.message-container {
+  overflow: hidden;
+  margin-bottom: var(--small-padding);
+}
+
+.message-container:last-child {
+  margin-bottom: 0;
+}
+
+.message {
+  padding: var(--small-padding);
+  display: inline-flex;
+  flex-direction: column;
+  border-top-left-radius: var(--big-border-radius);
+  border-bottom-right-radius: var(--big-border-radius);
+  max-width: 80%;
+}
+
+.message img {
+  border-top-left-radius: var(--big-border-radius);
+  border-bottom-right-radius: var(--big-border-radius);
+}
+
+.message p {
+  font-size: 1.2em;
+}
+
+.sent-message {
+  float: right;
+  background-color: var(--color-highlight);
+}
+
+.received-message {
+  background-color: var(--color-secondary);
+}
+
+.message i.fa-check {
+  color: var(--color-secondary-variant);
 }
 
 .write-container {

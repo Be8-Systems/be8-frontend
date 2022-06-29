@@ -18,12 +18,6 @@
     font-size: 1.15em;
 } 
 
-.bottom-navi div:hover, // ToDo replace me with .hover-font
-header i:hover {
-    cursor: pointer;
-    color: var(--color-highlight-variant);
-}
-
 .active-setting {
-    color: var(--color-highlight);
+    color: var(--color-highlight-variant);
 }

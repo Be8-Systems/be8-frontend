@@ -5,6 +5,10 @@
     padding: var(--small-padding);
 }
 
+.active-thread {
+    background-color: var(--color-highlight-variant);
+}
+
 .thread-avatar {
     text-align: center;
     font-size: 24px;
