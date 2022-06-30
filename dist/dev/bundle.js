@@ -9,30 +9,34 @@ const t$2 =
         'adoptedStyleSheets' in Document.prototype &&
         'replace' in CSSStyleSheet.prototype,
     e$5 = Symbol(),
-    n$4 = new Map();
+    n$4 = new WeakMap();
 class s$4 {
-    constructor(t, n) {
-        if (((this._$cssResult$ = !0), n !== e$5))
+    constructor(t, n, s) {
+        if (((this._$cssResult$ = !0), s !== e$5))
             throw Error(
                 'CSSResult is not constructable. Use `unsafeCSS` or `css` instead.'
             );
-        this.cssText = t;
+        (this.cssText = t), (this.t = n);
     }
     get styleSheet() {
-        let e = n$4.get(this.cssText);
-        return (
-            t$2 &&
+        let e = this.o;
+        const s = this.t;
+        if (t$2 && void 0 === e) {
+            const t = void 0 !== s && 1 === s.length;
+            t && (e = n$4.get(s)),
                 void 0 === e &&
-                (n$4.set(this.cssText, (e = new CSSStyleSheet())),
-                e.replaceSync(this.cssText)),
-            e
-        );
+                    ((this.o = e = new CSSStyleSheet()).replaceSync(
+                        this.cssText
+                    ),
+                    t && n$4.set(s, e));
+        }
+        return e;
     }
     toString() {
         return this.cssText;
     }
 }
-const o$4 = (t) => new s$4('string' == typeof t ? t : t + '', e$5),
+const o$4 = (t) => new s$4('string' == typeof t ? t : t + '', void 0, e$5),
     i$3 = (e, n) => {
         t$2
             ? (e.adoptedStyleSheets = n.map((t) =>
@@ -108,24 +112,24 @@ const e$4 = window.trustedTypes,
 class a$2 extends HTMLElement {
     constructor() {
         super(),
-            (this._$Et = new Map()),
+            (this._$Ei = new Map()),
             (this.isUpdatePending = !1),
             (this.hasUpdated = !1),
-            (this._$Ei = null),
-            this.o();
+            (this._$El = null),
+            this.u();
     }
     static addInitializer(t) {
         var i;
-        (null !== (i = this.l) && void 0 !== i) || (this.l = []),
-            this.l.push(t);
+        (null !== (i = this.h) && void 0 !== i) || (this.h = []),
+            this.h.push(t);
     }
     static get observedAttributes() {
         this.finalize();
         const t = [];
         return (
             this.elementProperties.forEach((i, s) => {
-                const e = this._$Eh(s, i);
-                void 0 !== e && (this._$Eu.set(e, s), t.push(e));
+                const e = this._$Ep(s, i);
+                void 0 !== e && (this._$Ev.set(e, s), t.push(e));
             }),
             t
         );
@@ -165,7 +169,7 @@ class a$2 extends HTMLElement {
         if (
             (t.finalize(),
             (this.elementProperties = new Map(t.elementProperties)),
-            (this._$Eu = new Map()),
+            (this._$Ev = new Map()),
             this.hasOwnProperty('properties'))
         ) {
             const t = this.properties,
@@ -185,7 +189,7 @@ class a$2 extends HTMLElement {
         } else void 0 !== i && s.push(S$3(i));
         return s;
     }
-    static _$Eh(t, i) {
+    static _$Ep(t, i) {
         const s = i.attribute;
         return !1 === s
             ? void 0
@@ -195,19 +199,19 @@ class a$2 extends HTMLElement {
             ? t.toLowerCase()
             : void 0;
     }
-    o() {
+    u() {
         var t;
-        (this._$Ep = new Promise((t) => (this.enableUpdating = t))),
+        (this._$E_ = new Promise((t) => (this.enableUpdating = t))),
             (this._$AL = new Map()),
-            this._$Em(),
+            this._$Eg(),
             this.requestUpdate(),
-            null === (t = this.constructor.l) ||
+            null === (t = this.constructor.h) ||
                 void 0 === t ||
                 t.forEach((t) => t(this));
     }
     addController(t) {
         var i, s;
-        (null !== (i = this._$Eg) && void 0 !== i ? i : (this._$Eg = [])).push(
+        (null !== (i = this._$ES) && void 0 !== i ? i : (this._$ES = [])).push(
             t
         ),
             void 0 !== this.renderRoot &&
@@ -216,14 +220,14 @@ class a$2 extends HTMLElement {
     }
     removeController(t) {
         var i;
-        null === (i = this._$Eg) ||
+        null === (i = this._$ES) ||
             void 0 === i ||
-            i.splice(this._$Eg.indexOf(t) >>> 0, 1);
+            i.splice(this._$ES.indexOf(t) >>> 0, 1);
     }
-    _$Em() {
+    _$Eg() {
         this.constructor.elementProperties.forEach((t, i) => {
             this.hasOwnProperty(i) &&
-                (this._$Et.set(i, this[i]), delete this[i]);
+                (this._$Ei.set(i, this[i]), delete this[i]);
         });
     }
     createRenderRoot() {
@@ -239,7 +243,7 @@ class a$2 extends HTMLElement {
         void 0 === this.renderRoot &&
             (this.renderRoot = this.createRenderRoot()),
             this.enableUpdating(!0),
-            null === (t = this._$Eg) ||
+            null === (t = this._$ES) ||
                 void 0 === t ||
                 t.forEach((t) => {
                     var i;
@@ -251,7 +255,7 @@ class a$2 extends HTMLElement {
     enableUpdating(t) {}
     disconnectedCallback() {
         var t;
-        null === (t = this._$Eg) ||
+        null === (t = this._$ES) ||
             void 0 === t ||
             t.forEach((t) => {
                 var i;
@@ -263,9 +267,9 @@ class a$2 extends HTMLElement {
     attributeChangedCallback(t, i, s) {
         this._$AK(t, s);
     }
-    _$ES(t, i, s = l$2) {
+    _$EO(t, i, s = l$2) {
         var e, r;
-        const h = this.constructor._$Eh(t, s);
+        const h = this.constructor._$Ep(t, s);
         if (void 0 !== h && !0 === s.reflect) {
             const n = (
                 null !==
@@ -276,33 +280,31 @@ class a$2 extends HTMLElement {
                     ? r
                     : o$3.toAttribute
             )(i, s.type);
-            (this._$Ei = t),
+            (this._$El = t),
                 null == n ? this.removeAttribute(h) : this.setAttribute(h, n),
-                (this._$Ei = null);
+                (this._$El = null);
         }
     }
     _$AK(t, i) {
-        var s, e, r;
-        const h = this.constructor,
-            n = h._$Eu.get(t);
-        if (void 0 !== n && this._$Ei !== n) {
-            const t = h.getPropertyOptions(n),
-                l = t.converter,
-                a =
+        var s, e;
+        const r = this.constructor,
+            h = r._$Ev.get(t);
+        if (void 0 !== h && this._$El !== h) {
+            const t = r.getPropertyOptions(h),
+                n = t.converter,
+                l =
                     null !==
-                        (r =
+                        (e =
                             null !==
-                                (e =
-                                    null === (s = l) || void 0 === s
-                                        ? void 0
-                                        : s.fromAttribute) && void 0 !== e
-                                ? e
-                                : 'function' == typeof l
-                                ? l
-                                : null) && void 0 !== r
-                        ? r
+                                (s = null == n ? void 0 : n.fromAttribute) &&
+                            void 0 !== s
+                                ? s
+                                : 'function' == typeof n
+                                ? n
+                                : null) && void 0 !== e
+                        ? e
                         : o$3.fromAttribute;
-            (this._$Ei = n), (this[n] = a(i, t.type)), (this._$Ei = null);
+            (this._$El = h), (this[h] = l(i, t.type)), (this._$El = null);
         }
     }
     requestUpdate(t, i, s) {
@@ -314,16 +316,16 @@ class a$2 extends HTMLElement {
             )(this[t], i)
                 ? (this._$AL.has(t) || this._$AL.set(t, i),
                   !0 === s.reflect &&
-                      this._$Ei !== t &&
+                      this._$El !== t &&
                       (void 0 === this._$EC && (this._$EC = new Map()),
                       this._$EC.set(t, s)))
                 : (e = !1)),
-            !this.isUpdatePending && e && (this._$Ep = this._$E_());
+            !this.isUpdatePending && e && (this._$E_ = this._$Ej());
     }
-    async _$E_() {
+    async _$Ej() {
         this.isUpdatePending = !0;
         try {
-            await this._$Ep;
+            await this._$E_;
         } catch (t) {
             Promise.reject(t);
         }
@@ -337,16 +339,16 @@ class a$2 extends HTMLElement {
         var t;
         if (!this.isUpdatePending) return;
         this.hasUpdated,
-            this._$Et &&
-                (this._$Et.forEach((t, i) => (this[i] = t)),
-                (this._$Et = void 0));
+            this._$Ei &&
+                (this._$Ei.forEach((t, i) => (this[i] = t)),
+                (this._$Ei = void 0));
         let i = !1;
         const s = this._$AL;
         try {
             (i = this.shouldUpdate(s)),
                 i
                     ? (this.willUpdate(s),
-                      null === (t = this._$Eg) ||
+                      null === (t = this._$ES) ||
                           void 0 === t ||
                           t.forEach((t) => {
                               var i;
@@ -355,16 +357,16 @@ class a$2 extends HTMLElement {
                                   : i.call(t);
                           }),
                       this.update(s))
-                    : this._$EU();
+                    : this._$Ek();
         } catch (t) {
-            throw ((i = !1), this._$EU(), t);
+            throw ((i = !1), this._$Ek(), t);
         }
         i && this._$AE(s);
     }
     willUpdate(t) {}
     _$AE(t) {
         var i;
-        null === (i = this._$Eg) ||
+        null === (i = this._$ES) ||
             void 0 === i ||
             i.forEach((t) => {
                 var i;
@@ -375,23 +377,23 @@ class a$2 extends HTMLElement {
             this.hasUpdated || ((this.hasUpdated = !0), this.firstUpdated(t)),
             this.updated(t);
     }
-    _$EU() {
+    _$Ek() {
         (this._$AL = new Map()), (this.isUpdatePending = !1);
     }
     get updateComplete() {
         return this.getUpdateComplete();
     }
     getUpdateComplete() {
-        return this._$Ep;
+        return this._$E_;
     }
     shouldUpdate(t) {
         return !0;
     }
     update(t) {
         void 0 !== this._$EC &&
-            (this._$EC.forEach((t, i) => this._$ES(i, this[i], t)),
+            (this._$EC.forEach((t, i) => this._$EO(i, this[i], t)),
             (this._$EC = void 0)),
-            this._$EU();
+            this._$Ek();
     }
     updated(t) {}
     firstUpdated(t) {}
@@ -404,7 +406,7 @@ class a$2 extends HTMLElement {
     (null !== (s$3 = globalThis.reactiveElementVersions) && void 0 !== s$3
         ? s$3
         : (globalThis.reactiveElementVersions = [])
-    ).push('1.3.2');
+    ).push('1.3.3');
 
 /**
  * @license
@@ -434,7 +436,7 @@ const i$2 = globalThis.trustedTypes,
     c$2 = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,
     v = /-->/g,
     a$1 = />/g,
-    f =
+    f$1 =
         />|[ 	\n\r](?:([^\s"'>=/]+)([ 	\n\r]*=[ 	\n\r]*(?:[^ 	\n\r"'`<>=]|("|')|))|$)/g,
     _ = /'/g,
     m$1 = /"/g,
@@ -495,9 +497,9 @@ const i$2 = globalThis.trustedTypes,
                             ? (d = a$1)
                             : void 0 !== u[2]
                             ? (g.test(u[2]) && (h = RegExp('</' + u[2], 'g')),
-                              (d = f))
-                            : void 0 !== u[3] && (d = f)
-                        : d === f
+                              (d = f$1))
+                            : void 0 !== u[3] && (d = f$1)
+                        : d === f$1
                         ? '>' === u[0]
                             ? ((d = null != h ? h : c$2), (p = -1))
                             : void 0 === u[1]
@@ -505,13 +507,17 @@ const i$2 = globalThis.trustedTypes,
                             : ((p = d.lastIndex - u[2].length),
                               (o = u[1]),
                               (d =
-                                  void 0 === u[3] ? f : '"' === u[3] ? m$1 : _))
+                                  void 0 === u[3]
+                                      ? f$1
+                                      : '"' === u[3]
+                                      ? m$1
+                                      : _))
                         : d === m$1 || d === _
-                        ? (d = f)
+                        ? (d = f$1)
                         : d === v || d === a$1
                         ? (d = c$2)
-                        : ((d = f), (h = void 0));
-            const y = d === f && t[i + 1].startsWith('/>') ? ' ' : '';
+                        : ((d = f$1), (h = void 0));
+            const y = d === f$1 && t[i + 1].startsWith('/>') ? ' ' : '';
             r +=
                 d === c$2
                     ? s + n$2
@@ -928,7 +934,7 @@ null == z || z(E, N),
     (null !== (t$1 = globalThis.litHtmlVersions) && void 0 !== t$1
         ? t$1
         : (globalThis.litHtmlVersions = [])
-    ).push('2.2.5');
+    ).push('2.2.6');
 
 /**
  * @license
@@ -939,7 +945,7 @@ class s$1 extends a$2 {
     constructor() {
         super(...arguments),
             (this.renderOptions = { host: this }),
-            (this._$Dt = void 0);
+            (this._$Do = void 0);
     }
     createRenderRoot() {
         var t, e;
@@ -955,17 +961,17 @@ class s$1 extends a$2 {
         const i = this.render();
         this.hasUpdated || (this.renderOptions.isConnected = this.isConnected),
             super.update(t),
-            (this._$Dt = x$1(i, this.renderRoot, this.renderOptions));
+            (this._$Do = x$1(i, this.renderRoot, this.renderOptions));
     }
     connectedCallback() {
         var t;
         super.connectedCallback(),
-            null === (t = this._$Dt) || void 0 === t || t.setConnected(!0);
+            null === (t = this._$Do) || void 0 === t || t.setConnected(!0);
     }
     disconnectedCallback() {
         var t;
         super.disconnectedCallback(),
-            null === (t = this._$Dt) || void 0 === t || t.setConnected(!1);
+            null === (t = this._$Do) || void 0 === t || t.setConnected(!1);
     }
     render() {
         return b;
@@ -981,7 +987,7 @@ null == n$1 || n$1({ LitElement: s$1 });
 (null !== (o$1 = globalThis.litElementVersions) && void 0 !== o$1
     ? o$1
     : (globalThis.litElementVersions = [])
-).push('3.2.0');
+).push('3.2.1');
 
 class Toast extends s$1 {
     static properties = {
@@ -1213,6 +1219,28 @@ class i$1 {
 }
 (e$1.directiveName = 'unsafeHTML'), (e$1.resultType = 1);
 const o = e$2(e$1);
+
+const isPhone =
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+    );
+const isDesktop = !isPhone;
+const icons = Object.freeze({
+    user: 'user',
+    group: 'users-rectangle',
+    channel: 'object-ungroup',
+});
+const domCache = {
+    app: {},
+    menus: {},
+    threads: {},
+    settings: {},
+    user: {},
+    navi: {},
+    header: {},
+    bottomNavi: {},
+    toast: {},
+};
 
 var LANG = Object.freeze({
     THREADSTITLE: 'Chats',
@@ -7190,10 +7218,16 @@ class InviteModal extends Modal {
     }
 
     open() {
+        const inviteGenerate = new CustomEvent('inviteGenerated', {
+            bubbles: false,
+            detail: {},
+        });
+
         super.open();
 
         this.querySelector('.qr').innerHTML = '';
         new QRCode(this.querySelector('.qr'), { text: this.url });
+        return domCache.app.dispatchEvent(inviteGenerate);
     }
 
     render() {
@@ -7296,28 +7330,6 @@ function animateMainToSide(main, side, focus) {
     }, 300);
 }
 
-const isPhone =
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
-    );
-const isDesktop = !isPhone;
-const icons = Object.freeze({
-    user: 'user',
-    group: 'users-rectangle',
-    channel: 'object-ungroup',
-});
-const domCache = {
-    app: {},
-    menus: {},
-    threads: {},
-    settings: {},
-    user: {},
-    navi: {},
-    header: {},
-    bottomNavi: {},
-    toast: {},
-};
-
 class PanicModal extends Modal {
     static properties = {
         ME: { type: Object },
@@ -7350,11 +7362,20 @@ class PanicModal extends Modal {
             console.log('destroy');
             return this.close();
         } else {
+            const panicEvent = new CustomEvent('panicButton', {
+                bubbles: false,
+                detail: {
+                    ...this.ME,
+                },
+            });
+
             domCache.toast.notification = {
                 type: 'error',
                 text: 'Wrong code',
             };
-            return domCache.toast.open();
+
+            domCache.toast.open();
+            return domCache.app.dispatchEvent(panicEvent);
         }
     }
 
@@ -7378,6 +7399,10 @@ class PanicModal extends Modal {
 customElements.define('panic-modal-window', PanicModal);
 
 class ConversationModal extends Modal {
+    static properties = {
+        ME: {},
+    };
+
     #modalContent = {};
     #createGroup = {};
     #dialogInput = {};
@@ -7386,6 +7411,7 @@ class ConversationModal extends Modal {
 
     constructor() {
         super();
+        this.ME = {};
     }
 
     createRenderRoot() {
@@ -7413,6 +7439,29 @@ class ConversationModal extends Modal {
         );
     }
 
+    #sendCreateGroup(name, type) {
+        const createGroupEvent = new CustomEvent('createGroup', {
+            bubbles: false,
+            detail: {
+                ...this.ME,
+                name,
+                type,
+                success: () => {
+                    domCache.toast.notification = {
+                        type: 'success',
+                        text: 'You created the group ' + name,
+                    };
+                    this.#groupNameInput.value = '';
+
+                    domCache.toast.open();
+                    return this.close();
+                },
+            },
+        });
+
+        return domCache.app.dispatchEvent(createGroupEvent);
+    }
+
     clickOnCreateGroup() {
         const name = this.#groupNameInput.value.trim();
         const type = this.#groupType.value;
@@ -7426,21 +7475,41 @@ class ConversationModal extends Modal {
             return domCache.toast.open();
         }
 
-        domCache.toast.notification = {
-            type: 'success',
-            text: 'You created the group ' + name,
-        };
-
-        domCache.toast.open();
-
-        console.log(name, type);
-        this.#groupNameInput.value = '';
-        return this.close();
+        return this.#sendCreateGroup(name, type);
     }
 
     close() {
         super.close();
         this.clickOnBackToMain();
+    }
+
+    #sendNew1on1Conv(id) {
+        const newConversationEvent = new CustomEvent('newConversation', {
+            bubbles: false,
+            detail: {
+                ...this.ME,
+                success: () => {
+                    domCache.toast.notification = {
+                        type: 'success',
+                        text: 'Your are now chatting with ' + id,
+                    };
+                    this.#dialogInput.value = '';
+
+                    domCache.toast.open();
+                    return this.close();
+                },
+                idDoesNotExist: () => {
+                    domCache.toast.notification = {
+                        type: 'error',
+                        text: 'This id does not exist or banned you ' + id,
+                    };
+
+                    domCache.toast.open();
+                },
+            },
+        });
+
+        return domCache.app.dispatchEvent(newConversationEvent);
     }
 
     keyDownOn1to1(e) {
@@ -7461,14 +7530,7 @@ class ConversationModal extends Modal {
                 return domCache.toast.open();
             }
 
-            domCache.toast.notification = {
-                type: 'success',
-                text: 'Your are now chatting with ' + id,
-            };
-            this.#dialogInput.value = '';
-
-            domCache.toast.open();
-            return this.close();
+            return this.#sendNew1on1Conv(id);
         }
     }
 
@@ -7515,13 +7577,22 @@ class Codes extends Modal {
         ];
         const newCode = oldInput.value;
         const newCodeConf = newCodeInput.value;
-        const old = newCodeConfInput.value;
+        const oldCode = newCodeConfInput.value;
+        const destroyEvent = new CustomEvent('updateUnlock', {
+            bubbles: false,
+            detail: {
+                ...this.ME,
+                newCode,
+                oldCode,
+                close: () => this.close(),
+            },
+        });
 
         if (newCode !== newCodeConf) {
             return;
         }
 
-        console.log(old, newCode, newCodeConf);
+        return domCache.app.dispatchEvent(destroyEvent);
     }
 
     clickOnUpdateDestroy() {
@@ -7530,13 +7601,22 @@ class Codes extends Modal {
         ];
         const newCode = oldInput.value;
         const newCodeConf = newCodeInput.value;
-        const old = newCodeConfInput.value;
+        const oldCode = newCodeConfInput.value;
+        const destroyEvent = new CustomEvent('updateDestroy', {
+            bubbles: false,
+            detail: {
+                ...this.ME,
+                newCode,
+                oldCode,
+                close: () => this.close(),
+            },
+        });
 
         if (newCode !== newCodeConf) {
             return;
         }
 
-        console.log(old, newCode, newCodeConf);
+        return domCache.app.dispatchEvent(destroyEvent);
     }
 
     goToUpdateUnlock() {
@@ -7586,6 +7666,14 @@ class Codes extends Modal {
         const destroyConf = destroyInputConf.value;
         const sameUnlock = unlock === unlockConf;
         const sameDestroy = destroy === destroyConf;
+        const setupEvent = new CustomEvent('setupCodes', {
+            bubbles: false,
+            detail: {
+                ...this.ME,
+                unlockCode: unlock,
+                destroyCode: destroy,
+            },
+        });
 
         if (!sameUnlock) {
             domCache.toast.notification = {
@@ -7627,7 +7715,8 @@ class Codes extends Modal {
 
         domCache.toast.open();
         inputs.forEach((input) => (input.value = ''));
-        return this.close();
+        this.close();
+        return domCache.app.dispatchEvent(setupEvent);
     }
 
     renderUpdateSide() {
@@ -7799,7 +7888,8 @@ customElements.define('user-modal-window', Usermodal);
         return n;
     },
     c$1 = (o, i, t = o) => (o._$AI(i, t), o),
-    s = (o, i) => (o._$AH = i),
+    f = {},
+    s = (o, i = f) => (o._$AH = i),
     a = (o) => o._$AH,
     m = (o) => {
         var i;
@@ -7958,15 +8048,29 @@ class Messages extends s$1 {
     writeMessage(e) {
         if (e.keyCode === 13) {
             const message = this.#messageInput.value.trim();
+            const writeEvent = new CustomEvent('writeMessage', {
+                bubbles: false,
+                detail: {
+                    message,
+                    ...this.ME,
+                },
+            });
 
             this.#messageInput.value = '';
 
-            return console.log(message);
+            return domCache.app.dispatchEvent(writeEvent);
         }
     }
 
     uploadMedia() {
-        return console.log('upload');
+        const writeEvent = new CustomEvent('uploadMedia', {
+            bubbles: false,
+            detail: {
+                ...this.ME,
+            },
+        });
+
+        return domCache.app.dispatchEvent(writeEvent);
     }
 
     scrollToBottom() {
@@ -8057,6 +8161,7 @@ class User extends s$1 {
         ME: { type: Object },
     };
 
+    #statusTimer = {};
     #tokenInput = {};
 
     constructor() {
@@ -8069,9 +8174,33 @@ class User extends s$1 {
     }
 
     clickOnEndlessToken() {
-        const value = this.#tokenInput.value.trim();
+        const token = this.#tokenInput.value.trim();
+        const tokenEvent = new CustomEvent('setToken', {
+            bubbles: false,
+            detail: {
+                ...this.ME,
+                token,
+                wrongToken: function () {
+                    domCache.toast.notification = {
+                        type: 'error',
+                        text: 'Your token is invalid',
+                    };
 
-        if (value.length < 10) {
+                    return domCache.toast.open();
+                },
+                success: () => {
+                    domCache.toast.notification = {
+                        type: 'success',
+                        text: 'Your acc is upgraded to endless',
+                    };
+
+                    this.#tokenInput.value = '';
+                    domCache.toast.open();
+                },
+            },
+        });
+
+        if (token.length < 10) {
             domCache.toast.notification = {
                 type: 'error',
                 text: 'Your token is too short',
@@ -8080,19 +8209,37 @@ class User extends s$1 {
             return domCache.toast.open();
         }
 
-        requestAnimationFrame(() => {
-            domCache.toast.notification = {
-                type: 'success',
-                text: 'Your acc is upgraded to endless',
-            };
-
-            this.#tokenInput.value = '';
-            return domCache.toast.open();
-        });
+        return domCache.app.dispatchEvent(tokenEvent);
     }
 
-    keyDownStatus(e) {
-        console.log(e.target.value);
+    #sendStatusChangeEvent() {
+        const destroyEvent = new CustomEvent('setStatus', {
+            bubbles: false,
+            detail: {
+                ...this.ME,
+            },
+        });
+
+        return domCache.app.dispatchEvent(destroyEvent);
+    }
+
+    keyDownStatus(event) {
+        clearTimeout(this.#statusTimer);
+
+        this.#statusTimer = setTimeout(() => {
+            const status = event.target.value.trim();
+
+            if (this.ME.status === status) {
+                return clearTimeout(this.#statusTimer);
+            }
+
+            this.ME = {
+                ...this.ME,
+                status,
+            };
+
+            this.#sendStatusChangeEvent();
+        }, 400);
     }
 
     firstUpdated() {
@@ -8123,6 +8270,7 @@ class SettingsMenu extends s$1 {
         ME: { type: Object },
     };
 
+    #nicknameTimer = {};
     #codesModal = document.querySelector('codes-modal-window');
 
     constructor() {
@@ -8142,12 +8290,21 @@ class SettingsMenu extends s$1 {
         return this.#codesModal.open();
     }
 
+    #sendChangeNichnameEvent() {
+        const nickName = new CustomEvent('changeNickName', {
+            bubbles: false,
+            detail: {
+                ...this.ME,
+            },
+        });
+
+        return domCache.app.dispatchEvent(nickName);
+    }
+
     changeName(event) {
-        let timer;
+        clearTimeout(this.#nicknameTimer);
 
-        clearTimeout(timer);
-
-        timer = setTimeout(() => {
+        this.#nicknameTimer = setTimeout(() => {
             const input = event.target;
 
             this.ME.nickname = input.value;
@@ -8155,7 +8312,9 @@ class SettingsMenu extends s$1 {
                 ...this.ME,
                 nickname: input.value,
             };
-        }, 300);
+
+            this.#sendChangeNichnameEvent();
+        }, 900);
     }
 
     render() {
@@ -8195,6 +8354,12 @@ class Threads extends s$1 {
         const parent = e.target.expire ? e.target : e.target.closest('.thread');
         const sender = parent.getAttribute('sender');
         const thread = this.threads.find((t) => t.sender === sender);
+        const threadEvent = new CustomEvent('threadSelect', {
+            bubbles: false,
+            detail: {
+                ...thread,
+            },
+        });
 
         if (isPhone) {
             domCache.navi.classList.add('hide');
@@ -8214,6 +8379,7 @@ class Threads extends s$1 {
         domCache.menus.messagesMenu.conversationPartner = thread;
         domCache.menus.messagesMenu.focus();
         domCache.menus.messagesMenu.setInput();
+        return domCache.app.dispatchEvent(threadEvent);
     }
 
     createRenderRoot() {
@@ -8278,7 +8444,7 @@ function removeActiveMenu(container) {
 
 class AppLayout extends s$1 {
     static properties = {
-        ME: {},
+        ME: { type: Object },
     };
 
     #menus = {
@@ -8290,19 +8456,22 @@ class AppLayout extends s$1 {
     #inviteModal = document.querySelector('invite-modal-window');
     #panicModal = document.querySelector('panic-modal-window');
     #converModal = document.querySelector('conversation-modal-window');
+    #lockModal = document.querySelector('lock-modal-window');
 
     set ME(val) {
         Object.values(this.#menus).forEach(function (menu) {
             menu.ME = val;
         });
+
         this.#panicModal.ME = val;
         this.#inviteModal.ME = val;
+        this.#converModal.ME = val;
         this.requestUpdate('ME', val);
     }
 
     constructor() {
         super();
-        this.ME = {};
+        this.ME = ME;
     }
 
     createRenderRoot() {
@@ -8382,6 +8551,9 @@ class AppLayout extends s$1 {
     firstUpdated() {
         super.connectedCallback();
 
+        const bootstrapEvent = new CustomEvent('bootstrap', {
+            bubbles: false,
+        });
         const menus = {
             messagesMenu: this.querySelector('messages-menu'),
             settingsMenu: this.querySelector('settings-menu'),
@@ -8407,7 +8579,12 @@ class AppLayout extends s$1 {
             }
 
             menus.messagesMenu.focus();
+            domCache.app.dispatchEvent(bootstrapEvent);
         });
+    }
+
+    openLockModal() {
+        return this.#lockModal.open();
     }
 
     setMessages(messages) {
@@ -8423,6 +8600,15 @@ class AppLayout extends s$1 {
     }
 
     render() {
+        const header = $`<header><i @click="${(e) =>
+            this.clickOnUser(
+                e
+            )}" class="fa-solid fa-circle-user hover-font"></i><i @click="${(
+            e
+        ) =>
+            this.clickOnNewConv(
+                e
+            )}" class="fa-solid fa-pen-clip float-right hover-font"></i></header>`;
         const bottomNavi = $`<div class="bottom-navi"><div @click="${(e) =>
             this.clickOnChat(
                 e
@@ -8442,15 +8628,6 @@ class AppLayout extends s$1 {
             this.clickOnPanic(
                 e
             )}" class="hover-font"><i class="fa-solid fa-bomb"></i><small>Panic</small></div></div>`;
-        const header = $`<header><i @click="${(e) =>
-            this.clickOnUser(
-                e
-            )}" class="fa-solid fa-circle-user hover-font"></i><i @click="${(
-            e
-        ) =>
-            this.clickOnNewConv(
-                e
-            )}" class="fa-solid fa-pen-clip float-right hover-font"></i></header>`;
         const menus = $`<messages-menu class="${
             isPhone ? 'hide' : ''
         }"></messages-menu><settings-menu class="hide"></settings-menu><user-menu class="hide"></user-menu>`;
@@ -8536,7 +8713,7 @@ const messages = [
     },
 ];
 const me = {
-    codes: false,
+    codes: true,
     id: '1337',
     nickname: 'Johannes',
     expire: new Date(),
@@ -8555,48 +8732,92 @@ const partner = {
         now.setTime(now.getTime() - 1000 * 10);
         return now;
     })(),
+    codes: true,
     type: 'user',
     endless: false,
 };
 
-document.addEventListener('DOMContentLoaded', function () {
-    const app = document.querySelector('app-layout');
-    const lockModal = document.querySelector('lock-modal-window');
+const app = document.querySelector('app-layout');
 
+app.addEventListener('bootstrap', function ({ detail }) {
+    console.log(detail);
     setTimeout(function () {
         console.log('me update');
         app.ME = me;
         lockModal.ME = me;
-
-        app.setThreads([
-            partner,
-            {
-                ...partner,
-                sender: '2',
-                id: '2',
-                threadID: '2:1337',
-                nickname: 'Karl',
-                endless: true,
-                ts: (() => {
-                    const now = new Date();
-                    now.setTime(now.getTime() - 1000 * 60 * 60 * 24 + 1);
-                    return now;
-                })(),
-                text: 'Guten Morgen, ich bin gerade am weg',
-            },
-            {
-                ...partner,
-                sender: '3',
-                id: '3',
-                nickname: 'Dieter',
-                threadID: '3:1337',
-                endless: true,
-                ts: 'Mon Jun 20 2022 06:01:34 GMT+0000 (Coordinated Universal Time)',
-                text: 'Kannst du mir bitte deine',
-            },
-        ]);
+    }, 800);
+    app.setThreads([
+        partner,
+        {
+            ...partner,
+            sender: '2',
+            id: '2',
+            threadID: '2:1337',
+            nickname: 'Karl',
+            endless: true,
+            ts: (() => {
+                const now = new Date();
+                now.setTime(now.getTime() - 1000 * 60 * 60 * 24 + 1);
+                return now;
+            })(),
+            text: 'Guten Morgen, ich bin gerade am weg',
+        },
+        {
+            ...partner,
+            sender: '3',
+            id: '3',
+            nickname: 'Dieter',
+            threadID: '3:1337',
+            endless: true,
+            ts: 'Mon Jun 20 2022 06:01:34 GMT+0000 (Coordinated Universal Time)',
+            text: 'Kannst du mir bitte deine',
+        },
+    ]);
+});
+app.addEventListener('threadSelect', function ({ detail }) {
+    console.log(detail);
+    if (detail.id === '3') {
         app.setMessages(messages);
-
-        lockModal.open();
-    }, 1000);
+    }
+});
+app.addEventListener('writeMessage', function ({ detail }) {
+    console.log(detail);
+});
+app.addEventListener('uploadMedia', function ({ detail }) {
+    console.log(detail);
+});
+app.addEventListener('panic', function ({ detail }) {
+    console.log(detail);
+});
+app.addEventListener('inviteGenerated', function ({ detail }) {
+    console.log(detail);
+});
+app.addEventListener('changeNickName', function ({ detail }) {
+    console.log(detail);
+});
+app.addEventListener('setupCodes', function ({ detail }) {
+    console.log(detail);
+});
+app.addEventListener('updateDestroy', function ({ detail }) {
+    console.log(detail);
+});
+app.addEventListener('updateUnlock', function ({ detail }) {
+    console.log(detail);
+});
+app.addEventListener('setStatus', function ({ detail }) {
+    console.log(detail);
+});
+app.addEventListener('setToken', function ({ detail }) {
+    console.log(detail);
+    //detail.wrongToken();
+    detail.success();
+});
+app.addEventListener('newConversation', function ({ detail }) {
+    console.log(detail);
+    detail.success();
+    //detail.idDoesNotExist();
+});
+app.addEventListener('createGroup', function ({ detail }) {
+    console.log(detail);
+    detail.success();
 });

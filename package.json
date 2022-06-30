@@ -9,6 +9,7 @@
     "buildProd": "node build/replace/ && rollup -c build/rollup.dist.config.js",
     "test": "node_modules/cypress/bin/cypress open"
   },
+  "type": "module",
   "devDependencies": {
     "@rollup/plugin-eslint": "^8.0.2",
     "@rollup/plugin-node-resolve": "^13.3.0",
