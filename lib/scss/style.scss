@@ -78,6 +78,16 @@ a:hover {
     color: var(--color-highlight);
 }
 
+.hover-font:hover i.fa-plus {
+    animation: spin 0.5s linear;
+}
+
+@keyframes spin { 
+    100% { 
+        transform: rotate(90deg); 
+    } 
+}
+
 .danger {
     background-color: var(--color-error);
     border-color: var(--color-error);

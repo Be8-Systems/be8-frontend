@@ -7802,7 +7802,10 @@ class Lock extends Modal {
         if (this.ME.codes) {
             super.open();
             requestAnimationFrame(() => this.#unlockInput.focus());
+            return true;
         }
+
+        return false;
     }
 
     firstUpdated() {
@@ -8463,6 +8466,7 @@ class AppLayout extends s$1 {
             menu.ME = val;
         });
 
+        this.#lockModal.ME = val;
         this.#panicModal.ME = val;
         this.#inviteModal.ME = val;
         this.#converModal.ME = val;
@@ -8709,7 +8713,7 @@ const messages = [
     },
 ];
 const me = {
-    codes: true,
+    codes: false,
     id: '1337',
     nickname: 'Johannes',
     expire: new Date(),
@@ -8736,11 +8740,8 @@ const partner = {
 const app = document.querySelector('app-layout');
 
 document.addEventListener('DOMContentLoaded', function () {
-    setTimeout(function () {
-        console.log('me update');
-        app.ME = me;
-        app.openLockModal();
-    }, 800);
+    app.ME = me;
+    app.openLockModal();
     app.setThreads([
         partner,
         {
