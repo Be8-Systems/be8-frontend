@@ -3,7 +3,7 @@
   "version": "0.0.2",
   "type": "module",
   "scripts": {
-    "serve": "node node-modules/be8-backend/index.mjs --frontend",
+    "serve": "cp -r node_modules/be8-backend . && node be8-backend/index.mjs --frontend",
     "watch": "npm run serve & rollup -w -c build/rollup.dev.config.js & rollup -w -c build/rollup.dist.config.js",
     "build": "npm run buildDev && npm run buildProd",
     "buildDev": "rollup -c build/rollup.dev.config.js",

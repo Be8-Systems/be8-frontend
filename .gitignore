@@ -5,6 +5,9 @@
 tsconfig.json
 jsconfig.json
 
+# be8-backend
+be8-backend/
+
 ### Emacs ###
 # -*- mode: gitignore; -*-
 *~
