@@ -127,7 +127,7 @@ a:hover {
 }
 
 .hover-font:hover i.fa-plus {
-  animation: spin 0.5s linear;
+  animation: spin 0.3s linear;
 }
 
 @keyframes spin {
