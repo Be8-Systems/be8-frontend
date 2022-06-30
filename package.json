@@ -1,8 +1,9 @@
 {
   "name": "be8-frontend",
   "version": "0.0.2",
+  "type": "module",
   "scripts": {
-    "serve": "node build/server.mjs",
+    "serve": "node node-modules/be8-backend/index.mjs --frontend",
     "watch": "npm run serve & rollup -w -c build/rollup.dev.config.js & rollup -w -c build/rollup.dist.config.js",
     "build": "npm run buildDev && npm run buildProd",
     "buildDev": "rollup -c build/rollup.dev.config.js",
@@ -10,6 +11,7 @@
     "test": "node_modules/cypress/bin/cypress open"
   },
   "devDependencies": {
+    "be8-backend": "https://github.com/Be8-Systems/be8-backend",
     "@rollup/plugin-eslint": "^8.0.2",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@rollup/plugin-replace": "^4.0.0",
@@ -37,7 +39,6 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.1.1",
     "be8-engine": "https://github.com/Be8-Systems/be8-engine",
-    "be8-backend": "https://github.com/Be8-Systems/be8-backend",
     "crypto-es": "^1.2.7"
   }
 }
