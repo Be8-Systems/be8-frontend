@@ -8551,9 +8551,6 @@ class AppLayout extends s$1 {
     firstUpdated() {
         super.connectedCallback();
 
-        const bootstrapEvent = new CustomEvent('bootstrap', {
-            bubbles: false,
-        });
         const menus = {
             messagesMenu: this.querySelector('messages-menu'),
             settingsMenu: this.querySelector('settings-menu'),
@@ -8579,7 +8576,6 @@ class AppLayout extends s$1 {
             }
 
             menus.messagesMenu.focus();
-            domCache.app.dispatchEvent(bootstrapEvent);
         });
     }
 
@@ -8739,8 +8735,7 @@ const partner = {
 
 const app = document.querySelector('app-layout');
 
-app.addEventListener('bootstrap', function ({ detail }) {
-    console.log(detail);
+document.addEventListener('DOMContentLoaded', function () {
     setTimeout(function () {
         console.log('me update');
         app.ME = me;
