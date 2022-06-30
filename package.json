@@ -10,7 +10,6 @@
     "buildProd": "node build/replace/ && rollup -c build/rollup.dist.config.js",
     "test": "node_modules/cypress/bin/cypress open"
   },
-  "type": "module",
   "devDependencies": {
     "be8-backend": "https://github.com/Be8-Systems/be8-backend",
     "@rollup/plugin-eslint": "^8.0.2",
