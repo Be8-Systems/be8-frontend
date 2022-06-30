@@ -8744,7 +8744,7 @@ app.addEventListener('bootstrap', function ({ detail }) {
     setTimeout(function () {
         console.log('me update');
         app.ME = me;
-        lockModal.ME = me;
+        app.openLockModal();
     }, 800);
     app.setThreads([
         partner,
