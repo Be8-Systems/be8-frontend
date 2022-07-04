@@ -7,6 +7,7 @@ describe('Check if menu or modal is navigateable', () => {
     // go back to threads menu
     // check if the user you are talking to is switched is switched
     it('Check different classes and elements', () => {
-        throw new Error('ToDo: implement test');
+        cy.get('.thread').eq(1).click();
+        cy.get('.thread').eq(1).should('have.class', 'active-thread');
     });
 });
