@@ -7587,7 +7587,7 @@ function randomString() {
 
 function generatePassword() {
     const password = randomString();
-    const salt = Date.now();
+    const salt = Date.now() + '';
     const cipherPW = Crypto.AES.encrypt(password, salt).toString();
     return Object.freeze({
         password: cipherPW,

@@ -7,6 +7,7 @@
     "build": "npm run buildDev && npm run buildProd",
     "buildDev": "rollup -c build/rollup.dev.config.js",
     "buildProd": "node build/replace/ && rollup -c build/rollup.dist.config.js",
+    "buildBE": "rm -f package-lock.json && rm -rf node_modules/be8-backend && rm -rf be8-backend",
     "test": "node_modules/cypress/bin/cypress open"
   },
   "devDependencies": {
