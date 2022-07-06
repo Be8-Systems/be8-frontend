@@ -7587,7 +7587,6 @@ function randomString() {
 
 function generatePassword() {
     const password = randomString();
-    console.log(password);
     const salt = Date.now() + '';
     const cipherPW = Crypto.AES.encrypt(password, salt).toString();
     return Object.freeze({
@@ -7945,6 +7944,17 @@ class Codes extends Modal {
                 ...this.ME,
                 unlockCode: unlock,
                 destroyCode: destroy,
+                done: () => {
+                    domCache.toast.notification = {
+                        type: 'success',
+                        text: 'Your unlock code and destroy code are set. Auto refresh in 2s.',
+                    };
+
+                    domCache.toast.open();
+                    inputs.forEach((input) => (input.value = ''));
+                    this.close();
+                    setTimeout(() => location.reload(), 2000);
+                },
             },
         });
 
@@ -7960,6 +7970,14 @@ class Codes extends Modal {
             domCache.toast.notification = {
                 type: 'error',
                 text: 'Destroy and destroy re-type are not equal',
+            };
+
+            return domCache.toast.open();
+        }
+        if (unlock === destroy) {
+            domCache.toast.notification = {
+                type: 'error',
+                text: 'Destroy and unlock are the same code',
             };
 
             return domCache.toast.open();
@@ -7981,14 +7999,6 @@ class Codes extends Modal {
             return domCache.toast.open();
         }
 
-        domCache.toast.notification = {
-            type: 'success',
-            text: 'Your unlock code and destroy code are set. Auto refresh in 2s.',
-        };
-
-        domCache.toast.open();
-        inputs.forEach((input) => (input.value = ''));
-        this.close();
         return domCache.app.dispatchEvent(setupEvent);
     }
 
@@ -8050,24 +8060,31 @@ class Lock extends Modal {
 
     enterUnlockCode(e) {
         if (e.keyCode === 13) {
-            const code = this.#unlockInput.value;
+            // enter
+            const unlockEvent = new CustomEvent('unlock', {
+                detail: {
+                    code: this.#unlockInput.value,
+                    done: () => {
+                        domCache.toast.notification = {
+                            type: 'success',
+                            text: 'be8 unlocked',
+                        };
 
-            if (code === '1000') {
-                domCache.toast.notification = {
-                    type: 'success',
-                    text: 'be8 unlocked',
-                };
+                        domCache.toast.open();
+                        return this.close();
+                    },
+                    error: () => {
+                        domCache.toast.notification = {
+                            type: 'error',
+                            text: 'wrong unlock code',
+                        };
 
-                domCache.toast.open();
-                return this.close();
-            }
+                        return domCache.toast.open();
+                    },
+                },
+            });
 
-            domCache.toast.notification = {
-                type: 'error',
-                text: 'wrong unlock code',
-            };
-
-            domCache.toast.open();
+            return domCache.app.dispatchEvent(unlockEvent);
         }
     }
 
@@ -8914,98 +8931,6 @@ class AppLayout extends s$1 {
 
 customElements.define('app-layout', AppLayout);
 
-const messages = [
-    {
-        messageID: '1',
-        ts: new Date(),
-        text: 'hello',
-        sender: '1337',
-        status: ['2'],
-    },
-    {
-        messageID: '2',
-        ts: new Date(),
-        text: 'willkomen zuhause soldat!',
-        sender: '2',
-        status: [],
-    },
-    {
-        messageID: '3',
-        ts: new Date(),
-        text: 'Bitte nicht mehr schreiben',
-        sender: '2',
-        status: [],
-    },
-    {
-        messageID: '4',
-        ts: new Date(),
-        text: `Das feste, dunkle Äußere des Brotes heißt Kruste oder Rinde. Sie enthält Röstaromen, die durch die Maillard-Reaktion beim Backen entstehen. Durch Einschneiden der Brotoberfläche vor dem Backprozess oder durch das zufällig Aufreißen beim Gehen ergeben sich in der Kruste Ausbünde, die die Oberfläche des gebackenen Brotes vergrößern. Die Dicke der Kruste ergibt sich aus der Backdauer, und ihre Farbe ergibt sich aus der Backtemperatur.
-
-    Das weiche, lockere Innere des Brotes ist die Krume. Sie enthält je nach Brotsorte mehr oder weniger Poren mit regelmäßiger oder unregelmäßiger Größe, die beim Gären entstanden sind, und gegebenenfalls weitere Bestandteile, wie zum Beispiel ganze Getreide- oder Saatkörner. Die Krume kann eher luftig und leicht oder aber auch kompakt und saftig sein.
-    
-    Brotkrümel heißen auch Brosamen (aus dem Mittelhochdeutschen) oder Brösel. Die meisten Brotteige können auch in Form kleinerer, etwa handtellergroßer Portionen als Brötchen gebacken werden.`,
-        sender: '1337',
-        status: ['1'],
-    },
-    {
-        messageID: '5',
-        ts: new Date(),
-        text: `Das feste, dunkle Äußere des Brotes heißt Kruste oder Rinde. Sie enthält Röstaromen, die durch die Maillard-Reaktion beim Backen entstehen. Durch Einschneiden der Brotoberfläche vor dem Backprozess oder durch das zufällig Aufreißen beim Gehen ergeben sich in der Kruste Ausbünde, die die Oberfläche des gebackenen Brotes vergrößern. Die Dicke der Kruste ergibt sich aus der Backdauer, und ihre Farbe ergibt sich aus der Backtemperatur.
-
-    Das weiche, lockere Innere des Brotes ist die Krume. Sie enthält je nach Brotsorte mehr oder weniger Poren mit regelmäßiger oder unregelmäßiger Größe, die beim Gären entstanden sind, und gegebenenfalls weitere Bestandteile, wie zum Beispiel ganze Getreide- oder Saatkörner. Die Krume kann eher luftig und leicht oder aber auch kompakt und saftig sein.
-    
-    Brotkrümel heißen auch Brosamen (aus dem Mittelhochdeutschen) oder Brösel. Die meisten Brotteige können auch in Form kleinerer, etwa handtellergroßer Portionen als Brötchen gebacken werden.`,
-        sender: '2',
-        status: [],
-    },
-    {
-        messageID: '6',
-        ts: new Date(),
-        text: 'Steht das brot angebot noch?',
-        sender: '2',
-        status: [],
-    },
-    {
-        messageID: '6',
-        ts: new Date(),
-        text: `Das feste, dunkle Äußere des Brotes heißt Kruste oder Rinde. Sie enthält Röstaromen, die durch die Maillard-Reaktion beim Backen entstehen. Durch Einschneiden der Brotoberfläche vor dem Backprozess oder durch das zufällig Aufreißen beim Gehen ergeben sich in der Kruste Ausbünde, die die Oberfläche des gebackenen Brotes vergrößern. Die Dicke der Kruste ergibt sich aus der Backdauer, und ihre Farbe ergibt sich aus der Backtemperatur.
-
-    Das weiche, lockere Innere des Brotes ist die Krume. Sie enthält je nach Brotsorte mehr oder weniger Poren mit regelmäßiger oder unregelmäßiger Größe, die beim Gären entstanden sind, und gegebenenfalls weitere Bestandteile, wie zum Beispiel ganze Getreide- oder Saatkörner. Die Krume kann eher luftig und leicht oder aber auch kompakt und saftig sein.
-    
-    Brotkrümel heißen auch Brosamen (aus dem Mittelhochdeutschen) oder Brösel. Die meisten Brotteige können auch in Form kleinerer, etwa handtellergroßer Portionen als Brötchen gebacken werden.`,
-        sender: '2',
-        status: [],
-    },
-    {
-        contentID: '8CKX5Mw9I5FIwq3erXY0',
-        contentType: 'image',
-        ts: 'Wed Jun 29 2022 14:32:29 GMT+0000 (Coordinated Universal Time)',
-        type: 'imageMessage',
-        messageID: '7',
-        ts: new Date(),
-        text: '',
-        sender: '1',
-        status: [],
-    },
-];
-const partner = {
-    expire: 'Tue Jul 19 2022 05:33:42 GMT+0000 (Coordinated Universal Time)',
-    id: '1',
-    nickname: 'Boris',
-    sender: '1',
-    status: 'Working on something great',
-    text: 'Hallo Oli, wolltest du nicht',
-    threadID: '1:1337',
-    ts: (() => {
-        const now = new Date();
-        now.setTime(now.getTime() - 1000 * 10);
-        return now;
-    })(),
-    codes: true,
-    type: 'user',
-    endless: false,
-};
-
 const POST = {
     method: 'POST',
     mode: 'cors',
@@ -9035,13 +8960,18 @@ function firstTimeVisitor() {
         .then((raw) => raw.json())
         .then(function (data) {
             if (data.valid) {
-                app.ME = data.accObj;
+                return fetch('/me', GET)
+                    .then((raw) => raw.json())
+                    .then(function (data) {
+                        app.ME = data.accObj;
+                    });
             }
 
             console.log(data);
         })
         .catch();
 }
+
 document.addEventListener('DOMContentLoaded', function () {
     fetch('/me', GET)
         .then((raw) => raw.json())
@@ -9051,43 +8981,31 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             app.ME = accObj;
+            return app.openLockModal();
         })
-        .catch(() => firstTimeVisitor());
-
-    app.openLockModal();
-    app.setThreads([
-        partner,
-        {
-            ...partner,
-            sender: '2',
-            id: '2',
-            threadID: '2:1337',
-            nickname: 'Karl',
-            endless: true,
-            ts: (() => {
-                const now = new Date();
-                now.setTime(now.getTime() - 1000 * 60 * 60 * 24 + 1);
-                return now;
-            })(),
-            text: 'Guten Morgen, ich bin gerade am weg',
-        },
-        {
-            ...partner,
-            sender: '3',
-            id: '3',
-            nickname: 'Dieter',
-            threadID: '3:1337',
-            endless: true,
-            ts: 'Mon Jun 20 2022 06:01:34 GMT+0000 (Coordinated Universal Time)',
-            text: 'Kannst du mir bitte deine',
-        },
-    ]);
+        .catch(console.error);
+});
+app.addEventListener('unlock', function ({ detail }) {
+    fetch('/codeunlock', {
+        ...POST,
+        body: JSON.stringify(detail),
+    })
+        .then((raw) => raw.json())
+        .then(function ({ valid, isValid, isDestroyCode }) {
+            if (isDestroyCode) {
+                location.reload();
+            }
+            if (valid && isValid) {
+                return detail.done();
+            } else {
+                return detail.error();
+            }
+        })
+        .catch(console.error);
 });
 app.addEventListener('threadSelect', function ({ detail }) {
     console.log(detail);
-    if (detail.id === '3') {
-        app.setMessages(messages);
-    }
+    if (detail.id === '3');
 });
 app.addEventListener('writeMessage', function ({ detail }) {
     console.log(detail);
@@ -9105,7 +9023,16 @@ app.addEventListener('changeNickName', function ({ detail }) {
     console.log(detail);
 });
 app.addEventListener('setupCodes', function ({ detail }) {
-    console.log(detail);
+    fetch('/codeset', {
+        ...POST,
+        body: JSON.stringify(detail),
+    })
+        .then((raw) => raw.json())
+        .then(function (data) {
+            if (data.valid) {
+                return detail.done();
+            }
+        });
 });
 app.addEventListener('updateDestroy', function ({ detail }) {
     console.log(detail);
