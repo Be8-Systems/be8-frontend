@@ -2,12 +2,11 @@
   "name": "be8-frontend",
   "version": "0.0.2",
   "scripts": {
-    "serve": "cp -r node_modules/be8-backend . && node be8-backend/index.mjs --frontend",
+    "serve": "node build/server.mjs",
     "watch": "npm run serve & rollup -w -c build/rollup.dev.config.js & rollup -w -c build/rollup.dist.config.js",
     "build": "npm run buildDev && npm run buildProd",
     "buildDev": "rollup -c build/rollup.dev.config.js",
     "buildProd": "node build/replace/ && rollup -c build/rollup.dist.config.js",
-    "buildBE": "rm -f package-lock.json && rm -rf node_modules/be8-backend && rm -rf be8-backend",
     "test": "node_modules/cypress/bin/cypress open"
   },
   "devDependencies": {

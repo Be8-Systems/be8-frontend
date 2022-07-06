@@ -9042,14 +9042,15 @@ function firstTimeVisitor() {
         })
         .catch();
 }
-
 document.addEventListener('DOMContentLoaded', function () {
     fetch('/me', GET)
         .then((raw) => raw.json())
-        .then(function ({ error }) {
+        .then(function ({ error, accObj }) {
             if (error === 'NOTAUTH') {
                 return firstTimeVisitor();
             }
+
+            app.ME = accObj;
         })
         .catch(() => firstTimeVisitor());
 
