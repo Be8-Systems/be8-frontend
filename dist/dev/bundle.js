@@ -8749,6 +8749,7 @@ class AppLayout extends s$1 {
         userMenu: {},
     };
     #threads = {};
+    #modal = document.querySelector('modal-window');
     #inviteModal = document.querySelector('invite-modal-window');
     #panicModal = document.querySelector('panic-modal-window');
     #converModal = document.querySelector('conversation-modal-window');
@@ -8843,6 +8844,13 @@ class AppLayout extends s$1 {
 
     clickOnPanic() {
         return this.#panicModal.open();
+    }
+
+    openWelcomeWindow({ id }) {
+        console.log(id);
+        return this.#modal.setAndOpen({
+            HTML: `Welcome to Be8 your new ID is <strong>${id}</strong>. Everything gets deleted after 30 Days you can create as many accs as you want.`,
+        });
     }
 
     firstUpdated() {
@@ -8949,6 +8957,12 @@ const GET = {
 
 const app = document.querySelector('app-layout');
 
+function sanitizeMe(accObj) {
+    accObj.codes = accObj.codes === 'true';
+
+    return accObj;
+}
+
 function firstTimeVisitor() {
     fetch('/newacc', {
         ...POST,
@@ -8963,7 +8977,8 @@ function firstTimeVisitor() {
                 return fetch('/me', GET)
                     .then((raw) => raw.json())
                     .then(function (data) {
-                        app.ME = data.accObj;
+                        app.ME = sanitizeMe(data.accObj);
+                        app.openWelcomeWindow(data.accObj);
                     });
             }
 
@@ -8980,7 +8995,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return firstTimeVisitor();
             }
 
-            app.ME = accObj;
+            app.ME = sanitizeMe(accObj);
             return app.openLockModal();
         })
         .catch(console.error);
