@@ -3,16 +3,27 @@ import setup from '../setup.js';
 describe('Check if menu or modal is navigateable', () => {
     setup();
 
-    it('Check different classes and elements', () => {
-        throw new Error('ToDo: implement test');
+    it('Check if modal is viewable and hidden again after closing', () => {
+        cy.get('.fa-pen-clip').click();
+        cy.get('conversation-modal-window').should('not.have.class', 'hide');
+        cy.get('conversation-modal-window.modal .inner-modal .close-modal').click();
+        cy.get('conversation-modal-window').should('have.class', 'hide');
     });
 
     it('Go to group and go back', () => {
-        throw new Error('ToDo: implement test');
+        cy.get('.fa-pen-clip').click();
+        cy.get('conversation-modal-window.modal .modal-content .sub-modal-button').click();
+        cy.get('conversation-modal-window .create-group-content').should('not.have.class', 'hide');
+        cy.get('conversation-modal-window.modal .inner-modal .close-modal').click();
+        cy.get('conversation-modal-window .create-group-content').should('have.class', 'hide');
     });
 
     it('Go to group and close modal and reopen', () => {
-        // should not show group modal, should show main conversation modal
-        throw new Error('ToDo: implement test');
+        cy.get('.fa-pen-clip').click();
+        cy.get('conversation-modal-window.modal .modal-content .sub-modal-button').click();
+        cy.get('conversation-modal-window.modal .inner-modal .close-modal').click();
+        cy.get('.fa-pen-clip').click();
+        cy.get('conversation-modal-window').should('not.have.class', 'hide');
+        cy.get('conversation-modal-window .create-group-content').should('have.class', 'hide');
     });
 });
