@@ -7574,7 +7574,7 @@ function animateMainToSide(main, side, focus) {
 
 function randomString() {
     const charset =
-        '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!?=.-';
+        '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!?';
     const random = (min, max) =>
         Math.floor(Math.random() * (max - min + 1) + min);
 
