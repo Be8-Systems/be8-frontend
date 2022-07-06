@@ -8963,7 +8963,7 @@ const app = document.querySelector('app-layout');
 function sanitizeMe(accObj) {
     accObj.codes = accObj.codes === 'true';
 
-    return accObj;
+    app.ME = accObj;
 }
 
 function firstTimeVisitor() {
@@ -8980,7 +8980,7 @@ function firstTimeVisitor() {
                 return fetch('/me', GET)
                     .then((raw) => raw.json())
                     .then(function (data) {
-                        app.ME = sanitizeMe(data.accObj);
+                        sanitizeMe(data.accObj);
                         app.openWelcomeWindow(data.accObj);
                     });
             }
@@ -8998,7 +8998,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return firstTimeVisitor();
             }
 
-            app.ME = sanitizeMe(accObj);
+            sanitizeMe(accObj);
             return app.openLockModal();
         })
         .catch(console.error);
@@ -9040,7 +9040,7 @@ app.addEventListener('panic', function ({ detail }) {
             }
         });
 });
-app.addEventListener('inviteGenerated', function ({ detail }) {
+app.addEventListener('inviteGenerated', function () {
     fetch('/invitelink', {
         ...POST,
         body: JSON.stringify({
@@ -9057,7 +9057,9 @@ app.addEventListener('changeNickName', function ({ detail }) {
         .then((raw) => raw.json())
         .then(function (data) {
             if (data.valid) {
-                return detail.done();
+                fetch('/me', GET)
+                    .then((raw) => raw.json())
+                    .then((data) => sanitizeMe(data.accObj));
             }
         });
 });
@@ -9080,16 +9082,7 @@ app.addEventListener('updateUnlock', function ({ detail }) {
     console.log(detail);
 });
 app.addEventListener('setStatus', function ({ detail }) {
-    fetch('/statusset', {
-        ...POST,
-        body: JSON.stringify(detail),
-    })
-        .then((raw) => raw.json())
-        .then(function (data) {
-            if (data.valid) {
-                return detail.done();
-            }
-        });
+    fetch('/statusset', { ...POST, body: JSON.stringify(detail) });
 });
 app.addEventListener('setToken', function ({ detail }) {
     console.log(detail);
