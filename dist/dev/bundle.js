@@ -8508,15 +8508,16 @@ class User extends s$1 {
         return domCache.app.dispatchEvent(tokenEvent);
     }
 
-    #sendStatusChangeEvent() {
-        const destroyEvent = new CustomEvent('setStatus', {
+    #sendStatusChangeEvent(status) {
+        const statusEvent = new CustomEvent('setStatus', {
             bubbles: false,
             detail: {
                 ...this.ME,
+                status,
             },
         });
 
-        return domCache.app.dispatchEvent(destroyEvent);
+        return domCache.app.dispatchEvent(statusEvent);
     }
 
     keyDownStatus(event) {
@@ -8534,7 +8535,7 @@ class User extends s$1 {
                 status,
             };
 
-            this.#sendStatusChangeEvent();
+            this.#sendStatusChangeEvent(status);
         }, 400);
     }
 
@@ -9056,7 +9057,16 @@ app.addEventListener('updateUnlock', function ({ detail }) {
     console.log(detail);
 });
 app.addEventListener('setStatus', function ({ detail }) {
-    console.log(detail);
+    fetch('/statusset', {
+        ...POST,
+        body: JSON.stringify(detail),
+    })
+        .then((raw) => raw.json())
+        .then(function (data) {
+            if (data.valid) {
+                return detail.done();
+            }
+        });
 });
 app.addEventListener('setToken', function ({ detail }) {
     console.log(detail);
