@@ -8514,7 +8514,6 @@ class User extends s$1 {
         const statusEvent = new CustomEvent('setStatus', {
             bubbles: false,
             detail: {
-                ...this.ME,
                 status,
             },
         });
@@ -8589,11 +8588,12 @@ class SettingsMenu extends s$1 {
         return this.#codesModal.open();
     }
 
-    #sendChangeNichnameEvent() {
+    #sendChangeNichnameEvent(newNickname, oldNickname) {
         const nickName = new CustomEvent('changeNickName', {
             bubbles: false,
             detail: {
-                ...this.ME,
+                oldNickname,
+                newNickname,
             },
         });
 
@@ -8605,14 +8605,15 @@ class SettingsMenu extends s$1 {
 
         this.#nicknameTimer = setTimeout(() => {
             const input = event.target;
+            const newNickname = input.value;
+            const oldNickname = this.ME.nickname;
 
-            this.ME.nickname = input.value;
             this.ME = {
                 ...this.ME,
-                nickname: input.value,
+                nickname: newNickname,
             };
 
-            this.#sendChangeNichnameEvent();
+            this.#sendChangeNichnameEvent(newNickname, oldNickname);
         }, 900);
     }
 
@@ -9049,7 +9050,16 @@ app.addEventListener('inviteGenerated', function ({ detail }) {
     }).then((raw) => raw.json());
 });
 app.addEventListener('changeNickName', function ({ detail }) {
-    console.log(detail);
+    fetch('/changenickname', {
+        ...POST,
+        body: JSON.stringify(detail),
+    })
+        .then((raw) => raw.json())
+        .then(function (data) {
+            if (data.valid) {
+                return detail.done();
+            }
+        });
 });
 app.addEventListener('setupCodes', function ({ detail }) {
     fetch('/codeset', {
