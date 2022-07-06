@@ -8203,7 +8203,7 @@ class User extends s$1 {
             },
         });
 
-        if (token.length < 10) {
+        if (token.length < 32) {
             domCache.toast.notification = {
                 type: 'error',
                 text: 'Your token is too short',
