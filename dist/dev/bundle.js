@@ -7587,6 +7587,7 @@ function randomString() {
 
 function generatePassword() {
     const password = randomString();
+    console.log(password);
     const salt = Date.now() + '';
     const cipherPW = Crypto.AES.encrypt(password, salt).toString();
     return Object.freeze({
@@ -9033,6 +9034,10 @@ function firstTimeVisitor() {
     })
         .then((raw) => raw.json())
         .then(function (data) {
+            if (data.valid) {
+                app.ME = data.accObj;
+            }
+
             console.log(data);
         })
         .catch();
