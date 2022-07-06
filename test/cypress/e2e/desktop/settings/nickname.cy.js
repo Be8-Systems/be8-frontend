@@ -10,5 +10,6 @@ describe('Nickname', () => {
         cy.get('settings-menu .settings-container input').clear();
         cy.get('settings-menu .settings-container input').type('mustermann');
         cy.get('settings-menu .settings-container input').should('have.value', newNick);
+        cy.get('settings-menu .settings-container p').first().should('have.text', `Nickname is ${newNick}`);
     });
 });
