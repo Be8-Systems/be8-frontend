@@ -7628,26 +7628,28 @@ class PanicModal extends Modal {
     }
 
     onClickDestroy() {
-        const id = this.querySelector('input').value;
+        const id = this.querySelector('input').value.trim();
 
         if (id === this.ME.id) {
-            console.log('destroy');
-            return this.close();
-        } else {
-            const panicEvent = new CustomEvent('panicButton', {
+            const panicEvent = new CustomEvent('panic', {
                 bubbles: false,
                 detail: {
                     ...this.ME,
+                    done: () => {
+                        requestAnimationFrame(() => location.reload());
+                        return this.close();
+                    },
                 },
             });
 
+            return domCache.app.dispatchEvent(panicEvent);
+        } else {
             domCache.toast.notification = {
                 type: 'error',
                 text: 'Wrong code',
             };
 
-            domCache.toast.open();
-            return domCache.app.dispatchEvent(panicEvent);
+            return domCache.toast.open();
         }
     }
 
@@ -8849,9 +8851,8 @@ class AppLayout extends s$1 {
     }
 
     openWelcomeWindow({ id }) {
-        console.log(id);
         return this.#modal.setAndOpen({
-            HTML: `Welcome to Be8 your new ID is <strong>${id}</strong>. Everything gets deleted after 30 Days you can create as many accs as you want.`,
+            HTML: `Welcome to Be8 your new ID is <strong>#${id}</strong>. Everything gets deleted after 30 Days you can create as many accs as you want.`,
         });
     }
 
@@ -9031,10 +9032,22 @@ app.addEventListener('uploadMedia', function ({ detail }) {
     console.log(detail);
 });
 app.addEventListener('panic', function ({ detail }) {
-    console.log(detail);
+    fetch('/destroyacc', GET)
+        .then((raw) => raw.json())
+        .then(function ({ valid }) {
+            if (valid) {
+                return detail.done();
+            }
+        });
 });
 app.addEventListener('inviteGenerated', function ({ detail }) {
-    console.log(detail);
+    fetch('/invitelink', {
+        ...POST,
+        body: JSON.stringify({
+            type: 'join',
+            sentInviteLink: true,
+        }),
+    }).then((raw) => raw.json());
 });
 app.addEventListener('changeNickName', function ({ detail }) {
     fetch('/changenickname', {
