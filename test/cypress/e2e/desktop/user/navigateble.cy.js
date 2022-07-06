@@ -5,6 +5,9 @@ describe('Check if menu or modal is navigateable', () => {
 
     // close modal and check if modal is gone
     it('Check different classes and elements', () => {
-        throw new Error('ToDo: implement test');
+        cy.get('header .fa-circle-user').click();
+        cy.get('user-menu').should('not.have.class', 'hide');
+        cy.get('.bottom-navi .fa-comments').click();
+        cy.get('user-menu').should('have.class', 'hide');
     });
 });
