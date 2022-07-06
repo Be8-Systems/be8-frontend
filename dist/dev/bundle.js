@@ -7244,6 +7244,248 @@ class InviteModal extends Modal {
 
 customElements.define('invite-modal-window', InviteModal);
 
+const adjectives = [
+    'Aquatic',
+    'Aesthetical',
+    'Ageless',
+    'Authentic',
+    'Afraid',
+    'Athletic',
+    'Academic',
+    'Adventurous',
+    'Aromatic',
+    'Advantageous',
+    'Bad',
+    'Bald',
+    'Beautiful',
+    'Bitter',
+    'Barking',
+    'Baffling',
+    'Bankrupt',
+    'Busy',
+    'Burning',
+    'Boring',
+    'Bold',
+    'Charming',
+    'Cheerful',
+    'Clean',
+    'Curly',
+    'Curious',
+    'Caring',
+    'Crazy',
+    'Cute',
+    'Careful',
+    'Classy',
+    'Cheap',
+    'Clingy',
+    'Classic',
+    'Chunky',
+    'Cuddly',
+    'Clumsy',
+    'Cold',
+    'Cozy',
+    'Creamy',
+    'Cosmetic',
+    'Cryptic',
+    'Cynical',
+    'Damaged',
+    'Dandy',
+    'Dazzling',
+    'Dark',
+    'Deadly',
+    'Dangerous',
+    'Decent',
+    'Deep',
+    'Dirty',
+    'Dramatic',
+    'Dull',
+    'Delightful',
+    'Delicious',
+    'Discreet',
+    'Dizzy',
+    'Disrespectful',
+    'Eager',
+    'Early',
+    'Elegant',
+    'Energetic',
+    'Easy',
+    'Euphoric',
+    'Exotic',
+    'Economic',
+    'Eccentric',
+    'Efficient',
+    'Educated',
+    'Elderly',
+    'Egotistical',
+    'Elite',
+    'Empty',
+    'Eternal',
+    'Enthusiastic',
+    'Enormous',
+    'Expensive',
+    'Exuberant',
+    'Eye-Popping',
+    'Fancy',
+    'Fantastic',
+    'Fierce',
+    'Foolish',
+    'Funny',
+    'Fascinating',
+    'Fatal',
+    'Flawless',
+    'Foolish',
+    'Fat',
+    'Fictional',
+    'Flat',
+    'Flying',
+    'French',
+    'Fuzzy',
+    'Furious',
+    'Frozen',
+    'Fruity',
+    'Generic',
+    'Gentle',
+    'Gifted',
+    'Glamorous',
+    'Gleaming',
+    'Glorious',
+    'Gorgeous',
+    'Grateful',
+    'Gross',
+    'Grim',
+    'Grimy',
+    'Giant',
+    'Goofy',
+    'Gooey',
+    'Great',
+    'Giggly',
+    'Giving',
+    'Gigantic',
+    'Gruesome',
+    'Great',
+    'Groovy',
+    'Hairy',
+    'Handsome',
+    'Happy',
+    'Harsh',
+    'Hateful',
+    'Haunting',
+    'Hairless',
+    'Hard',
+    'Heartless',
+    'Heavy',
+    'Hip',
+    'Hollow',
+    'Helpless',
+    'Horrible',
+    'Hot',
+    'Huge',
+    'Humble',
+    'Hungry',
+    'Humble',
+    'Hypnotic',
+    'Hypersensitive',
+    'Hysterical',
+    'Hyperactive',
+    'Helpful',
+    'Honest',
+    'Hurtful',
+    'Icy',
+    'Idiotic',
+    'Immature',
+    'Impolite',
+    'Impressive',
+    'Incredible',
+    'Innocent',
+    'Immortal',
+    'Imaginary',
+    'Imaginative',
+    'Indirect',
+    'Insane',
+    'Insignificant',
+    'Intense',
+    'Intimidating',
+    'Interesting',
+    'Irritating',
+    'Isolated',
+    'Italian',
+    'Irresistible',
+    'Irrelevant',
+];
+const animals = [
+    'Alligator',
+    'Alpaca',
+    'Anaconda',
+    'Ape',
+    'Axolotl',
+    'Albatross',
+    'Ant',
+    'Antelope',
+    'Barracuda',
+    'Bumblebee',
+    'Buffalo',
+    'Baboon',
+    'Bird',
+    'Bee',
+    'Butterfly',
+    'Cat',
+    'Chameleon',
+    'Cockatoo',
+    'Cheetah',
+    'Chicken',
+    'Coyote',
+    'Cow',
+    'Crab',
+    'Duck',
+    'Dalmatian',
+    'Dolphin',
+    'Dog',
+    'Dingo',
+    'Dachshund',
+    'Dodo',
+    'Deer',
+    'Dragonfish',
+    'Eagle',
+    'Elephant',
+    'Emu',
+    'Elk',
+    'Earthworm',
+    'Eel',
+    'Echidna',
+    'Frog',
+    'Flamingo',
+    'Falcon',
+    'Firefly',
+    'Fox',
+    'Fish',
+    'Ferret',
+    'Giraffe',
+    'Gorilla',
+    'Gnu',
+    'Gazelle',
+    'Goldfish',
+    'Gopher',
+    'Gecko',
+    'Gnat',
+    'Gibbon',
+    'Goat',
+    'Goose',
+    'Grasshoper',
+    'Grouse',
+    'Guppy',
+    'Hamster',
+    'Hornbill',
+    'Hedgehog',
+    'Hippo',
+    'Horse',
+    'Honeybee',
+    'Husky',
+    'Hyena',
+    'Hummingbird',
+    'Iguana',
+    'Impala',
+];
+
 const animations = Object.freeze({
     fadeLeftOut: function () {
         return 'animation: fadeLeftOutAnimation 0.3s !important;';
@@ -7328,6 +7570,36 @@ function animateMainToSide(main, side, focus) {
             side.style = '';
         });
     }, 300);
+}
+
+function randomString() {
+    const charset =
+        '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!?=.-';
+    const random = (min, max) =>
+        Math.floor(Math.random() * (max - min + 1) + min);
+
+    return [...new Array(32)]
+        .map(function () {
+            return charset[random(0, charset.length - 1)];
+        })
+        .join('');
+}
+
+function generatePassword() {
+    const password = randomString();
+    const salt = Date.now();
+    const cipherPW = Crypto.AES.encrypt(password, salt).toString();
+    return Object.freeze({
+        password: cipherPW,
+        salt,
+    });
+}
+
+function randomNickname() {
+    const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const animale = animals[Math.floor(Math.random() * animals.length)];
+
+    return `${adjective} ${animale}`;
 }
 
 class PanicModal extends Modal {
@@ -8123,6 +8395,9 @@ class Messages extends s$1 {
         if (!isGroup && status.length === 1) {
             return $`  <i class="fa-solid fa-check"></i><i class="fa-solid fa-check"></i>`;
         }
+        /*if (false) { // implement group logic
+
+        }*/
 
         return $`  <i class="fa-solid fa-check"></i>`;
     }
@@ -8712,13 +8987,6 @@ const messages = [
         status: [],
     },
 ];
-const me = {
-    codes: false,
-    id: '1337',
-    nickname: 'Johannes',
-    expire: new Date(),
-    status: 'working',
-};
 const partner = {
     expire: 'Tue Jul 19 2022 05:33:42 GMT+0000 (Coordinated Universal Time)',
     id: '1',
@@ -8737,10 +9005,49 @@ const partner = {
     endless: false,
 };
 
+const POST = {
+    method: 'POST',
+    mode: 'cors',
+    cache: 'no-cache',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+};
+
+const GET = {
+    method: 'GET',
+    mode: 'cors',
+    cache: 'no-cache',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+};
+
 const app = document.querySelector('app-layout');
 
+function firstTimeVisitor() {
+    fetch('/newacc', {
+        ...POST,
+        body: JSON.stringify({
+            ...generatePassword(),
+            nickname: randomNickname(),
+        }),
+    })
+        .then((raw) => raw.json())
+        .then(function (data) {
+            console.log(data);
+        })
+        .catch();
+}
+
 document.addEventListener('DOMContentLoaded', function () {
-    app.ME = me;
+    fetch('/me', GET)
+        .then((raw) => raw.json())
+        .then(function ({ error }) {
+            if (error === 'NOTAUTH') {
+                return firstTimeVisitor();
+            }
+        })
+        .catch(() => firstTimeVisitor());
+
     app.openLockModal();
     app.setThreads([
         partner,
