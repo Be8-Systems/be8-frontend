@@ -1226,6 +1226,7 @@ const isPhone =
     );
 const isDesktop = !isPhone;
 const icons = Object.freeze({
+    system: 'comment-dots',
     user: 'user',
     group: 'users-rectangle',
     channel: 'object-ungroup',
@@ -8440,7 +8441,11 @@ class Messages extends s$1 {
         const icon = $`<i class="fa-solid fa-${
             icons[this.conversationPartner.type]
         }"></i>`;
-        const name = $`<p @click="${this.clickOnUser}" class="hover-font">${icon} ${this.conversationPartner.nickname} #${this.conversationPartner.id}</p>`;
+        const idIndicator =
+            this.conversationPartner.type !== 'system'
+                ? $`#${this.conversationPartner.id}`
+                : '';
+        const name = $`<p @click="${this.clickOnUser}" class="hover-font">${icon} ${this.conversationPartner.nickname} ${idIndicator}</p>`;
         const back = $`<i @click="${
             this.clickOnBack
         }" class="fa-solid fa-arrow-left ${
@@ -8621,7 +8626,9 @@ class User extends s$1 {
         ) => this.keyDownStatus(e)}" maxlength="280">${
             this.ME.status
         }</textarea></div>`;
-        const endlessToken = $`<div class="settings-container"><p>Endless Token</p><input type="text" maxlength="${tokenLength}"><button @click="${this.clickOnEndlessToken}">Check</button></div>`;
+        const endlessToken = this.ME.endless
+            ? ''
+            : $`<div class="settings-container"><p>Token</p><input type="text" maxlength="${tokenLength}"><button @click="${this.clickOnEndlessToken}">Check</button></div>`;
 
         return $`<h1>User Menu</h1>${creds}${status}${endlessToken}`;
     }
@@ -8779,13 +8786,18 @@ class Threads extends s$1 {
                 ts,
                 type,
             }) => {
+                const isSystem = type === 'system';
                 const dateTime = humanReadAbleLastTime(ts);
                 const icon = $`<i class="fa-solid fa-${icons[type]} thread-avatar"></i>`;
-                const endlessIcon = endless
-                    ? $`<i class="fa-solid fa-check color-danger-font"></i>`
-                    : '';
+                const endlessIcon =
+                    endless || isSystem
+                        ? $`<i class="fa-solid fa-check color-danger-font"></i>`
+                        : '';
+                const senderID = isSystem
+                    ? ''
+                    : $`<span class="float-right">#${sender}<span></span></span>`;
 
-                return $`<div expire="${expire}" id="${threadID}" sender="${sender}" type="${type}" class="thread hover-background">${icon}<div><p>${nickname}  ${endlessIcon}<span class="float-right">#${sender}<span></span></span></p><p>${text.substring(
+                return $`<div expire="${expire}" id="${threadID}" sender="${sender}" type="${type}" class="thread hover-background">${icon}<div><p>${nickname}  ${endlessIcon}${senderID}</p><p>${text.substring(
                     0,
                     23
                 )}… <span class="float-right unselectable">${dateTime}</span></p></div></div>`;
@@ -9028,6 +9040,514 @@ const GET = {
     headers: { 'Content-Type': 'application/json' },
 };
 
+const connection = indexedDB.open('be8', 1);
+
+connection.onupgradeneeded = function () {
+    const db = connection.result;
+    const publicKeysStore = db.createObjectStore('publicKeys', {
+        keyPath: 'accID',
+    });
+    const privateKeysStore = db.createObjectStore('privateKeys', {
+        keyPath: 'accID',
+    });
+    const groupKeysStore = db.createObjectStore('groupKeys', {
+        keyPath: 'accID',
+    });
+    const indexs = [
+        ['crv', 'crv', { unique: false }],
+        ['x', 'x', { unique: false }],
+        ['y', 'y', { unique: false }],
+        ['kty', 'kty', { unique: false }],
+        ['key_ops', 'key_ops', { unique: false }],
+        ['ext', 'ext', { unique: false }],
+    ];
+
+    indexs.forEach(function (parameters) {
+        publicKeysStore.createIndex(...parameters);
+        privateKeysStore.createIndex(...parameters);
+        groupKeysStore.createIndex(...parameters);
+    });
+};
+
+connection.onerror = (event) => console.log(event);
+
+// generates an Initialization vector
+function generateIV() {
+    // a nonce (number once) is an arbitrary string that can be used just once in a cryptographic communication
+    const nonce = self.crypto.randomUUID();
+    return new TextEncoder().encode(nonce);
+}
+
+function arrayBufferToBase64(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+
+    for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+
+    return window.btoa(binary);
+}
+
+function getTypeOfKey(id) {
+    if (!id) {
+        throw 'id is required in getTypeOfKey';
+    }
+    if (id.charAt(0) === 'g') {
+        return 'group';
+    }
+    if (id.charAt(0) === 'c') {
+        return 'channel';
+    }
+
+    return 'dialog';
+}
+
+const keyUsages = Object.freeze(['deriveKey', 'deriveBits']);
+const algorithmType = 'ECDH'; // Elliptic Curve Diffie-Hellman
+const algorithm = Object.freeze({
+    name: algorithmType,
+    namedCurve: 'P-384', // 384-bit prime curve
+});
+const format = 'jwk'; // json web key format
+
+class Be8 {
+    #indexedDB = {};
+    #accID = '';
+    #publicKeys = new Map();
+    #privateKeys = new Map();
+    #groupKeys = new Map();
+    #channelKeys = new Map();
+
+    constructor(accID, indexedDB) {
+        this.#accID = accID;
+        this.#indexedDB = indexedDB;
+
+        if (typeof accID !== 'string' || isNaN(accID)) {
+            throw `no acc id or wrong type passed to the constructor got ${accID}`;
+        }
+        if (!indexedDB) {
+            throw 'no indexedDB passed to the constructor';
+        }
+    }
+
+    async setup() {
+        const keys = await this.getCachedKeys();
+        const privateTx = this.#indexedDB.result.transaction(
+            'privateKeys',
+            'readwrite'
+        );
+        const privateKeysStore = privateTx.objectStore('privateKeys');
+        const all = privateKeysStore.getAll();
+        const newAccID = this.#accID;
+        const privateKey = await new Promise(function (success) {
+            all.onsuccess = function (event) {
+                return success(
+                    event.target.result.find((key) => key.accID === newAccID)
+                );
+            };
+        });
+
+        if (!privateKey) {
+            console.log('brand new acc');
+            await this.generatePrivAndPubKey();
+        } else {
+            console.log('old acc');
+            this.#privateKeys.set(this.#accID, privateKey);
+        }
+
+        keys.forEach(({ accID, ...rest }) => this.#publicKeys.set(accID, rest));
+
+        return keys;
+    }
+
+    getAccID() {
+        return this.#accID;
+    }
+
+    hasGeneratedKeys() {
+        const publicKey = this.#publicKeys.has(this.#accID);
+        const privatekey = this.#privateKeys.has(this.#accID);
+
+        if (!publicKey) {
+            console.log(`No public key for ${this.#accID} in hasKeys`);
+        }
+        if (!privatekey) {
+            console.log(`No private key for ${this.#accID} in hasKeys`);
+        }
+
+        return publicKey && privatekey;
+    }
+
+    #getKey(id) {
+        const type = getTypeOfKey(id);
+
+        if (type === 'group') {
+            return this.#groupKeys.get(id);
+        }
+        if (type === 'channel') {
+            return this.#channelKeys.get(id);
+        }
+
+        return this.#publicKeys.get(id);
+    }
+
+    async addPublicKeys(publicKeys = []) {
+        const tx = this.#indexedDB.result.transaction(
+            'publicKeys',
+            'readwrite'
+        );
+        const publicKeysStore = tx.objectStore('publicKeys');
+
+        publicKeys.forEach(({ accID, publicKey }) =>
+            this.#publicKeys.set(accID, publicKey)
+        );
+        const proms = publicKeys.map(function ({ accID, publicKey }) {
+            publicKeysStore.put({ accID, ...publicKey });
+            publicKeysStore.onsuccess = () =>
+                console.log(`added public key for ${accID}`);
+        });
+
+        return await Promise.all(proms);
+    }
+
+    addPublicKey(accID, key) {
+        const tx = this.#indexedDB.result.transaction(
+            'publicKeys',
+            'readwrite'
+        );
+        const publicKeysStore = tx.objectStore('publicKeys');
+
+        if (!accID) {
+            console.log(`missing accID: "${accID}" at addPublicKey`);
+        }
+        if (!key) {
+            console.log(`missing key: "${key}" at addPublicKey`);
+        }
+
+        publicKeysStore.put({ accID, ...key });
+        return this.#publicKeys.set(accID, key);
+    }
+
+    addGroupKey(groupID, key) {
+        if (groupID && key) {
+            this.#groupKeys.set(groupID, key);
+        } else {
+            console.log(
+                `missing accID: "${groupID}" or key: "${key}" in addGroupKey`
+            );
+        }
+    }
+
+    async getCachedKeys() {
+        const tx = this.#indexedDB.result.transaction(
+            'publicKeys',
+            'readwrite'
+        );
+        const publicKeysStore = tx.objectStore('publicKeys');
+        const all = publicKeysStore.getAll();
+
+        return await new Promise(function (success) {
+            all.onsuccess = function (event) {
+                const keys = event.target.result.map((key) => ({
+                    accID: key.accID,
+                    publicKey: key,
+                }));
+                return success(keys);
+            };
+        });
+    }
+
+    async generateGroupKeys(version) {
+        const { privateKey, publicKey } =
+            await window.crypto.subtle.generateKey(algorithm, true, keyUsages);
+        const proms = [
+            window.crypto.subtle.exportKey(format, publicKey),
+            window.crypto.subtle.exportKey(format, privateKey),
+        ];
+        const keys = await Promise.all(proms);
+        const hasKeys = this.#groupKeys.get(version);
+
+        if (hasKeys) {
+            console.log(`Group keys for ${version} already exist`);
+            return hasKeys;
+        }
+
+        this.#groupKeys.set(version, keys[1]);
+
+        return keys;
+    }
+
+    async generatePrivAndPubKey() {
+        const { privateKey, publicKey } =
+            await window.crypto.subtle.generateKey(algorithm, true, keyUsages);
+        const proms = [
+            window.crypto.subtle.exportKey(format, publicKey),
+            window.crypto.subtle.exportKey(format, privateKey),
+        ];
+        const keys = await Promise.all(proms);
+        const privateTx = this.#indexedDB.result.transaction(
+            'privateKeys',
+            'readwrite'
+        );
+        const publicTX = this.#indexedDB.result.transaction(
+            'publicKeys',
+            'readwrite'
+        );
+        const publicKeysStore = publicTX.objectStore('publicKeys');
+        const privateKeysStore = privateTx.objectStore('privateKeys');
+
+        publicKeysStore.put({ accID: this.#accID, ...keys[0] });
+        privateKeysStore.put({ accID: this.#accID, ...keys[1] });
+        this.#publicKeys.set(this.#accID, keys[0]);
+        this.#privateKeys.set(this.#accID, keys[1]);
+
+        await privateTx.complete;
+        await publicTX.complete;
+
+        return keys;
+    }
+
+    async getDerivedKey(publicKey, privateKey) {
+        if (!publicKey) {
+            throw 'no public key passed to getDerivedKey';
+        }
+        if (!privateKey) {
+            throw 'no private key passed to getDerivedKey';
+        }
+
+        const publicKeyProm = window.crypto.subtle.importKey(
+            format,
+            publicKey,
+            algorithm,
+            true,
+            []
+        );
+        const privateKeyProm = window.crypto.subtle.importKey(
+            format,
+            privateKey,
+            algorithm,
+            true,
+            keyUsages
+        );
+
+        return Promise.all([publicKeyProm, privateKeyProm]).then(function ([
+            publicKey,
+            privateKey,
+        ]) {
+            const algorithm = {
+                name: 'AES-GCM', // Advanced Encryption Standard Galois/Counter Mode
+                length: 256,
+            };
+
+            return window.crypto.subtle.deriveKey(
+                { name: algorithmType, public: publicKey },
+                privateKey,
+                algorithm,
+                true,
+                ['encrypt', 'decrypt']
+            );
+        });
+    }
+
+    async encryptText(derivedKey, text = '') {
+        const encodedText = new TextEncoder().encode(text);
+        const iv = generateIV();
+        const algorithm = {
+            name: 'AES-GCM',
+            iv,
+        };
+
+        if (!derivedKey) {
+            throw 'no derived key passed to encryptText';
+        }
+
+        return window.crypto.subtle
+            .encrypt(algorithm, derivedKey, encodedText)
+            .then(function (encryptedData) {
+                const uintArray = new Uint8Array(encryptedData);
+                const string = String.fromCharCode.apply(null, uintArray);
+                const cipherText = window.btoa(string);
+
+                return { cipherText, iv };
+            });
+    }
+
+    async decryptText(derivedKey, cipherText = '', iv) {
+        const mstring = window.atob(cipherText);
+        const uintArray = new Uint8Array(
+            [...mstring].map((char) => char.charCodeAt(0))
+        );
+        const algorithm = {
+            name: 'AES-GCM',
+            iv,
+        };
+
+        if (!derivedKey) {
+            throw 'no derived key passed to decryptText';
+        }
+        if (!iv) {
+            throw 'no iv (Initialization vector) passed to decryptText';
+        }
+
+        return window.crypto.subtle
+            .decrypt(algorithm, derivedKey, uintArray)
+            .then(function (decryptedData) {
+                return new TextDecoder().decode(decryptedData);
+            });
+    }
+
+    async encryptTextSimple(accIDSender, accIDReceiver, text) {
+        const publicKey = this.#getKey(accIDReceiver);
+        const privateKey = this.#privateKeys.get(accIDSender);
+
+        if (!publicKey) {
+            throw `Missing public key for ${accIDReceiver} at encryptTextSimple`;
+        }
+        if (!privateKey) {
+            throw `Missing private key for ${accIDSender} at encryptTextSimple`;
+        }
+
+        const derivedKey = await this.getDerivedKey(publicKey, privateKey);
+
+        return await this.encryptText(derivedKey, text);
+    }
+
+    async decryptTextSimple(accIDSender, accIDReceiver, cipherText, iv) {
+        const publicKey = this.#getKey(accIDSender);
+        const privateKey = this.#privateKeys.get(accIDReceiver);
+
+        if (!publicKey) {
+            throw `Missing public key for ${accIDSender} at decryptTextSimple`;
+        }
+        if (!privateKey) {
+            throw `Missing private key for ${accIDReceiver} at decryptTextSimple`;
+        }
+
+        const derivedKey = await this.getDerivedKey(publicKey, privateKey);
+
+        return await this.decryptText(derivedKey, cipherText, iv);
+    }
+
+    async encryptImage(derivedKey, base64Image) {
+        const encodedText = new TextEncoder().encode(base64Image);
+        const iv = generateIV();
+
+        if (!derivedKey) {
+            throw 'no derived key passed to decryptText';
+        }
+
+        return window.crypto.subtle
+            .encrypt({ name: 'AES-GCM', iv }, derivedKey, encodedText)
+            .then(function (encryptedData) {
+                return {
+                    cipherImage: arrayBufferToBase64(encryptedData),
+                    iv,
+                };
+            });
+    }
+
+    async decryptImage(derivedKey, cipherImage, iv) {
+        const mstring = window.atob(cipherImage);
+        const uintArray = new Uint8Array(
+            [...mstring].map((char) => char.charCodeAt(0))
+        );
+        const algorithm = {
+            name: 'AES-GCM',
+            iv,
+        };
+
+        if (!derivedKey) {
+            throw 'no derived key passed to decryptText';
+        }
+
+        return window.crypto.subtle
+            .decrypt(algorithm, derivedKey, uintArray)
+            .then(function (decryptedData) {
+                return new TextDecoder().decode(decryptedData);
+            });
+    }
+
+    async encryptImageSimple(accIDSender, accIDReceiver, base64Image) {
+        const publicKey = this.#getKey(accIDReceiver);
+        const privateKey = this.#privateKeys.get(accIDSender);
+
+        if (!publicKey) {
+            throw `Missing public key for ${accIDSender} at encryptImageSimple`;
+        }
+        if (!privateKey) {
+            throw `Missing private key for ${accIDReceiver} at encryptImageSimple`;
+        }
+
+        const derivedKey = await this.getDerivedKey(publicKey, privateKey);
+
+        return await this.encryptImage(derivedKey, base64Image);
+    }
+
+    async decryptImageSimple(accIDSender, accIDReceiver, cipherImage, iv) {
+        const publicKey = this.#getKey(accIDSender);
+        const privateKey = this.#privateKeys.get(accIDReceiver);
+
+        if (!publicKey) {
+            throw `Missing public key for ${accIDSender} at decryptImageSimple`;
+        }
+        if (!privateKey) {
+            throw `Missing private key for ${accIDReceiver} at decryptImageSimple`;
+        }
+
+        const derivedKey = await this.getDerivedKey(publicKey, privateKey);
+
+        return await this.decryptImage(derivedKey, cipherImage, iv);
+    }
+
+    async destroy() {
+        const pubKeys = [...this.#publicKeys.keys()];
+        const privKeys = [...this.#privateKeys.keys()];
+        const groupKeys = [...this.#groupKeys.keys()];
+        const pubtx = this.#indexedDB.result.transaction(
+            'publicKeys',
+            'readwrite'
+        );
+        const privtx = this.#indexedDB.result.transaction(
+            'privateKeys',
+            'readwrite'
+        );
+        const grouptx = this.#indexedDB.result.transaction(
+            'groupKeys',
+            'readwrite'
+        );
+        const publicKeysStore = pubtx.objectStore('publicKeys');
+        const privateKeysStore = privtx.objectStore('privateKeys');
+        const groupKeysStore = grouptx.objectStore('groupKeys');
+
+        const pubKeyProms = pubKeys.map(function (key) {
+            return new Promise(function (resolve) {
+                publicKeysStore.delete(key);
+                return resolve();
+            });
+        });
+        const privKeyProms = privKeys.map(function (key) {
+            return new Promise(function (resolve) {
+                privateKeysStore.delete(key);
+                return resolve();
+            });
+        });
+        const groupKeyProms = groupKeys.map(function (key) {
+            return new Promise(function (resolve) {
+                groupKeysStore.delete(key);
+                return resolve();
+            });
+        });
+
+        await Promise.all([...pubKeyProms, ...privKeyProms, ...groupKeyProms]);
+
+        this.#publicKeys.clear();
+        this.#privateKeys.clear();
+        this.#groupKeys.clear();
+        this.#channelKeys.clear();
+    }
+}
+
 const app = document.querySelector('app-layout');
 
 function sanitizeBooleansInMe(accObj) {
@@ -9035,6 +9555,10 @@ function sanitizeBooleansInMe(accObj) {
     accObj.endless = accObj.endless === 'true';
 
     app.ME = accObj;
+}
+
+function generateEngine({ id }) {
+    globalThis.be8 = new Be8(id, connection);
 }
 
 async function getThreads() {
@@ -9063,6 +9587,7 @@ async function firstTimeVisitor() {
         const { accObj } = await raw.json();
 
         sanitizeBooleansInMe(accObj);
+        generateEngine(accObj);
         app.openWelcomeWindow(accObj);
         await getThreads();
     }
@@ -9075,6 +9600,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         return await firstTimeVisitor();
     }
 
+    generateEngine(accObj);
     sanitizeBooleansInMe(accObj);
     await app.openLockModal(() => getThreads());
 });
