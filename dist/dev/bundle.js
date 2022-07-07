@@ -9146,7 +9146,12 @@ app.addEventListener('setToken', function ({ detail }) {
         .then((raw) => raw.json())
         .then(function (data) {
             if (data.valid && data.validate) {
-                return detail.success();
+                return fetch('/me', GET)
+                    .then((raw) => raw.json())
+                    .then(function (meData) {
+                        sanitizeMe(meData.accObj);
+                        return detail.success();
+                    });
             }
             if (data.error === 'TOKENNOTEXIST') {
                 return detail.wrongToken();
