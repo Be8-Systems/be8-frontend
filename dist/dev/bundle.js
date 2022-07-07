@@ -8607,10 +8607,14 @@ class User extends s$1 {
 
                     return domCache.toast.open();
                 },
-                success: () => {
+                success: ({ tokenType, validTime }) => {
+                    const time =
+                        tokenType === 'endless'
+                            ? tokenType
+                            : `${validTime / 1000} seconds`;
                     domCache.toast.notification = {
                         type: 'success',
-                        text: 'Your acc is upgraded to endless',
+                        text: `Your acc is upgraded to ${time}`,
                     };
 
                     this.#tokenInput.value = '';
@@ -9738,7 +9742,7 @@ app.addEventListener('setToken', async function ({ detail }) {
         const { accObj } = await raw.json();
 
         sanitizeBooleansInMe(accObj);
-        return detail.success();
+        return detail.success(data);
     }
     if (data.error === 'TOKENNOTEXIST') {
         return detail.wrongToken();
