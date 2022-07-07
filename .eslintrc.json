@@ -14,7 +14,8 @@
     "globals": {
 	"globalThis": "readonly",
         "Atomics": "readonly",
-        "SharedArrayBuffer": "readonly"
+        "SharedArrayBuffer": "readonly",
+	"be8": "readonly"
     },
     "parserOptions": {
         "ecmaVersion": 2020,

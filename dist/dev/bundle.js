@@ -9557,8 +9557,12 @@ function sanitizeBooleansInMe(accObj) {
     app.ME = accObj;
 }
 
-function generateEngine({ id }) {
+async function generateEngine({ id }, generateKeys = false) {
     globalThis.be8 = new Be8(id, connection);
+
+    if (generateKeys) {
+        await be8.setup();
+    }
 }
 
 async function getThreads() {
@@ -9587,9 +9591,9 @@ async function firstTimeVisitor() {
         const { accObj } = await raw.json();
 
         sanitizeBooleansInMe(accObj);
-        generateEngine(accObj);
-        app.openWelcomeWindow(accObj);
+        await generateEngine(accObj, true);
         await getThreads();
+        return app.openWelcomeWindow(accObj);
     }
 }
 
