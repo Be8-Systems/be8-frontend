@@ -8492,6 +8492,8 @@ class Messages extends s$1 {
 
 customElements.define('messages-menu', Messages);
 
+const tokenLength = 32;
+
 class User extends s$1 {
     static properties = {
         ME: { type: Object },
@@ -8544,7 +8546,7 @@ class User extends s$1 {
             },
         });
 
-        if (token.length < 32) {
+        if (token.length < tokenLength) {
             domCache.toast.notification = {
                 type: 'error',
                 text: 'Your token is too short',
@@ -8595,13 +8597,16 @@ class User extends s$1 {
         const endlessIcon = this.ME.endless
             ? $`<i class="fa-solid fa-check danger-color"></i>`
             : $`<i class="fa-solid fa-times"></i>`;
-        const creds = $`<div class="settings-container"><p>ID: <i>#${this.ME.id}</i></p><p>Nickname: <i>${this.ME.nickname}</i></p><p>Valid until: <i>${expireDate}</i></p><p>Endless Account: ${endlessIcon}</p></div>`;
+        const validLine = this.ME.endless
+            ? ''
+            : $`<p>Valid until: <i>${expireDate}</i></p>`;
+        const creds = $`<div class="settings-container"><p>ID: <i>#${this.ME.id}</i></p><p>Nickname: <i>${this.ME.nickname}</i></p>${validLine}<p>Endless Account: ${endlessIcon}</p></div>`;
         const status = $`<div class="settings-container"><p>Status</p><textarea @keydown="${(
             e
         ) => this.keyDownStatus(e)}" maxlength="280">${
             this.ME.status
         }</textarea></div>`;
-        const endlessToken = $`<div class="settings-container"><p>Endless Token</p><input type="text" maxlength="100"><button @click="${this.clickOnEndlessToken}">Check</button></div>`;
+        const endlessToken = $`<div class="settings-container"><p>Endless Token</p><input type="text" maxlength="${tokenLength}"><button @click="${this.clickOnEndlessToken}">Check</button></div>`;
 
         return $`<h1>User Menu</h1>${creds}${status}${endlessToken}`;
     }
@@ -9008,8 +9013,9 @@ const GET = {
 
 const app = document.querySelector('app-layout');
 
-function sanitizeMe(accObj) {
+function sanitizeBooleansInMe(accObj) {
     accObj.codes = accObj.codes === 'true';
+    accObj.endless = accObj.endless === 'true';
 
     app.ME = accObj;
 }
@@ -9028,7 +9034,7 @@ function firstTimeVisitor() {
                 return fetch('/me', GET)
                     .then((raw) => raw.json())
                     .then(function (data) {
-                        sanitizeMe(data.accObj);
+                        sanitizeBooleansInMe(data.accObj);
                         app.openWelcomeWindow(data.accObj);
                     });
             }
@@ -9046,7 +9052,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return firstTimeVisitor();
             }
 
-            sanitizeMe(accObj);
+            sanitizeBooleansInMe(accObj);
             return app.openLockModal();
         })
         .catch(console.error);
@@ -9103,7 +9109,7 @@ app.addEventListener('changeNickName', function ({ detail }) {
             if (data.valid) {
                 fetch('/me', GET)
                     .then((raw) => raw.json())
-                    .then((data) => sanitizeMe(data.accObj));
+                    .then((data) => sanitizeBooleansInMe(data.accObj));
             }
         });
 });
@@ -9149,7 +9155,7 @@ app.addEventListener('setToken', function ({ detail }) {
                 return fetch('/me', GET)
                     .then((raw) => raw.json())
                     .then(function (meData) {
-                        sanitizeMe(meData.accObj);
+                        sanitizeBooleansInMe(meData.accObj);
                         return detail.success();
                     });
             }
