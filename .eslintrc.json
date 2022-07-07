@@ -12,6 +12,7 @@
         "eslint:recommended"
     ],
     "globals": {
+	"globalThis": "readonly",
         "Atomics": "readonly",
         "SharedArrayBuffer": "readonly"
     },
