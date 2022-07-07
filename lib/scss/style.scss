@@ -102,6 +102,12 @@ a:hover {
     color: var(--color-highlight);
 }
 
+.disabled {
+    opacity: 0.35;
+    cursor: none;
+    pointer-events: none;
+}
+
 .full-width {
     width: 100%;
 }
