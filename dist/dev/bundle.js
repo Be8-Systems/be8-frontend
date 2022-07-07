@@ -7639,22 +7639,22 @@ class PanicModal extends Modal {
                 bubbles: false,
                 detail: {
                     ...this.ME,
-                    done: () => {
-                        requestAnimationFrame(() => location.reload());
-                        return this.close();
+                    done: async () => {
+                        await be8.panic();
+                        return location.reload();
                     },
                 },
             });
 
             return domCache.app.dispatchEvent(panicEvent);
-        } else {
-            domCache.toast.notification = {
-                type: 'error',
-                text: 'Wrong code',
-            };
-
-            return domCache.toast.open();
         }
+
+        domCache.toast.notification = {
+            type: 'error',
+            text: 'Wrong code',
+        };
+
+        return domCache.toast.open();
     }
 
     open() {
@@ -7761,15 +7761,16 @@ class ConversationModal extends Modal {
         this.clickOnBackToMain();
     }
 
-    #sendNew1on1Conv(id) {
-        const newConversationEvent = new CustomEvent('newConversation', {
+    #sendNew1on1Conv(receiverID) {
+        const newConversationEvent = new CustomEvent('startConversation', {
             bubbles: false,
             detail: {
                 ...this.ME,
+                receiverID,
                 success: () => {
                     domCache.toast.notification = {
                         type: 'success',
-                        text: 'Your are now chatting with ' + id,
+                        text: 'Your are now chatting with ' + receiverID,
                     };
                     this.#dialogInput.value = '';
 
@@ -7779,7 +7780,9 @@ class ConversationModal extends Modal {
                 idDoesNotExist: () => {
                     domCache.toast.notification = {
                         type: 'error',
-                        text: 'This id does not exist or banned you ' + id,
+                        text:
+                            'This id does not exist or banned you ' +
+                            receiverID,
                     };
 
                     domCache.toast.open();
@@ -7803,6 +7806,14 @@ class ConversationModal extends Modal {
                 domCache.toast.notification = {
                     type: 'error',
                     text: 'Enter a be8 id',
+                };
+
+                return domCache.toast.open();
+            }
+            if (id === this.ME.id) {
+                domCache.toast.notification = {
+                    type: 'error',
+                    text: 'You can not chat with yourself.',
                 };
 
                 return domCache.toast.open();
@@ -8178,7 +8189,7 @@ class Usermodal extends Modal {
         this.conversationPartner = LANG;
     }
 
-    render() {
+    #renderNonSystem() {
         const dateTime = sanitizeTime(this.conversationPartner.expire);
         const icon = $`<i class="fa-solid fa-${
             icons[this.conversationPartner.type]
@@ -8194,7 +8205,24 @@ class Usermodal extends Modal {
             ? $`<i class="fa-solid fa-check danger-color"></i>`
             : $`<i class="fa-solid fa-times"></i>`;
         const endless = $`<p><span>Endless until: </span>${endlessIcon}</p>`;
-        const content = $`${hl}${id}${nickname}${status}${expire}${endless}`;
+
+        return $`${hl}${id}${nickname}${status}${expire}${endless}`;
+    }
+
+    #renderSystemCard() {
+        const icon = $`<i class="fa-solid fa-${
+            icons[this.conversationPartner.type]
+        }"></i>`;
+        const hl = $`<p class="create-group-headline">${icon} ${this.conversationPartner.nickname}</p>`;
+
+        return $`${hl}<p>This is a system user you can't send messages to the system user.</p>`;
+    }
+
+    render() {
+        const isSystem = this.conversationPartner.type === 'system';
+        const content = isSystem
+            ? this.#renderSystemCard()
+            : this.#renderNonSystem();
 
         return super.render(content);
     }
@@ -8354,6 +8382,7 @@ class Messages extends s$1 {
 
     #userModal = {};
     #messageInput = {};
+    #uploadButton = {};
 
     constructor() {
         super();
@@ -8381,17 +8410,41 @@ class Messages extends s$1 {
         this.#userModal.open();
     }
 
+    setActive({ type }) {
+        const isSystem = type === 'system';
+
+        this.#focus();
+        this.setInput();
+
+        if (isSystem) {
+            if (!this.#uploadButton.classList.contains('disabled')) {
+                this.#uploadButton.classList.add('disabled');
+                this.#uploadButton.classList.add('hover-font');
+            }
+
+            this.#messageInput.disabled = true;
+        } else {
+            if (this.#uploadButton.classList.contains('disabled')) {
+                this.#uploadButton.classList.remove('disabled');
+                this.#uploadButton.classList.remove('hover-font');
+            }
+
+            this.#messageInput.disabled = false;
+        }
+    }
+
     setInput(text = '') {
         return (this.#messageInput.value = text);
     }
 
-    focus() {
+    #focus() {
         return this.#messageInput.focus();
     }
 
     firstUpdated() {
         this.#messageInput = this.querySelector('.write-message-input');
         this.#userModal = document.querySelector('user-modal-window');
+        this.#uploadButton = document.querySelector('.fa-photo-film');
     }
 
     writeMessage(e) {
@@ -8752,8 +8805,7 @@ class Threads extends s$1 {
         this.#setActiveThread(parent);
         domCache.menus.messagesMenu.messages = [];
         domCache.menus.messagesMenu.conversationPartner = thread;
-        domCache.menus.messagesMenu.focus();
-        domCache.menus.messagesMenu.setInput();
+        domCache.menus.messagesMenu.setActive(thread);
         return domCache.app.dispatchEvent(threadEvent);
     }
 
@@ -9500,7 +9552,7 @@ class Be8 {
         return await this.decryptImage(derivedKey, cipherImage, iv);
     }
 
-    async destroy() {
+    async panic() {
         const pubKeys = [...this.#publicKeys.keys()];
         const privKeys = [...this.#privateKeys.keys()];
         const groupKeys = [...this.#groupKeys.keys()];
@@ -9557,12 +9609,9 @@ function sanitizeBooleansInMe(accObj) {
     app.ME = accObj;
 }
 
-async function generateEngine({ id }, generateKeys = false) {
+async function generateEngine({ id }) {
     globalThis.be8 = new Be8(id, connection);
-
-    if (generateKeys) {
-        await be8.setup();
-    }
+    return await be8.setup();
 }
 
 async function getThreads() {
@@ -9591,7 +9640,7 @@ async function firstTimeVisitor() {
         const { accObj } = await raw.json();
 
         sanitizeBooleansInMe(accObj);
-        await generateEngine(accObj, true);
+        await generateEngine(accObj);
         await getThreads();
         return app.openWelcomeWindow(accObj);
     }
@@ -9628,7 +9677,9 @@ app.addEventListener('panic', async function ({ detail }) {
     const raw = await fetch('/destroyacc', GET);
     const { valid } = await raw.json();
 
-    return valid ? detail.done() : false;
+    if (valid) {
+        return await detail.done();
+    }
 });
 app.addEventListener('inviteGenerated', async function ({ detail }) {
     await fetch('/invitelink', { ...POST, body: JSON.stringify(detail) });
@@ -9696,10 +9747,19 @@ app.addEventListener('setToken', async function ({ detail }) {
         return detail.tokenInUse();
     }
 });
-app.addEventListener('newConversation', function ({ detail }) {
-    console.log(detail);
-    detail.success();
-    //detail.idDoesNotExist();
+app.addEventListener('startConversation', async function ({ detail }) {
+    const raw = await fetch('/startConversation', {
+        ...POST,
+        body: JSON.stringify(detail),
+    });
+    const data = await raw.json();
+
+    if (data.valid) {
+        return detail.success();
+    }
+    if (data.error === 'ACCNOTEXISTS') {
+        return detail.idDoesNotExist();
+    }
 });
 app.addEventListener('createGroup', function ({ detail }) {
     console.log(detail);
