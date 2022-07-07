@@ -8611,7 +8611,7 @@ class User extends s$1 {
                     const time =
                         tokenType === 'endless'
                             ? tokenType
-                            : `${validTime / 1000} seconds`;
+                            : `${validTime / 1000 / 60 / 60 / 24} days`;
                     domCache.toast.notification = {
                         type: 'success',
                         text: `Your acc is upgraded to ${time}`,
@@ -9771,7 +9771,7 @@ app.addEventListener('createGroup', function ({ detail }) {
 });
 app.addEventListener('threadSelect', function ({ detail }) {
     console.log(detail);
-    if (detail.id === '3');
+    //app.setMessages(messages);
 });
 app.addEventListener('writeMessage', function ({ detail }) {
     console.log(detail);
