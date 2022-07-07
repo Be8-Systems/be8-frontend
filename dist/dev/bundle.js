@@ -7830,6 +7830,16 @@ class ConversationModal extends Modal {
 
 customElements.define('conversation-modal-window', ConversationModal);
 
+function autoRefreshToast() {
+    domCache.toast.notification = {
+        type: 'success',
+        text: 'Your unlock code and destroy code are set. Auto refresh in 2s.',
+    };
+
+    domCache.toast.open();
+    setTimeout(() => location.reload(), 1750);
+}
+
 class Codes extends Modal {
     static properties = {
         ME: { type: Object },
@@ -7849,45 +7859,79 @@ class Codes extends Modal {
         const [oldInput, newCodeInput, newCodeConfInput] = [
             ...this.#updateUnlock.querySelectorAll('input'),
         ];
-        const newCode = oldInput.value;
-        const newCodeConf = newCodeInput.value;
-        const oldCode = newCodeConfInput.value;
-        const destroyEvent = new CustomEvent('updateUnlock', {
+        const newCode = newCodeInput.value;
+        const newCodeConf = newCodeConfInput.value;
+        const oldCode = oldInput.value;
+        const updateUnlockEvent = new CustomEvent('updateCode', {
             bubbles: false,
             detail: {
                 ...this.ME,
-                newCode,
+                code: newCode,
                 oldCode,
-                close: () => this.close(),
+                codeType: 'unlock',
+                done: () => {
+                    autoRefreshToast();
+                    return this.close();
+                },
+                oldCodeWrong: () => {
+                    domCache.toast.notification = {
+                        type: 'error',
+                        text: 'Your old code is wrong.',
+                    };
+
+                    return domCache.toast.open();
+                },
             },
         });
 
         if (newCode !== newCodeConf) {
-            return;
+            domCache.toast.notification = {
+                type: 'error',
+                text: 'Your new code and your re-typed are not identical.',
+            };
+
+            return domCache.toast.open();
         }
 
-        return domCache.app.dispatchEvent(destroyEvent);
+        return domCache.app.dispatchEvent(updateUnlockEvent);
     }
 
     clickOnUpdateDestroy() {
         const [oldInput, newCodeInput, newCodeConfInput] = [
             ...this.#updateDestroy.querySelectorAll('input'),
         ];
-        const newCode = oldInput.value;
-        const newCodeConf = newCodeInput.value;
-        const oldCode = newCodeConfInput.value;
-        const destroyEvent = new CustomEvent('updateDestroy', {
+        const newCode = newCodeInput.value;
+        const newCodeConf = newCodeConfInput.value;
+        const oldCode = oldInput.value;
+        const destroyEvent = new CustomEvent('updateCode', {
             bubbles: false,
             detail: {
                 ...this.ME,
-                newCode,
+                code: newCode,
                 oldCode,
-                close: () => this.close(),
+                codeType: 'destroy',
+                done: () => {
+                    autoRefreshToast();
+                    return this.close();
+                },
+                oldCodeWrong: () => {
+                    domCache.toast.notification = {
+                        type: 'error',
+                        text: 'Your old code is wrong.',
+                    };
+
+                    return domCache.toast.open();
+                },
             },
         });
 
         if (newCode !== newCodeConf) {
-            return;
+            domCache.toast.notification = {
+                type: 'error',
+                text: 'Your new code and your re-typed are not identical.',
+            };
+
+            return domCache.toast.open();
         }
 
         return domCache.app.dispatchEvent(destroyEvent);
@@ -7923,6 +7967,8 @@ class Codes extends Modal {
 
         this.state = 'main';
         requestAnimationFrame(() => this.querySelector('input')?.focus());
+        this.#updateUnlock = this.querySelector('.unlock-side');
+        this.#updateDestroy = this.querySelector('.destroy-side');
     }
 
     close() {
@@ -7947,15 +7993,9 @@ class Codes extends Modal {
                 unlockCode: unlock,
                 destroyCode: destroy,
                 done: () => {
-                    domCache.toast.notification = {
-                        type: 'success',
-                        text: 'Your unlock code and destroy code are set. Auto refresh in 2s.',
-                    };
-
-                    domCache.toast.open();
+                    autoRefreshToast();
                     inputs.forEach((input) => (input.value = ''));
                     this.close();
-                    setTimeout(() => location.reload(), 2000);
                 },
             },
         });
@@ -8005,8 +8045,8 @@ class Codes extends Modal {
     }
 
     renderUpdateSide() {
-        const unlock = $`<div class="unlock-side hide"><p class="create-group-headline"><i @click="${this.backToUpdateSelect}" class="fa-solid fa-arrow-left hover-font float-left"></i> <span>Update Unlock</span></p><small>Old Code</small><input type="password" maxlength="40"><small>New Code</small><input type="password" maxlength="40"> <small>New Code re-type</small><input type="password" maxlength="40"><button @click="${this.clickOnUpdateUnlock}" class="full-width">Update</button></div>`;
-        const destroy = $`<div class="destroy-side hide"><p class="create-group-headline"><i @click="${this.backToUpdateSelect}" class="fa-solid fa-arrow-left hover-font float-left"></i> <span>Update Destroy</span></p><small>Old Code</small><input type="password" maxlength="40"><small>New Code</small><input type="password" maxlength="40"> <small>New Code re-type</small><input type="password" maxlength="40"><button @click="${this.clickOnUpdateDestroy}" class="full-width">Update</button></div>`;
+        const unlock = $`<div class="unlock-side hide"><p class="create-group-headline"><i @click="${this.backToUpdateSelect}" class="fa-solid fa-arrow-left hover-font float-left"></i> <span>Update Unlock</span></p><small>Old Code</small><input autocomplete="off" type="password" maxlength="40"><small>New Code</small><input type="password" maxlength="40"> <small>New Code re-type</small><input type="password" maxlength="40"><button @click="${this.clickOnUpdateUnlock}" class="full-width">Update</button></div>`;
+        const destroy = $`<div class="destroy-side hide"><p class="create-group-headline"><i @click="${this.backToUpdateSelect}" class="fa-solid fa-arrow-left hover-font float-left"></i> <span>Update Destroy</span></p><small>Old Code</small><input autocomplete="off" type="password" maxlength="40"><small>New Code</small><input type="password" maxlength="40"> <small>New Code re-type</small><input type="password" maxlength="40"><button @click="${this.clickOnUpdateDestroy}" class="full-width">Update</button></div>`;
 
         return $`${unlock}${destroy}`;
     }
@@ -8020,16 +8060,14 @@ class Codes extends Modal {
 
     renderSetup() {
         const headline = $`<div class="setup-unlock-container"><p class="create-group-headline">Setup</p><small>${LANG.UNLOCKSETUPTEXT}</small></div>`;
-        const unlock = $`<div class="setup-unlock-container"><p>Unlock Code</p><small>new password</small><input type="password" maxlength="40"><small>re-type</small><input type="password" maxlength="40"></div>`;
-        const destroy = $`<div><p>Destroy Code</p><small>new destory code</small><input type="password" maxlength="40"><small>re-type</small><input type="password" maxlength="40"></div>`;
+        const unlock = $`<form class="setup-unlock-container"><p>Unlock Code</p><small>new password</small><input type="password" autocomplete="off" maxlength="40"><small>re-type</small><input type="password" autocomplete="off" maxlength="40"></form>`;
+        const destroy = $`<form><p>Destroy Code</p><small>new destory code</small><input type="password" autocomplete="off" maxlength="40"><small>re-type</small><input type="password" autocomplete="off" maxlength="40"></form>`;
 
         return $`${headline}${unlock}${destroy}<button @click="${this.setup}" class="full-width">Setup</button>`;
     }
 
     firstUpdated() {
         this.#modalContent = this.querySelector('.modal-content');
-        this.#updateUnlock = this.querySelector('.unlock-side');
-        this.#updateDestroy = this.querySelector('.destroy-side');
     }
 
     render() {
@@ -8105,7 +8143,7 @@ class Lock extends Modal {
     }
 
     render() {
-        const content = $`<p class="create-group-headline">Unlock be8</p><small>Enter your unlock code to use be8</small><input type="text" @keydown="${(
+        const content = $`<p class="create-group-headline">Unlock be8</p><small>Enter your unlock code to use be8</small><input type="password" autocomplete="off" @keydown="${(
             e
         ) => this.enterUnlockCode(e)}" maxlength="40">`;
         return super.render(content);
@@ -8766,12 +8804,14 @@ class AppLayout extends s$1 {
     #panicModal = document.querySelector('panic-modal-window');
     #converModal = document.querySelector('conversation-modal-window');
     #lockModal = document.querySelector('lock-modal-window');
+    #codesModal = document.querySelector('codes-modal-window');
 
     set ME(val) {
         Object.values(this.#menus).forEach(function (menu) {
             menu.ME = val;
         });
 
+        this.#codesModal.ME = val;
         this.#lockModal.ME = val;
         this.#panicModal.ME = val;
         this.#inviteModal.ME = val;
@@ -8860,7 +8900,7 @@ class AppLayout extends s$1 {
 
     openWelcomeWindow({ id }) {
         return this.#modal.setAndOpen({
-            HTML: `Welcome to Be8 your new ID is <strong>#${id}</strong>. Everything gets deleted after 30 Days you can create as many accs as you want.`,
+            HTML: `<h1>Welcome to Be8</h1><p>your new ID is <strong>#${id}</strong>. Everything gets deleted after 30 Days you can create as many accs as you want.</p>`,
         });
     }
 
@@ -9023,9 +9063,9 @@ app.addEventListener('unlock', function ({ detail }) {
             }
             if (valid && isValid) {
                 return detail.done();
-            } else {
-                return detail.error();
             }
+
+            return detail.error();
         })
         .catch(console.error);
 });
@@ -9042,11 +9082,7 @@ app.addEventListener('uploadMedia', function ({ detail }) {
 app.addEventListener('panic', function ({ detail }) {
     fetch('/destroyacc', GET)
         .then((raw) => raw.json())
-        .then(function ({ valid }) {
-            if (valid) {
-                return detail.done();
-            }
-        });
+        .then(({ valid }) => (valid ? detail.done() : false));
 });
 app.addEventListener('inviteGenerated', function () {
     fetch('/invitelink', {
@@ -9083,11 +9119,21 @@ app.addEventListener('setupCodes', function ({ detail }) {
             }
         });
 });
-app.addEventListener('updateDestroy', function ({ detail }) {
-    console.log(detail);
-});
-app.addEventListener('updateUnlock', function ({ detail }) {
-    console.log(detail);
+app.addEventListener('updateCode', function ({ detail }) {
+    fetch('/codeupdate', {
+        ...POST,
+        body: JSON.stringify(detail),
+    })
+        .then((raw) => raw.json())
+        .then(function ({ valid, reason }) {
+            if (reason === 'OLDCODEWRONG') {
+                return detail.oldCodeWrong();
+            }
+            if (valid) {
+                return detail.done();
+            }
+        })
+        .catch(console.error);
 });
 app.addEventListener('setStatus', function ({ detail }) {
     fetch('/statusset', { ...POST, body: JSON.stringify(detail) });
