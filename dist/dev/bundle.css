@@ -145,6 +145,10 @@ a:hover {
   color: var(--color-error);
 }
 
+.highlight-color {
+  color: var(--color-highlight);
+}
+
 .full-width {
   width: 100%;
 }

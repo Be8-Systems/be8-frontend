@@ -1245,9 +1245,9 @@ const domCache = {
 var LANG = Object.freeze({
     THREADSTITLE: 'Chats',
     INVITELINK:
-        'We copied your <a href="{{link}}">invite link</a> to your clipboard. Go ahead and share it.',
+        'We copied your <a class="highlight-color" href="{{link}}">invite link</a> to your clipboard. Go ahead and share it.',
     PANICTEXT:
-        'Enter your Be8 id <i>#{{id}}</i> to destroy your account and everything associated with it. Attention there is no way to restore your data!',
+        'Enter your Be8 id <i class="highlight-color">#{{id}}</i>&nbsp;&nbsp;to destroy your account and everything associated with it. Attention there is no way to restore your data!',
     CONVERSATION: 'Enter a Be8 id to start a 1on1 chatting.',
     UNLOCKSETUPTEXT:
         'You have to remind your unlock code otherwise there is no way to access your account again! Enter your destroy code to destroy your acc! There is no way to recover destroyed accs',
@@ -7625,7 +7625,7 @@ class PanicModal extends Modal {
             e.stopPropagation();
             return false;
         }
-        if (e.keyCode === 13) {
+        if (e.key === 'Enter') {
             return this.onClickDestroy();
         }
     }
@@ -8047,6 +8047,12 @@ class Codes extends Modal {
         return domCache.app.dispatchEvent(setupEvent);
     }
 
+    onKeyPress(e) {
+        if (e.key === 'Enter') {
+            return this.setup();
+        }
+    }
+
     renderUpdateSide() {
         const unlock = $`<div class="unlock-side hide"><p class="create-group-headline"><i @click="${this.backToUpdateSelect}" class="fa-solid fa-arrow-left hover-font float-left"></i> <span>Update Unlock</span></p><small>Old Code</small><input autocomplete="off" type="password" maxlength="40"><small>New Code</small><input type="password" maxlength="40"> <small>New Code re-type</small><input type="password" maxlength="40"><button @click="${this.clickOnUpdateUnlock}" class="full-width">Update</button></div>`;
         const destroy = $`<div class="destroy-side hide"><p class="create-group-headline"><i @click="${this.backToUpdateSelect}" class="fa-solid fa-arrow-left hover-font float-left"></i> <span>Update Destroy</span></p><small>Old Code</small><input autocomplete="off" type="password" maxlength="40"><small>New Code</small><input type="password" maxlength="40"> <small>New Code re-type</small><input type="password" maxlength="40"><button @click="${this.clickOnUpdateDestroy}" class="full-width">Update</button></div>`;
@@ -8064,7 +8070,9 @@ class Codes extends Modal {
     renderSetup() {
         const headline = $`<div class="setup-unlock-container"><p class="create-group-headline">Setup</p><small>${LANG.UNLOCKSETUPTEXT}</small></div>`;
         const unlock = $`<form class="setup-unlock-container"><p>Unlock Code</p><small>new password</small><input type="password" autocomplete="off" maxlength="40"><small>re-type</small><input type="password" autocomplete="off" maxlength="40"></form>`;
-        const destroy = $`<form><p>Destroy Code</p><small>new destory code</small><input type="password" autocomplete="off" maxlength="40"><small>re-type</small><input type="password" autocomplete="off" maxlength="40"></form>`;
+        const destroy = $`<form><p>Destroy Code</p><small>new destory code</small><input type="password" autocomplete="off" maxlength="40"><small>re-type</small><input type="password" autocomplete="off" maxlength="40" @keydown="${(
+            e
+        ) => this.onKeyPress(e)}"></form>`;
 
         return $`${headline}${unlock}${destroy}<button @click="${this.setup}" class="full-width">Setup</button>`;
     }
@@ -8090,6 +8098,7 @@ class Lock extends Modal {
         ME: { type: Object },
     };
 
+    #done = function () {};
     #unlockInput = {};
 
     constructor() {
@@ -8114,6 +8123,7 @@ class Lock extends Modal {
                         };
 
                         domCache.toast.open();
+                        this.#done();
                         return this.close();
                     },
                     error: () => {
@@ -8131,13 +8141,15 @@ class Lock extends Modal {
         }
     }
 
-    open() {
+    open(done = function () {}) {
         if (this.ME.codes) {
+            this.#done = done;
             super.open();
             requestAnimationFrame(() => this.#unlockInput.focus());
             return true;
         }
 
+        done();
         return false;
     }
 
@@ -8673,7 +8685,9 @@ class SettingsMenu extends s$1 {
 
     render() {
         const nickname = $`<div class="settings-container"><p>Nickname is ${this.ME.nickname}</p><input @input="${this.changeName}" type="text" value="${this.ME.nickname}" maxlength="20"></div>`;
-        const codes = $`<div class="settings-container"><p>Destroy and Unlock</p><button @click="${this.clickOnCodes}" class="danger">Setup</button></div>`;
+        const codes = $`<div class="settings-container"><p>Destroy and Unlock</p><button @click="${
+            this.clickOnCodes
+        }" class="danger">${this.ME.codes ? 'Update' : 'Setup'}</button></div>`;
         const notifications = $`<div class="settings-container"><p>Notifications</p><button @click="${this.clickOnNotifications}">Activate</button></div>`;
 
         return $`<h1>Settings</h1>${nickname}${notifications}${codes}`;
@@ -8906,9 +8920,9 @@ class AppLayout extends s$1 {
         return this.#panicModal.open();
     }
 
-    openWelcomeWindow({ id }) {
+    openWelcomeWindow({ id, nickname }) {
         return this.#modal.setAndOpen({
-            HTML: `<h1>Welcome to Be8</h1><p>your new ID is <strong>#${id}</strong>. Everything gets deleted after 30 Days you can create as many accs as you want.</p>`,
+            HTML: `<h1>Welcome to Be8</h1><p>your new ID is <i class="highlight-color">#${id}</i>, your nickname is <i class="highlight-color">${nickname}</i>. Everything gets deleted after 30 Days you can create as many accs as you want.</p>`,
         });
     }
 
@@ -8943,8 +8957,8 @@ class AppLayout extends s$1 {
         });
     }
 
-    openLockModal() {
-        return this.#lockModal.open();
+    async openLockModal(done) {
+        return this.#lockModal.open(done);
     }
 
     setMessages(messages) {
@@ -9023,6 +9037,17 @@ function sanitizeBooleansInMe(accObj) {
     app.ME = accObj;
 }
 
+async function getThreads() {
+    const raw = await fetch('/getthreads', GET);
+    const { valid, threads } = await raw.json();
+
+    if (!valid) {
+        return;
+    }
+
+    return app.setThreads(threads);
+}
+
 async function firstTimeVisitor() {
     const raw = await fetch('/newacc', {
         ...POST,
@@ -9034,12 +9059,12 @@ async function firstTimeVisitor() {
     const data = await raw.json();
 
     if (data.valid) {
-        return fetch('/me', GET)
-            .then((raw) => raw.json())
-            .then(function (data) {
-                sanitizeBooleansInMe(data.accObj);
-                app.openWelcomeWindow(data.accObj);
-            });
+        const raw = await fetch('/me', GET);
+        const { accObj } = await raw.json();
+
+        sanitizeBooleansInMe(accObj);
+        app.openWelcomeWindow(accObj);
+        await getThreads();
     }
 }
 
@@ -9051,7 +9076,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     sanitizeBooleansInMe(accObj);
-    return app.openLockModal();
+    await app.openLockModal(() => getThreads());
 });
 app.addEventListener('unlock', async function ({ detail }) {
     const raw = await fetch('/codeunlock', {
