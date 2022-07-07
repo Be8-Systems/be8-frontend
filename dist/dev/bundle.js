@@ -8478,10 +8478,18 @@ class User extends s$1 {
             detail: {
                 ...this.ME,
                 token,
-                wrongToken: function () {
+                wrongToken: () => {
                     domCache.toast.notification = {
                         type: 'error',
                         text: 'Your token is invalid',
+                    };
+
+                    return domCache.toast.open();
+                },
+                tokenInUse: () => {
+                    domCache.toast.notification = {
+                        type: 'error',
+                        text: 'This token is already in use',
                     };
 
                     return domCache.toast.open();
@@ -9085,9 +9093,22 @@ app.addEventListener('setStatus', function ({ detail }) {
     fetch('/statusset', { ...POST, body: JSON.stringify(detail) });
 });
 app.addEventListener('setToken', function ({ detail }) {
-    console.log(detail);
-    //detail.wrongToken();
-    detail.success();
+    fetch('/endlessvalidate', {
+        ...POST,
+        body: JSON.stringify({ token: detail.token }),
+    })
+        .then((raw) => raw.json())
+        .then(function (data) {
+            if (data.valid && data.validate) {
+                return detail.success();
+            }
+            if (data.error === 'TOKENNOTEXIST') {
+                return detail.wrongToken();
+            }
+            if (!data.valid && data.tokenInUse) {
+                return detail.tokenInUse();
+            }
+        });
 });
 app.addEventListener('newConversation', function ({ detail }) {
     console.log(detail);
