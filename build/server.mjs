@@ -8,6 +8,6 @@ start({
     }, {
         token: '12345678901234567890123456789010',
         type: 'promo',
-        validTime: 15768000 // half a year in seconds
+        validTime: 15768000000 // half a year in milliseconds
     }]
 });
