@@ -8378,19 +8378,22 @@ const SYSTEMMESSAGES = Object.freeze({
     CREATEDGROUP:
         'You created a new group with the id {{extra1}} and name {{extra2}} on {{ts}}.',
     ADDEDTOGROUP:
-        '{{extra3}} with id #{{extra1}} added you to group {{extra2}}',
-    ACCADDEDTOGROUP: '{{extra1}} id #{{extra2}} was added on {{ts}}.',
+        '<i class="highlight-color">{{extra3}}</i> with id <i class="highlight-color">#{{extra1}}</i> added you to group {{extra2}}',
+    ACCADDEDTOGROUP:
+        '<i class="highlight-color">{{extra1}}</i> id <i class="highlight-color">#{{extra2}}</i> was.',
     STARTCONVERSATION:
         'Start conversation with <i class="highlight-color">#{{conversationID}}</i>',
     ACCDELETED:
         'Account <i class="highlight-color">#{{extra1}}</i> has been destroyed.',
 });
 
-// max 33 chars, yeah intendation like this is no allowed
+// max 34 chars, yeah intendation like this is no allowed
 // but in this case it helps to figure out how long your title is.
 const SYSTEMTITLES = Object.freeze({
     WELCOME: 'Welcome to the Be8 messenger',
     CREATEDGROUP: 'You created a new group',
+    ADDEDTOGROUP: 'You were added to the group',
+    ACCADDEDTOGROUP: 'A new User was added to the group',
     STARTCONVERSATION: 'A new conversation started',
     ACCDELETED: 'An account you know is destroyed',
 });
@@ -8525,7 +8528,7 @@ class Messages extends s$1 {
         const back = $`<i @click="${
             this.clickOnBack
         }" class="fa-solid fa-arrow-left ${
-            isPhone ? '' : 'shrinkToZero'
+            isPhone ? '' : 'shrink-to-zero'
         }"></i>`;
         const user = $`<div class="conversation-partner-user">${name}${check}</div>`;
 
@@ -8538,8 +8541,9 @@ class Messages extends s$1 {
         }
         if (isSysMessage) {
             const sanText = SYSTEMMESSAGES[message.text]
-                .replace('{{ts}}', sanitizeTime(message.ts))
                 .replace('{{extra1}}', message.extra1)
+                .replace('{{extra2}}', message.extra2)
+                .replace('{{extra3}}', message.extra3)
                 .replace('{{id}}', this.ME.id)
                 .replace('{{nickname}}', this.ME.nickname)
                 .replace('{{conversationID}}', this.conversationPartner.sender);
@@ -8888,6 +8892,7 @@ class Threads extends s$1 {
                 threadID,
                 ts,
                 type,
+                status,
             }) => {
                 const isSystem = type === 'system';
                 const dateTime = humanReadAbleLastTime(ts);
@@ -8900,8 +8905,11 @@ class Threads extends s$1 {
                     ? ''
                     : $`<span class="float-right">#${sender}<span></span></span>`;
                 const sanText = this.#generateSanText(text, isSystem);
+                const readIndicator = $`<span class="thread-read-indicator${
+                    status === 'read' ? ' shrink-to-zero' : ''
+                }"></span>`;
 
-                return $`<div expire="${expire}" id="${threadID}" sender="${sender}" type="${type}" class="thread hover-background">${icon}<div><p>${nickname}  ${endlessIcon}${senderID}</p><p>${sanText} <span class="float-right unselectable">${dateTime}</span></p></div></div>`;
+                return $`<div expire="${expire}" id="${threadID}" sender="${sender}" type="${type}" class="thread hover-background">${readIndicator}${icon}<div><p>${nickname}  ${endlessIcon}${senderID}</p><p>${sanText} <span class="float-right unselectable">${dateTime}</span></p></div></div>`;
             }
         );
     }
@@ -9148,35 +9156,49 @@ const GET = {
 };
 
 const connection = indexedDB.open('be8', 1);
+const initialiseDB = new Promise(function (success, error) {
+    connection.onupgradeneeded = function () {
+        const db = connection.result;
+        const publicKeysStore = db.createObjectStore('publicKeys', {
+            keyPath: 'accID',
+        });
+        const privateKeysStore = db.createObjectStore('privateKeys', {
+            keyPath: 'accID',
+        });
+        const groupKeysStore = db.createObjectStore('groupKeys', {
+            keyPath: 'accID',
+        });
+        const indexs = [
+            ['crv', 'crv', { unique: false }],
+            ['x', 'x', { unique: false }],
+            ['y', 'y', { unique: false }],
+            ['kty', 'kty', { unique: false }],
+            ['key_ops', 'key_ops', { unique: false }],
+            ['ext', 'ext', { unique: false }],
+        ];
 
-connection.onupgradeneeded = function () {
-    const db = connection.result;
-    const publicKeysStore = db.createObjectStore('publicKeys', {
-        keyPath: 'accID',
-    });
-    const privateKeysStore = db.createObjectStore('privateKeys', {
-        keyPath: 'accID',
-    });
-    const groupKeysStore = db.createObjectStore('groupKeys', {
-        keyPath: 'accID',
-    });
-    const indexs = [
-        ['crv', 'crv', { unique: false }],
-        ['x', 'x', { unique: false }],
-        ['y', 'y', { unique: false }],
-        ['kty', 'kty', { unique: false }],
-        ['key_ops', 'key_ops', { unique: false }],
-        ['ext', 'ext', { unique: false }],
-    ];
+        indexs.forEach(function (parameters) {
+            publicKeysStore.createIndex(...parameters);
+            privateKeysStore.createIndex(...parameters);
+            groupKeysStore.createIndex(...parameters);
+        });
+        return success();
+    };
 
-    indexs.forEach(function (parameters) {
-        publicKeysStore.createIndex(...parameters);
-        privateKeysStore.createIndex(...parameters);
-        groupKeysStore.createIndex(...parameters);
-    });
-};
+    connection.onsuccess = function () {
+        return success();
+    };
 
-connection.onerror = (event) => console.log(event);
+    connection.onerror = function (event) {
+        console.log(event);
+        return error();
+    };
+});
+
+async function initialiseDB$1() {
+    await initialiseDB;
+    return connection;
+}
 
 // generates an Initialization vector
 function generateIV() {
@@ -9663,7 +9685,9 @@ function refreshAPP(accObj) {
 }
 
 async function generateEngine({ id }) {
-    be8 = new Be8(id, connection);
+    const database = await initialiseDB$1();
+
+    be8 = new Be8(id, database);
     return await be8.setup();
 }
 
@@ -9738,9 +9762,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         return await firstTimeVisitor();
     }
 
-    generateEngine(accObj);
     refreshAPP(accObj);
-    await app.openLockModal(() => getThreads());
+    await generateEngine(accObj);
+    return await app.openLockModal(() => getThreads());
 });
 app.addEventListener('unlock', async function ({ detail }) {
     const raw = await fetch('/codeunlock', {

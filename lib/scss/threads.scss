@@ -1,6 +1,6 @@
 .thread {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto auto 1fr;
     gap: var(--small-padding);
     padding: var(--small-padding);
 }
@@ -13,4 +13,10 @@
     text-align: center;
     font-size: 24px;
     margin-top: 6px;
+}
+
+.thread-read-indicator {
+    width: 4px;
+    background-color: var( --color-error);
+    border-radius: var( --big-border-radius);
 }
