@@ -1243,7 +1243,7 @@ const domCache = {
     toast: {},
 };
 
-var LANG = Object.freeze({
+var LANG$1 = Object.freeze({
     THREADSTITLE: 'Chats',
     INVITELINK:
         'We copied your <a class="highlight-color" href="{{link}}">invite link</a> to your clipboard. Go ahead and share it.',
@@ -7237,7 +7237,7 @@ class InviteModal extends Modal {
     render() {
         const url = this.#generateSafeLink('join', this.ME.id);
         const content = $`<p>${o(
-            LANG.INVITELINK.replaceAll('{{link}}', this.url)
+            LANG$1.INVITELINK.replaceAll('{{link}}', this.url)
         )}</p><br><div class="qr"></div><br>`;
 
         this.url = url;
@@ -7663,7 +7663,7 @@ class PanicModal extends Modal {
     }
 
     render() {
-        const text = o(LANG.PANICTEXT.replaceAll('{{id}}', this.ME.id));
+        const text = o(LANG$1.PANICTEXT.replaceAll('{{id}}', this.ME.id));
         const content = $`<p>${text}</p><div><input tabindex="0" @keydown="${(
             e
         ) => this.onKeyPress(e)}" type="text"></div><button @click="${
@@ -7832,7 +7832,7 @@ class ConversationModal extends Modal {
     }
 
     render() {
-        const content = $`<p>${LANG.CONVERSATION}</p><input @keydown="${(e) =>
+        const content = $`<p>${LANG$1.CONVERSATION}</p><input @keydown="${(e) =>
             this.keyDownOn1to1(e)}" tabindex="0" type="text"><div @click="${
             this.clickOnGoToGroup
         }" class="sub-modal-button hover-background">Create a group <i class="fa-solid fa-arrow-right float-right"></i></div>`;
@@ -8080,7 +8080,7 @@ class Codes extends Modal {
     }
 
     renderSetup() {
-        const headline = $`<div class="setup-unlock-container"><p class="create-group-headline">Setup</p><small>${LANG.UNLOCKSETUPTEXT}</small></div>`;
+        const headline = $`<div class="setup-unlock-container"><p class="create-group-headline">Setup</p><small>${LANG$1.UNLOCKSETUPTEXT}</small></div>`;
         const unlock = $`<form class="setup-unlock-container"><p>Unlock Code</p><small>new password</small><input type="password" autocomplete="off" maxlength="40"><small>re-type</small><input type="password" autocomplete="off" maxlength="40"></form>`;
         const destroy = $`<form><p>Destroy Code</p><small>new destory code</small><input type="password" autocomplete="off" maxlength="40"><small>re-type</small><input type="password" autocomplete="off" maxlength="40" @keydown="${(
             e
@@ -8186,7 +8186,7 @@ class Usermodal extends Modal {
 
     constructor() {
         super();
-        this.conversationPartner = LANG;
+        this.conversationPartner = LANG$1;
     }
 
     #renderNonSystem() {
@@ -8373,6 +8373,12 @@ const u = (e, s, t) => {
         }
     );
 
+Object.freeze({
+    WELCOME:
+        'Welcome to Be8, your nickname is <i>{{nickname}}</i>. Be8 is the first ever real privacy messenger. Everything is End-to-End encrypted, only your device knows your key! Everything gets deleted after 30 days even your account, but you can create as much accounts as you want. Your id is <i>#{{id}}</i>. You can find your expire date on the top left. Have fun.',
+    STARTCONVERSATION: 'Start conversation at {{ts}} with #{{conversationID}}',
+});
+
 class Messages extends s$1 {
     static properties = {
         conversationPartner: { type: Object },
@@ -8511,9 +8517,10 @@ class Messages extends s$1 {
 
     #renderSecondLine({ text, type, contentID }) {
         if (type === 'imageMessage') {
-            const image =
-                'data:image/png;base64,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';
-            return $`<img data-contentid="${contentID}" src="${image}">`;
+            return $`<img data-contentid="${contentID}" src="">`;
+        }
+        if (type === 'message') {
+            return $`<p>${LANG[text]}</p>`;
         }
 
         return $`<p>${text}</p>`;
@@ -9055,7 +9062,7 @@ class AppLayout extends s$1 {
             this.clickOnChat(
                 e
             )}" class="active-setting hover-font"><i class="fa-solid fa-comments"></i><small>${
-            LANG.THREADSTITLE
+            LANG$1.THREADSTITLE
         }</small></div><div @click="${(e) =>
             this.clickOnSettings(
                 e
@@ -9606,10 +9613,7 @@ class Be8 {
 
 const app = document.querySelector('app-layout');
 
-function sanitizeBooleansInMe(accObj) {
-    accObj.codes = accObj.codes === 'true';
-    accObj.endless = accObj.endless === 'true';
-
+function refreshAPP(accObj) {
     app.ME = accObj;
 }
 
@@ -9643,7 +9647,7 @@ async function firstTimeVisitor() {
         const raw = await fetch('/me', GET);
         const { accObj } = await raw.json();
 
-        sanitizeBooleansInMe(accObj);
+        refreshAPP(accObj);
         await generateEngine(accObj);
         await getThreads();
         return app.openWelcomeWindow(accObj);
@@ -9658,7 +9662,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     generateEngine(accObj);
-    sanitizeBooleansInMe(accObj);
+    refreshAPP(accObj);
     await app.openLockModal(() => getThreads());
 });
 app.addEventListener('unlock', async function ({ detail }) {
@@ -9699,7 +9703,7 @@ app.addEventListener('changeNickName', async function ({ detail }) {
         const raw = await fetch('/me', GET);
         const { accObj } = await raw.json();
 
-        return sanitizeBooleansInMe(accObj);
+        return refreshAPP(accObj);
     }
 });
 app.addEventListener('setupCodes', async function ({ detail }) {
@@ -9741,7 +9745,7 @@ app.addEventListener('setToken', async function ({ detail }) {
         const raw = await fetch('/me', GET);
         const { accObj } = await raw.json();
 
-        sanitizeBooleansInMe(accObj);
+        refreshAPP(accObj);
         return detail.success(data);
     }
     if (data.error === 'TOKENNOTEXIST') {
@@ -9769,13 +9773,20 @@ app.addEventListener('createGroup', function ({ detail }) {
     console.log(detail);
     detail.success();
 });
-app.addEventListener('threadSelect', function ({ detail }) {
-    console.log(detail);
-    //app.setMessages(messages);
+app.addEventListener('threadSelect', async function ({ detail }) {
+    const raw = await fetch('/getmessages', {
+        ...POST,
+        body: JSON.stringify(detail),
+    });
+    const data = await raw.json();
+
+    if (data.valid) {
+        return app.setMessages(data.messages);
+    }
 });
-app.addEventListener('writeMessage', function ({ detail }) {
+app.addEventListener('writeMessage', async function ({ detail }) {
     console.log(detail);
 });
-app.addEventListener('uploadMedia', function ({ detail }) {
+app.addEventListener('uploadMedia', async function ({ detail }) {
     console.log(detail);
 });
