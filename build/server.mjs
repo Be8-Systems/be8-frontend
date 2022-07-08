@@ -6,8 +6,12 @@ start({
         token: '12345678901234567890123456789012',
         type: 'endless'
     }, {
-        token: '12345678901234567890123456789010',
+        token: 'promo180_12345678901234567890123',
         type: 'promo',
-        validTime: 15768000000 // half a year in milliseconds
+        validTime: 15_552_000_000 // half a year in milliseconds
+    }, {
+        token: 'promo365_12345678901234567890123',
+        type: 'promo',
+        validTime: 31_536_000_000 // a year in milliseconds
     }]
 });
