@@ -9083,6 +9083,12 @@ class AppLayout extends s$1 {
         this.#threads.bootStrap();
     }
 
+    getConversationPartners() {
+        return this.#threads.threads
+            .map((t) => t.sender)
+            .filter((id) => id !== 's1');
+    }
+
     render() {
         const header = $`<header><i @click="${(e) =>
             this.clickOnUser(
@@ -9657,6 +9663,28 @@ async function generateEngine({ id }) {
     return await be8.setup();
 }
 
+async function syncPublicKeys() {
+    const cachedKeys = await be8.getCachedKeys();
+    const cachedIDs = cachedKeys.map((acc) => acc.accID);
+    const accIDs = app
+        .getConversationPartners()
+        .filter((id) => !cachedIDs.find((cID) => cID === id));
+
+    if (accIDs.length === 0) {
+        return;
+    }
+
+    const raw = await fetch('/getkeys', {
+        ...POST,
+        body: JSON.stringify({ accIDs }),
+    });
+    const data = await raw.json();
+
+    if (data.valid) {
+        return await be8.addPublicKeys(data.publicKeys);
+    }
+}
+
 async function getThreads() {
     const raw = await fetch('/getthreads', GET);
     const { valid, threads } = await raw.json();
@@ -9665,7 +9693,8 @@ async function getThreads() {
         return;
     }
 
-    return app.setThreads(threads);
+    app.setThreads(threads);
+    return await syncPublicKeys();
 }
 
 async function storePublicKey() {
@@ -9839,7 +9868,10 @@ app.addEventListener('threadSelect', async function ({ detail }) {
     }
 });
 app.addEventListener('writeMessage', async function ({ detail }) {
-    console.log(detail);
+    await fetch('/writemessage', {
+        ...POST,
+        body: JSON.stringify(detail),
+    });
 });
 app.addEventListener('uploadMedia', async function ({ detail }) {
     console.log(detail);
