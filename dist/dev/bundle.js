@@ -7717,17 +7717,17 @@ class ConversationModal extends Modal {
         );
     }
 
-    #sendCreateGroup(name, type) {
+    #sendCreateGroup(nickname, groupType) {
         const createGroupEvent = new CustomEvent('createGroup', {
             bubbles: false,
             detail: {
                 ...this.ME,
-                name,
-                type,
+                nickname,
+                groupType,
                 success: () => {
                     domCache.toast.notification = {
                         type: 'success',
-                        text: 'You created the group ' + name,
+                        text: 'You created the group ' + nickname,
                     };
                     this.#groupNameInput.value = '';
 
@@ -8376,6 +8376,8 @@ const u = (e, s, t) => {
 var SYSTEMMESSAGES = Object.freeze({
     WELCOME:
         'Welcome to Be8, your nickname is <i class="highlight-color">{{nickname}}</i>. Be8 is the first ever real privacy messenger. Everything is End-to-End encrypted, only your device knows your key! Everything gets deleted after 30 days even your account, but you can create as much accounts as you want. Your id is <i class="highlight-color">#{{id}}</i>. You can find your expire date on the top left. Have fun.',
+    CREATEDGROUP:
+        'You created a new group with the id {{extra1}} and name {{extra2}} on {{ts}}.',
     STARTCONVERSATION:
         'Start conversation with <i class="highlight-color">#{{conversationID}}</i>',
 });
@@ -9790,9 +9792,19 @@ app.addEventListener('startConversation', async function ({ detail }) {
         return detail.idDoesNotExist();
     }
 });
-app.addEventListener('createGroup', function ({ detail }) {
-    console.log(detail);
-    detail.success();
+app.addEventListener('createGroup', async function ({ detail }) {
+    const raw = await fetch('/groupcreate', {
+        ...POST,
+        body: JSON.stringify({
+            nickname: detail.nickname,
+            groupType: detail.groupType,
+        }),
+    });
+    const data = await raw.json();
+
+    if (data.valid) {
+        return detail.success();
+    }
 });
 app.addEventListener('threadSelect', async function ({ detail }) {
     const raw = await fetch('/getmessages', {
