@@ -62,6 +62,15 @@ messages-menu {
     background-color: var(--color-secondary);
 }
 
+.system-message {
+    text-align: center;
+}
+
+.system-message .message {
+    background-color: var(--colorsurface);
+    color: var(--color-on-surface);
+}
+
 .message i.fa-check {
     color: var(--color-secondary-variant);
 }
