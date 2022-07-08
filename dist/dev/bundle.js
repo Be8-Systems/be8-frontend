@@ -9264,7 +9264,7 @@ class Be8 {
     }
 
     async setup() {
-        const keys = await this.getCachedKeys();
+        const databaseKeys = await this.getCachedKeys();
         const privateTx = this.#indexedDB.result.transaction(
             'privateKeys',
             'readwrite'
@@ -9288,9 +9288,11 @@ class Be8 {
             this.#privateKeys.set(this.#accID, privateKey);
         }
 
-        keys.forEach(({ accID, ...rest }) => this.#publicKeys.set(accID, rest));
+        databaseKeys.forEach(({ accID, publicKey }) =>
+            this.#publicKeys.set(accID, publicKey)
+        );
 
-        return keys;
+        return databaseKeys;
     }
 
     getAccID() {
