@@ -7640,7 +7640,6 @@ class PanicModal extends Modal {
                 detail: {
                     ...this.ME,
                     done: async () => {
-                        await be8.panic();
                         return location.reload();
                     },
                 },
@@ -9656,13 +9655,14 @@ class Be8 {
 }
 
 const app = document.querySelector('app-layout');
+let be8 = {};
 
 function refreshAPP(accObj) {
     app.ME = accObj;
 }
 
 async function generateEngine({ id }) {
-    globalThis.be8 = new Be8(id, connection);
+    be8 = new Be8(id, connection);
     return await be8.setup();
 }
 
@@ -9758,6 +9758,7 @@ app.addEventListener('unlock', async function ({ detail }) {
     return detail.error();
 });
 app.addEventListener('panic', async function ({ detail }) {
+    await be8.panic();
     const raw = await fetch('/destroyacc', GET);
     const { valid } = await raw.json();
 
