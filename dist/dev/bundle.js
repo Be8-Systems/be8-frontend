@@ -9645,6 +9645,14 @@ async function getThreads() {
     return app.setThreads(threads);
 }
 
+async function storePublicKey() {
+    const [{ publicKey }] = await be8.getCachedKeys();
+    await fetch('/setkey', {
+        ...POST,
+        body: JSON.stringify(publicKey),
+    });
+}
+
 async function firstTimeVisitor() {
     const raw = await fetch('/newacc', {
         ...POST,
@@ -9661,6 +9669,7 @@ async function firstTimeVisitor() {
 
         refreshAPP(accObj);
         await generateEngine(accObj);
+        await storePublicKey();
         await getThreads();
         return app.openWelcomeWindow(accObj);
     }
