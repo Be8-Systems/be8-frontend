@@ -7717,17 +7717,17 @@ class ConversationModal extends Modal {
         );
     }
 
-    #sendCreateGroup(name, type) {
+    #sendCreateGroup(nickname, groupType) {
         const createGroupEvent = new CustomEvent('createGroup', {
             bubbles: false,
             detail: {
                 ...this.ME,
-                name,
-                type,
+                nickname,
+                groupType,
                 success: () => {
                     domCache.toast.notification = {
                         type: 'success',
-                        text: 'You created the group ' + name,
+                        text: 'You created the group ' + nickname,
                     };
                     this.#groupNameInput.value = '';
 
@@ -9775,9 +9775,19 @@ app.addEventListener('startConversation', async function ({ detail }) {
         return detail.idDoesNotExist();
     }
 });
-app.addEventListener('createGroup', function ({ detail }) {
-    console.log(detail);
-    detail.success();
+app.addEventListener('createGroup', async function ({ detail }) {
+    const raw = await fetch('/groupcreate', {
+        ...POST,
+        body: JSON.stringify({
+            nickname: detail.nickname,
+            groupType: detail.groupType,
+        }),
+    });
+    const data = await raw.json();
+
+    if (data.valid) {
+        return detail.success();
+    }
 });
 app.addEventListener('threadSelect', async function ({ detail }) {
     const raw = await fetch('/getmessages', {
