@@ -8378,6 +8378,9 @@ var SYSTEMMESSAGES = Object.freeze({
         'Welcome to Be8, your nickname is <i class="highlight-color">{{nickname}}</i>. Be8 is the first ever real privacy messenger. Everything is End-to-End encrypted, only your device knows your key! Everything gets deleted after 30 days even your account, but you can create as much accounts as you want. Your id is <i class="highlight-color">#{{id}}</i>. You can find your expire date on the top left. Have fun.',
     CREATEDGROUP:
         'You created a new group with the id {{extra1}} and name {{extra2}} on {{ts}}.',
+    ADDEDTOGROUP:
+        '{{extra3}} with id #{{extra1}} added you to group {{extra2}}',
+    ACCADDEDTOGROUP: '{{extra1}} id #{{extra2}} was added on {{ts}}.',
     STARTCONVERSATION:
         'Start conversation with <i class="highlight-color">#{{conversationID}}</i>',
 });
@@ -9803,7 +9806,18 @@ app.addEventListener('createGroup', async function ({ detail }) {
     const data = await raw.json();
 
     if (data.valid) {
-        return detail.success();
+        const raw = await fetch('/groupaddmember', {
+            ...POST,
+            body: JSON.stringify({
+                groupID: data.groupID,
+                memberID: detail.id,
+            }),
+        });
+        const addData = await raw.json();
+
+        if (addData.valid) {
+            return detail.success();
+        }
     }
 });
 app.addEventListener('threadSelect', async function ({ detail }) {
