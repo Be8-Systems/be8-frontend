@@ -7640,7 +7640,6 @@ class PanicModal extends Modal {
                 detail: {
                     ...this.ME,
                     done: async () => {
-                        await be8.panic();
                         return location.reload();
                     },
                 },
@@ -8373,7 +8372,7 @@ const u = (e, s, t) => {
         }
     );
 
-var SYSTEMMESSAGES = Object.freeze({
+const SYSTEMMESSAGES = Object.freeze({
     WELCOME:
         'Welcome to Be8, your nickname is <i class="highlight-color">{{nickname}}</i>. Be8 is the first ever real privacy messenger. Everything is End-to-End encrypted, only your device knows your key! Everything gets deleted after 30 days even your account, but you can create as much accounts as you want. Your id is <i class="highlight-color">#{{id}}</i>. You can find your expire date on the top left. Have fun.',
     CREATEDGROUP:
@@ -8383,6 +8382,17 @@ var SYSTEMMESSAGES = Object.freeze({
     ACCADDEDTOGROUP: '{{extra1}} id #{{extra2}} was added on {{ts}}.',
     STARTCONVERSATION:
         'Start conversation with <i class="highlight-color">#{{conversationID}}</i>',
+    ACCDELETED:
+        'Account <i class="highlight-color">#{{extra1}}</i> has been destroyed.',
+});
+
+// max 33 chars, yeah intendation like this is no allowed
+// but in this case it helps to figure out how long your title is.
+const SYSTEMTITLES = Object.freeze({
+    WELCOME: 'Welcome to the Be8 messenger',
+    CREATEDGROUP: 'You created a new group',
+    STARTCONVERSATION: 'A new conversation started',
+    ACCDELETED: 'An account you know is destroyed',
 });
 
 class Messages extends s$1 {
@@ -8521,20 +8531,21 @@ class Messages extends s$1 {
         return $`<div class="conversation-partner">${back}${user}</div>`;
     }
 
-    #renderSecondLine({ text, type, contentID, ts }, isSysMessage) {
-        if (type === 'imageMessage') {
-            return $`<img data-contentid="${contentID}" src="">`;
+    #renderSecondLine(message, isSysMessage) {
+        if (message.type === 'imageMessage') {
+            return $`<img data-contentid="${message.contentID}" src="">`;
         }
         if (isSysMessage) {
-            const sanText = SYSTEMMESSAGES[text]
-                .replace('{{ts}}', sanitizeTime(ts))
+            const sanText = SYSTEMMESSAGES[message.text]
+                .replace('{{ts}}', sanitizeTime(message.ts))
+                .replace('{{extra1}}', message.extra1)
                 .replace('{{id}}', this.ME.id)
                 .replace('{{nickname}}', this.ME.nickname)
                 .replace('{{conversationID}}', this.conversationPartner.sender);
             return $`<p>${o(sanText)}</p>`;
         }
 
-        return $`<p>${text}</p>`;
+        return $`<p>${message.text}</p>`;
     }
 
     #renderStatusIndicator(amIsender, status, isGroup) {
@@ -8852,6 +8863,17 @@ class Threads extends s$1 {
         });
     }
 
+    #generateSanText(text, isSystem) {
+        if (isSystem) {
+            return SYSTEMTITLES[text];
+        }
+        if (text.length <= 25 && SYSTEMTITLES[text]) {
+            return SYSTEMTITLES[text];
+        }
+
+        return text.substring(0, 23) + '…';
+    }
+
     render() {
         return c(
             this.threads,
@@ -8876,11 +8898,9 @@ class Threads extends s$1 {
                 const senderID = isSystem
                     ? ''
                     : $`<span class="float-right">#${sender}<span></span></span>`;
+                const sanText = this.#generateSanText(text, isSystem);
 
-                return $`<div expire="${expire}" id="${threadID}" sender="${sender}" type="${type}" class="thread hover-background">${icon}<div><p>${nickname}  ${endlessIcon}${senderID}</p><p>${text.substring(
-                    0,
-                    23
-                )}… <span class="float-right unselectable">${dateTime}</span></p></div></div>`;
+                return $`<div expire="${expire}" id="${threadID}" sender="${sender}" type="${type}" class="thread hover-background">${icon}<div><p>${nickname}  ${endlessIcon}${senderID}</p><p>${sanText} <span class="float-right unselectable">${dateTime}</span></p></div></div>`;
             }
         );
     }
@@ -9063,6 +9083,12 @@ class AppLayout extends s$1 {
     setThreads(threads) {
         this.#threads.threads = threads;
         this.#threads.bootStrap();
+    }
+
+    getConversationPartners() {
+        return this.#threads.threads
+            .map((t) => t.sender)
+            .filter((id) => id !== 's1');
     }
 
     render() {
@@ -9629,14 +9655,37 @@ class Be8 {
 }
 
 const app = document.querySelector('app-layout');
+let be8 = {};
 
 function refreshAPP(accObj) {
     app.ME = accObj;
 }
 
 async function generateEngine({ id }) {
-    globalThis.be8 = new Be8(id, connection);
+    be8 = new Be8(id, connection);
     return await be8.setup();
+}
+
+async function syncPublicKeys() {
+    const cachedKeys = await be8.getCachedKeys();
+    const cachedIDs = cachedKeys.map((acc) => acc.accID);
+    const accIDs = app
+        .getConversationPartners()
+        .filter((id) => !cachedIDs.find((cID) => cID === id));
+
+    if (accIDs.length === 0) {
+        return;
+    }
+
+    const raw = await fetch('/getkeys', {
+        ...POST,
+        body: JSON.stringify({ accIDs }),
+    });
+    const data = await raw.json();
+
+    if (data.valid) {
+        return await be8.addPublicKeys(data.publicKeys);
+    }
 }
 
 async function getThreads() {
@@ -9647,7 +9696,8 @@ async function getThreads() {
         return;
     }
 
-    return app.setThreads(threads);
+    app.setThreads(threads);
+    return await syncPublicKeys();
 }
 
 async function storePublicKey() {
@@ -9708,6 +9758,7 @@ app.addEventListener('unlock', async function ({ detail }) {
     return detail.error();
 });
 app.addEventListener('panic', async function ({ detail }) {
+    await be8.panic();
     const raw = await fetch('/destroyacc', GET);
     const { valid } = await raw.json();
 
@@ -9832,7 +9883,10 @@ app.addEventListener('threadSelect', async function ({ detail }) {
     }
 });
 app.addEventListener('writeMessage', async function ({ detail }) {
-    console.log(detail);
+    await fetch('/writemessage', {
+        ...POST,
+        body: JSON.stringify(detail),
+    });
 });
 app.addEventListener('uploadMedia', async function ({ detail }) {
     console.log(detail);
