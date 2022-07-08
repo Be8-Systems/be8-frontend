@@ -8479,7 +8479,8 @@ class Messages extends s$1 {
                 bubbles: false,
                 detail: {
                     message,
-                    ...this.ME,
+                    ME: this.ME,
+                    convPartner: this.conversationPartner,
                 },
             });
 
@@ -9907,10 +9908,24 @@ app.addEventListener('threadSelect', async function ({ detail }) {
     }
 });
 app.addEventListener('writeMessage', async function ({ detail }) {
-    await fetch('/writemessage', {
+    const { cipherText } = await be8.encryptTextSimple(
+        detail.ME.id,
+        detail.convPartner.id,
+        detail.message
+    );
+    const raw = await fetch('/writemessage', {
         ...POST,
-        body: JSON.stringify(detail),
+        body: JSON.stringify({
+            nickname: detail.ME.nickname,
+            receiver: detail.convPartner.id,
+            sender: detail.ME.id,
+            text: cipherText,
+            threadID: detail.convPartner.threadID,
+            type: 'textMessage',
+        }),
     });
+    const data = raw.json();
+    console.log(data);
 });
 app.addEventListener('uploadMedia', async function ({ detail }) {
     console.log(detail);
