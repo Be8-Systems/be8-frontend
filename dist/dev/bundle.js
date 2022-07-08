@@ -8373,13 +8373,24 @@ const u = (e, s, t) => {
         }
     );
 
-var SYSTEMMESSAGES = Object.freeze({
+const SYSTEMMESSAGES = Object.freeze({
     WELCOME:
         'Welcome to Be8, your nickname is <i class="highlight-color">{{nickname}}</i>. Be8 is the first ever real privacy messenger. Everything is End-to-End encrypted, only your device knows your key! Everything gets deleted after 30 days even your account, but you can create as much accounts as you want. Your id is <i class="highlight-color">#{{id}}</i>. You can find your expire date on the top left. Have fun.',
     CREATEDGROUP:
         'You created a new group with the id {{extra1}} and name {{extra2}} on {{ts}}.',
     STARTCONVERSATION:
         'Start conversation with <i class="highlight-color">#{{conversationID}}</i>',
+    ACCDELETED:
+        'Account <i class="highlight-color">#{{extra1}}</i> has been destroyed.',
+});
+
+// max 33 chars, yeah intendation like this is no allowed
+// but in this case it helps to figure out how long your title is.
+const SYSTEMTITLES = Object.freeze({
+    WELCOME: 'Welcome to the Be8 messenger',
+    CREATEDGROUP: 'You created a new group',
+    STARTCONVERSATION: 'A new conversation started',
+    ACCDELETED: 'An account you know is destroyed',
 });
 
 class Messages extends s$1 {
@@ -8518,20 +8529,21 @@ class Messages extends s$1 {
         return $`<div class="conversation-partner">${back}${user}</div>`;
     }
 
-    #renderSecondLine({ text, type, contentID, ts }, isSysMessage) {
-        if (type === 'imageMessage') {
-            return $`<img data-contentid="${contentID}" src="">`;
+    #renderSecondLine(message, isSysMessage) {
+        if (message.type === 'imageMessage') {
+            return $`<img data-contentid="${message.contentID}" src="">`;
         }
         if (isSysMessage) {
-            const sanText = SYSTEMMESSAGES[text]
-                .replace('{{ts}}', sanitizeTime(ts))
+            const sanText = SYSTEMMESSAGES[message.text]
+                .replace('{{ts}}', sanitizeTime(message.ts))
+                .replace('{{extra1}}', message.extra1)
                 .replace('{{id}}', this.ME.id)
                 .replace('{{nickname}}', this.ME.nickname)
                 .replace('{{conversationID}}', this.conversationPartner.sender);
             return $`<p>${o(sanText)}</p>`;
         }
 
-        return $`<p>${text}</p>`;
+        return $`<p>${message.text}</p>`;
     }
 
     #renderStatusIndicator(amIsender, status, isGroup) {
@@ -8849,6 +8861,17 @@ class Threads extends s$1 {
         });
     }
 
+    #generateSanText(text, isSystem) {
+        if (isSystem) {
+            return SYSTEMTITLES[text];
+        }
+        if (text.length <= 25 && SYSTEMTITLES[text]) {
+            return SYSTEMTITLES[text];
+        }
+
+        return text.substring(0, 23) + '…';
+    }
+
     render() {
         return c(
             this.threads,
@@ -8873,11 +8896,9 @@ class Threads extends s$1 {
                 const senderID = isSystem
                     ? ''
                     : $`<span class="float-right">#${sender}<span></span></span>`;
+                const sanText = this.#generateSanText(text, isSystem);
 
-                return $`<div expire="${expire}" id="${threadID}" sender="${sender}" type="${type}" class="thread hover-background">${icon}<div><p>${nickname}  ${endlessIcon}${senderID}</p><p>${text.substring(
-                    0,
-                    23
-                )}… <span class="float-right unselectable">${dateTime}</span></p></div></div>`;
+                return $`<div expire="${expire}" id="${threadID}" sender="${sender}" type="${type}" class="thread hover-background">${icon}<div><p>${nickname}  ${endlessIcon}${senderID}</p><p>${sanText} <span class="float-right unselectable">${dateTime}</span></p></div></div>`;
             }
         );
     }
