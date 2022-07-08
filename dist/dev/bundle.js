@@ -9649,7 +9649,7 @@ async function storePublicKey() {
     const [{ publicKey }] = await be8.getCachedKeys();
     await fetch('/setkey', {
         ...POST,
-        body: JSON.stringify(publicKey),
+        body: JSON.stringify({ publicKey }),
     });
 }
 
