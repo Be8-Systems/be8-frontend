@@ -1243,7 +1243,7 @@ const domCache = {
     toast: {},
 };
 
-var LANG$1 = Object.freeze({
+var LANG = Object.freeze({
     THREADSTITLE: 'Chats',
     INVITELINK:
         'We copied your <a class="highlight-color" href="{{link}}">invite link</a> to your clipboard. Go ahead and share it.',
@@ -7237,7 +7237,7 @@ class InviteModal extends Modal {
     render() {
         const url = this.#generateSafeLink('join', this.ME.id);
         const content = $`<p>${o(
-            LANG$1.INVITELINK.replaceAll('{{link}}', this.url)
+            LANG.INVITELINK.replaceAll('{{link}}', this.url)
         )}</p><br><div class="qr"></div><br>`;
 
         this.url = url;
@@ -7663,7 +7663,7 @@ class PanicModal extends Modal {
     }
 
     render() {
-        const text = o(LANG$1.PANICTEXT.replaceAll('{{id}}', this.ME.id));
+        const text = o(LANG.PANICTEXT.replaceAll('{{id}}', this.ME.id));
         const content = $`<p>${text}</p><div><input tabindex="0" @keydown="${(
             e
         ) => this.onKeyPress(e)}" type="text"></div><button @click="${
@@ -7832,7 +7832,7 @@ class ConversationModal extends Modal {
     }
 
     render() {
-        const content = $`<p>${LANG$1.CONVERSATION}</p><input @keydown="${(e) =>
+        const content = $`<p>${LANG.CONVERSATION}</p><input @keydown="${(e) =>
             this.keyDownOn1to1(e)}" tabindex="0" type="text"><div @click="${
             this.clickOnGoToGroup
         }" class="sub-modal-button hover-background">Create a group <i class="fa-solid fa-arrow-right float-right"></i></div>`;
@@ -8080,7 +8080,7 @@ class Codes extends Modal {
     }
 
     renderSetup() {
-        const headline = $`<div class="setup-unlock-container"><p class="create-group-headline">Setup</p><small>${LANG$1.UNLOCKSETUPTEXT}</small></div>`;
+        const headline = $`<div class="setup-unlock-container"><p class="create-group-headline">Setup</p><small>${LANG.UNLOCKSETUPTEXT}</small></div>`;
         const unlock = $`<form class="setup-unlock-container"><p>Unlock Code</p><small>new password</small><input type="password" autocomplete="off" maxlength="40"><small>re-type</small><input type="password" autocomplete="off" maxlength="40"></form>`;
         const destroy = $`<form><p>Destroy Code</p><small>new destory code</small><input type="password" autocomplete="off" maxlength="40"><small>re-type</small><input type="password" autocomplete="off" maxlength="40" @keydown="${(
             e
@@ -8186,7 +8186,7 @@ class Usermodal extends Modal {
 
     constructor() {
         super();
-        this.conversationPartner = LANG$1;
+        this.conversationPartner = LANG;
     }
 
     #renderNonSystem() {
@@ -8373,10 +8373,11 @@ const u = (e, s, t) => {
         }
     );
 
-Object.freeze({
+var SYSTEMMESSAGES = Object.freeze({
     WELCOME:
-        'Welcome to Be8, your nickname is <i>{{nickname}}</i>. Be8 is the first ever real privacy messenger. Everything is End-to-End encrypted, only your device knows your key! Everything gets deleted after 30 days even your account, but you can create as much accounts as you want. Your id is <i>#{{id}}</i>. You can find your expire date on the top left. Have fun.',
-    STARTCONVERSATION: 'Start conversation at {{ts}} with #{{conversationID}}',
+        'Welcome to Be8, your nickname is <i class="highlight-color">{{nickname}}</i>. Be8 is the first ever real privacy messenger. Everything is End-to-End encrypted, only your device knows your key! Everything gets deleted after 30 days even your account, but you can create as much accounts as you want. Your id is <i class="highlight-color">#{{id}}</i>. You can find your expire date on the top left. Have fun.',
+    STARTCONVERSATION:
+        'Start conversation at {{ts}} with <i class="highlight-color">#{{conversationID}}</i>',
 });
 
 class Messages extends s$1 {
@@ -8515,12 +8516,18 @@ class Messages extends s$1 {
         return $`<div class="conversation-partner">${back}${user}</div>`;
     }
 
-    #renderSecondLine({ text, type, contentID }) {
+    #renderSecondLine({ text, type, contentID, ts }) {
         if (type === 'imageMessage') {
             return $`<img data-contentid="${contentID}" src="">`;
         }
-        if (type === 'message') {
-            return $`<p>${LANG[text]}</p>`;
+        if (type === 'system') {
+            console.log(this.conversationPartner);
+            const sanText = SYSTEMMESSAGES[text]
+                .replace('{{ts}}', sanitizeTime(ts))
+                .replace('{{id}}', this.ME.id)
+                .replace('{{nickname}}', this.ME.nickname)
+                .replace('{{conversationID}}', this.conversationPartner.sender);
+            return $`<p>${o(sanText)}</p>`;
         }
 
         return $`<p>${text}</p>`;
@@ -9062,7 +9069,7 @@ class AppLayout extends s$1 {
             this.clickOnChat(
                 e
             )}" class="active-setting hover-font"><i class="fa-solid fa-comments"></i><small>${
-            LANG$1.THREADSTITLE
+            LANG.THREADSTITLE
         }</small></div><div @click="${(e) =>
             this.clickOnSettings(
                 e
