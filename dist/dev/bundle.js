@@ -8376,8 +8376,10 @@ const u = (e, s, t) => {
 var SYSTEMMESSAGES = Object.freeze({
     WELCOME:
         'Welcome to Be8, your nickname is <i class="highlight-color">{{nickname}}</i>. Be8 is the first ever real privacy messenger. Everything is End-to-End encrypted, only your device knows your key! Everything gets deleted after 30 days even your account, but you can create as much accounts as you want. Your id is <i class="highlight-color">#{{id}}</i>. You can find your expire date on the top left. Have fun.',
+    CREATEDGROUP:
+        'You created a new group with the id {{extra1}} and name {{extra2}} on {{ts}}.',
     STARTCONVERSATION:
-        'Start conversation at {{ts}} with <i class="highlight-color">#{{conversationID}}</i>',
+        'Start conversation with <i class="highlight-color">#{{conversationID}}</i>',
 });
 
 class Messages extends s$1 {
@@ -8516,11 +8518,11 @@ class Messages extends s$1 {
         return $`<div class="conversation-partner">${back}${user}</div>`;
     }
 
-    #renderSecondLine({ text, type, contentID, ts }) {
+    #renderSecondLine({ text, type, contentID, ts }, isSysMessage) {
         if (type === 'imageMessage') {
             return $`<img data-contentid="${contentID}" src="">`;
         }
-        if (type === 'system') {
+        if (isSysMessage) {
             const sanText = SYSTEMMESSAGES[text]
                 .replace('{{ts}}', sanitizeTime(ts))
                 .replace('{{id}}', this.ME.id)
@@ -8552,20 +8554,26 @@ class Messages extends s$1 {
             this.messages,
             (message) => message.messageID,
             (message) => {
-                const { messageID, nickname, sender, status, ts } = message;
+                const { messageID, nickname, sender, status, ts, type } =
+                    message;
+                const isSysMessage = type === 'system';
                 const dateTime = new Date(ts);
                 const amIsender = sender === this.ME.id;
                 const time = dateTime.toLocaleTimeString();
                 const firstLine = $``;
-                const secondLine = this.#renderSecondLine(message);
+                const secondLine = this.#renderSecondLine(
+                    message,
+                    isSysMessage
+                );
                 const statusIndicator = this.#renderStatusIndicator(
                     amIsender,
                     status,
                     isGroup
                 );
                 const thirdLine = $`<p><small class="float-right unselectable">${time}${statusIndicator}</small></p>`;
+                const classes = isSysMessage ? ' system-message' : '';
 
-                return $`<div alt="${nickname}" data-messageid="${messageID}" class="message-container"><div class="message ${
+                return $`<div alt="${nickname}" data-messageid="${messageID}" class="message-container${classes}"><div class="message ${
                     amIsender ? 'sent-message' : 'received-message'
                 }">${firstLine}${secondLine}${thirdLine}</div></div>`;
             }
@@ -9639,6 +9647,14 @@ async function getThreads() {
     return app.setThreads(threads);
 }
 
+async function storePublicKey() {
+    const [{ publicKey }] = await be8.getCachedKeys();
+    await fetch('/setkey', {
+        ...POST,
+        body: JSON.stringify({ publicKey }),
+    });
+}
+
 async function firstTimeVisitor() {
     const raw = await fetch('/newacc', {
         ...POST,
@@ -9655,6 +9671,7 @@ async function firstTimeVisitor() {
 
         refreshAPP(accObj);
         await generateEngine(accObj);
+        await storePublicKey();
         await getThreads();
         return app.openWelcomeWindow(accObj);
     }
