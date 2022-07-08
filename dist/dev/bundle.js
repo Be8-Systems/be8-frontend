@@ -9913,7 +9913,8 @@ app.addEventListener('writeMessage', async function ({ detail }) {
         detail.convPartner.id,
         detail.message
     );
-    const raw = await fetch('/writemessage', {
+
+    await fetch('/writemessage', {
         ...POST,
         body: JSON.stringify({
             nickname: detail.ME.nickname,
@@ -9924,8 +9925,6 @@ app.addEventListener('writeMessage', async function ({ detail }) {
             type: 'textMessage',
         }),
     });
-    const data = raw.json();
-    console.log(data);
 });
 app.addEventListener('uploadMedia', async function ({ detail }) {
     console.log(detail);
