@@ -8203,7 +8203,7 @@ class Usermodal extends Modal {
         const endlessIcon = this.conversationPartner.endless
             ? $`<i class="fa-solid fa-check danger-color"></i>`
             : $`<i class="fa-solid fa-times"></i>`;
-        const endless = $`<p><span>Endless until: </span>${endlessIcon}</p>`;
+        const endless = $`<p><span>Endless Account: </span>${endlessIcon}</p>`;
 
         return $`${hl}${id}${nickname}${status}${expire}${endless}`;
     }
