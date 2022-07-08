@@ -8521,7 +8521,6 @@ class Messages extends s$1 {
             return $`<img data-contentid="${contentID}" src="">`;
         }
         if (type === 'system') {
-            console.log(this.conversationPartner);
             const sanText = SYSTEMMESSAGES[text]
                 .replace('{{ts}}', sanitizeTime(ts))
                 .replace('{{id}}', this.ME.id)
