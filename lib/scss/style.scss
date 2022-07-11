@@ -1,5 +1,5 @@
 html, body, main, div, p, span, input, textarea, button, select {
-    font-size: 16px;
+    font-size: var(--font-size);
     padding: 0;
     margin: 0;
     font-family: var(--font);
@@ -88,7 +88,7 @@ a:hover {
     } 
 }
 
-.danger {
+.danger-background {
     background-color: var(--color-error);
     border-color: var(--color-error);
     color: var(--color-on-error);
@@ -100,6 +100,11 @@ a:hover {
 
 .highlight-color {
     color: var(--color-highlight-variant);
+}
+
+.orange-background {
+    color: var(--color-on-background);
+    background-color: var(--color-orange);
 }
 
 .disabled {

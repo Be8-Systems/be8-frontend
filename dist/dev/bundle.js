@@ -1225,12 +1225,6 @@ const isPhone =
         navigator.userAgent
     );
 const isDesktop = !isPhone;
-const icons = Object.freeze({
-    system: 'comment-dots',
-    user: 'user',
-    group: 'users-rectangle',
-    channel: 'object-ungroup',
-});
 const domCache = {
     app: {},
     menus: {},
@@ -7667,7 +7661,7 @@ class PanicModal extends Modal {
             e
         ) => this.onKeyPress(e)}" type="text"></div><button @click="${
             this.onClickDestroy
-        }" class="danger">destroy everything</button>`;
+        }" class="danger-background">destroy everything</button>`;
 
         return super.render(content);
     }
@@ -7700,19 +7694,19 @@ class ConversationModal extends Modal {
         requestAnimationFrame(() => this.#dialogInput.focus());
     }
 
-    clickOnGoToGroup() {
+    #clickOnGoToGroup() {
         animateMainToSide(
             this.#modalContent,
             this.#createGroup,
-            this.#dialogInput
+            this.#groupNameInput
         );
     }
 
-    clickOnBackToMain() {
+    #clickOnBackToMain() {
         animateSideToMain(
             this.#modalContent,
             this.#createGroup,
-            this.#groupNameInput
+            this.#dialogInput
         );
     }
 
@@ -7739,7 +7733,7 @@ class ConversationModal extends Modal {
         return domCache.app.dispatchEvent(createGroupEvent);
     }
 
-    clickOnCreateGroup() {
+    #clickOnCreateGroup() {
         const name = this.#groupNameInput.value.trim();
         const type = this.#groupType.value;
 
@@ -7757,7 +7751,7 @@ class ConversationModal extends Modal {
 
     close() {
         super.close();
-        this.clickOnBackToMain();
+        this.#clickOnBackToMain();
     }
 
     #sendNew1on1Conv(receiverID) {
@@ -7792,7 +7786,13 @@ class ConversationModal extends Modal {
         return domCache.app.dispatchEvent(newConversationEvent);
     }
 
-    keyDownOn1to1(e) {
+    #keyDownOnGroup(e) {
+        if (e.keyCode === 13) {
+            return this.#clickOnCreateGroup();
+        }
+    }
+
+    #keyDownOn1to1(e) {
         if (!isKeyDownNumber(e)) {
             e.preventDefault();
             e.stopPropagation();
@@ -7832,11 +7832,18 @@ class ConversationModal extends Modal {
 
     render() {
         const content = $`<p>${LANG.CONVERSATION}</p><input @keydown="${(e) =>
-            this.keyDownOn1to1(e)}" tabindex="0" type="text"><div @click="${
-            this.clickOnGoToGroup
+            this.#keyDownOn1to1(e)}" tabindex="0" type="text"><div @click="${
+            this.#clickOnGoToGroup
         }" class="sub-modal-button hover-background">Create a group <i class="fa-solid fa-arrow-right float-right"></i></div>`;
-        const groupsettings = $`<div><p>Name</p><input type="text" maxlength="20"></div><p>Type</p><select><option value="public">public</option><option value="private">private</option></select><button @click="${this.clickOnCreateGroup}">create group</button>`;
-        const group = $`<div class="create-group-content hide"><p class="create-group-headline"><i @click="${this.clickOnBackToMain}" class="fa-solid fa-arrow-left hover-font float-left"></i> <span>Create a group</span></p>${groupsettings}</div>`;
+        const groupsettings = $`<div><p>Name</p><input @keydown="${(e) =>
+            this.#keyDownOnGroup(
+                e
+            )}" type="text" maxlength="20"></div><p>Type</p><select><option value="public">public</option><option value="private">private</option></select><button @click="${
+            this.#clickOnCreateGroup
+        }">create group</button>`;
+        const group = $`<div class="create-group-content hide"><p class="create-group-headline"><i @click="${
+            this.#clickOnBackToMain
+        }" class="fa-solid fa-arrow-left hover-font float-left"></i> <span>Create a group</span></p>${groupsettings}</div>`;
 
         return super.render(content, group);
     }
@@ -8178,6 +8185,19 @@ class Lock extends Modal {
 
 customElements.define('lock-modal-window', Lock);
 
+const userIcons = Object.freeze({
+    system: 'comment-dots',
+    user: 'user',
+    group: 'users-rectangle',
+    channel: 'object-ungroup',
+});
+const groupMemberIcons = Object.freeze({
+    admin: 'screwdriver-wrench',
+    moderator: 'screwdriver',
+    specialUser: 'user-graduate',
+    user: 'user',
+});
+
 class Usermodal extends Modal {
     static properties = {
         conversationPartner: { type: Object },
@@ -8188,11 +8208,9 @@ class Usermodal extends Modal {
         this.conversationPartner = LANG;
     }
 
-    #renderNonSystem() {
+    render() {
         const dateTime = sanitizeTime(this.conversationPartner.expire);
-        const icon = $`<i class="fa-solid fa-${
-            icons[this.conversationPartner.type]
-        }"></i>`;
+        const icon = $`<i class="fa-solid fa-${userIcons.user}"></i>`;
         const hl = $`<p class="create-group-headline">${icon} ${this.conversationPartner.nickname}</p>`;
         const id = $`<p><span>ID:</span> <span>${this.conversationPartner.id}</span></p>`;
         const nickname = $`<p><span>Nickname:</span> <span>${this.conversationPartner.nickname}</span></p>`;
@@ -8204,30 +8222,34 @@ class Usermodal extends Modal {
             ? $`<i class="fa-solid fa-check danger-color"></i>`
             : $`<i class="fa-solid fa-times"></i>`;
         const endless = $`<p><span>Endless Account: </span>${endlessIcon}</p>`;
-
-        return $`${hl}${id}${nickname}${status}${expire}${endless}`;
-    }
-
-    #renderSystemCard() {
-        const icon = $`<i class="fa-solid fa-${
-            icons[this.conversationPartner.type]
-        }"></i>`;
-        const hl = $`<p class="create-group-headline">${icon} ${this.conversationPartner.nickname}</p>`;
-
-        return $`${hl}<p>This is a system user you can't send messages to the system user.</p>`;
-    }
-
-    render() {
-        const isSystem = this.conversationPartner.type === 'system';
-        const content = isSystem
-            ? this.#renderSystemCard()
-            : this.#renderNonSystem();
+        const content = $`${hl}${id}${nickname}${status}${expire}${endless}`;
 
         return super.render(content);
     }
 }
 
 customElements.define('user-modal-window', Usermodal);
+
+class SysUsermodal extends Modal {
+    static properties = {
+        conversationPartner: { type: Object },
+    };
+
+    constructor() {
+        super();
+        this.conversationPartner = LANG;
+    }
+
+    render() {
+        const icon = $`<i class="fa-solid fa-${userIcons.system}"></i>`;
+        const hl = $`<p class="create-group-headline">${icon} ${this.conversationPartner.nickname}</p>`;
+        const content = $`${hl}<p>This is a system user you can't send messages to the system user.</p>`;
+
+        return super.render(content);
+    }
+}
+
+customElements.define('sysuser-modal-window', SysUsermodal);
 
 /**
  * @license
@@ -8372,15 +8394,108 @@ const u = (e, s, t) => {
         }
     );
 
+const maxGroupUser = 20;
+
+class GroupUsermodal extends Modal {
+    static properties = {
+        ME: {},
+        conversationPartner: { type: Object },
+        members: { type: Array },
+    };
+
+    constructor() {
+        super();
+        this.conversationPartner = LANG;
+        this.members = [];
+    }
+
+    #addUser() {
+        const addUserEvent = new CustomEvent('addGroupMember', {
+            detail: {
+                ...this.conversationPartner,
+            },
+        });
+
+        if (this.members.length >= maxGroupUser) {
+            domCache.toast.notification = {
+                type: 'error',
+                text:
+                    'Group is full, max size of groups is currently ' +
+                    maxGroupUser,
+            };
+
+            return domCache.toast.open();
+        }
+
+        return domCache.app.dispatchEvent(addUserEvent);
+    }
+
+    #inviteUser() {}
+
+    #leaveGroup() {
+        console.log('leaveGroup');
+    }
+
+    #renderGroupSettings() {
+        const isPrivate = this.conversationPartner.groupType === 'private';
+        const invite = isPrivate
+            ? ''
+            : $`<div class="hover-font" @click="${
+                  this.#inviteUser
+              }"><i class="fa-solid fa-person-circle-plus"></i> Invite User</div>`;
+
+        return $`<div class="group-actions"><div @click="${
+            this.#addUser
+        }" class="hover-font"><i class="fa-solid fa-plus"></i> Add User</div>${invite}<div class="hover-font" @click="${
+            this.#leaveGroup
+        }"><i class="fa-solid fa-person-through-window"></i> Leave Group</div></div>`;
+    }
+
+    render() {
+        const color =
+            this.conversationPartner.groupType === 'public'
+                ? 'orange-background'
+                : 'danger-background';
+        const hl = $`<p class="create-group-headline"><small class="group-type-badge ${color} float-left">${this.conversationPartner.groupType}</small> ${this.conversationPartner.nickname}</p>`;
+        const settings = this.#renderGroupSettings();
+        const members = c(
+            this.members,
+            (members) => members.id,
+            ({ nickname, id, expire, endless }) => {
+                const endlessIcon =
+                    endless || isSystem
+                        ? $`<i class="fa-solid fa-check danger-color"></i>`
+                        : '';
+                const amIAdmin = this.ME.id === id;
+                const kick = amIAdmin
+                    ? ''
+                    : $`<span class="float-right hover-font">kick</span>`;
+                const icon = $`<i class="fa-solid fa-${
+                    groupMemberIcons[amIAdmin ? 'admin' : 'user']
+                }"></i>`;
+
+                return $`<div class="group-member hover-background">${icon}<p class="member-firstline">${nickname} ${endlessIcon}<span class="float-right">#${id}</span></p><p class="member-secondline">${sanitizeTime(
+                    expire
+                )}${kick}</p></div>`;
+            }
+        );
+        const content = $`${hl}<div class="group-members">${members}</div>${settings}`;
+
+        return super.render(content);
+    }
+}
+
+customElements.define('groupuser-modal-window', GroupUsermodal);
+
 const SYSTEMMESSAGES = Object.freeze({
     WELCOME:
         'Welcome to Be8, your nickname is <i class="highlight-color">{{nickname}}</i>. Be8 is the first ever real privacy messenger. Everything is End-to-End encrypted, only your device knows your key! Everything gets deleted after 30 days even your account, but you can create as much accounts as you want. Your id is <i class="highlight-color">#{{id}}</i>. You can find your expire date on the top left. Have fun.',
     CREATEDGROUP:
-        'You created a new group with the id {{extra1}} and name {{extra2}}',
+        'You created a new group with the id <i class="highlight-color">{{extra1}}</i> and name <i class="highlight-color">{{extra2}}</i>',
     ADDEDTOGROUP:
         '<i class="highlight-color">{{extra3}}</i> with id <i class="highlight-color">#{{extra1}}</i> added you to group {{extra2}}',
     ACCADDEDTOGROUP:
-        '<i class="highlight-color">{{extra1}}</i> id <i class="highlight-color">#{{extra2}}</i> was.',
+        '<i class="highlight-color">{{extra1}}</i> id <i class="highlight-color">#{{extra2}}</i> was added to the group.',
     STARTCONVERSATION:
         'Start conversation with <i class="highlight-color">#{{conversationID}}</i>',
     ACCDELETED:
@@ -8389,15 +8504,15 @@ const SYSTEMMESSAGES = Object.freeze({
         'You nickname was changed from <i class="highlight-color">{{extra1}}</i> to <i class="highlight-color">{{extra2}}</i>',
 });
 
-// max 34 chars, yeah intendation like this is no allowed
+// max 30 chars, yeah intendation like this is no allowed
 // but in this case it helps to figure out how long your title is.
 const SYSTEMTITLES = Object.freeze({
     WELCOME: 'Welcome to the Be8 messenger',
     CREATEDGROUP: 'You created a new group',
     ADDEDTOGROUP: 'You were added to the group',
-    ACCADDEDTOGROUP: 'A new User was added to the group',
+    ACCADDEDTOGROUP: 'User was added to the group',
     STARTCONVERSATION: 'A new conversation started',
-    ACCDELETED: 'An account you know is destroyed',
+    ACCDELETED: 'Account you know is destroyed',
     CHANGENICKNAME: 'Your nickname has changed',
 });
 
@@ -8408,7 +8523,9 @@ class Messages extends s$1 {
         ME: { type: Object },
     };
 
-    #userModal = {};
+    #userModal = document.querySelector('user-modal-window');
+    #userGroupModal = document.querySelector('groupuser-modal-window');
+    #userSysModal = document.querySelector('sysuser-modal-window');
     #messageInput = {};
     #uploadButton = {};
 
@@ -8434,8 +8551,18 @@ class Messages extends s$1 {
     }
 
     clickOnUser() {
-        this.#userModal.conversationPartner = this.conversationPartner;
-        this.#userModal.open();
+        if (this.conversationPartner.type === 'user') {
+            this.#userModal.conversationPartner = this.conversationPartner;
+            this.#userModal.open();
+        }
+        if (this.conversationPartner.type === 'group') {
+            this.#userGroupModal.conversationPartner = this.conversationPartner;
+            this.#userGroupModal.open();
+        }
+        if (this.conversationPartner.type === 'system') {
+            this.#userSysModal.conversationPartner = this.conversationPartner;
+            this.#userSysModal.open();
+        }
     }
 
     setActive({ type }) {
@@ -8471,7 +8598,6 @@ class Messages extends s$1 {
 
     firstUpdated() {
         this.#messageInput = this.querySelector('.write-message-input');
-        this.#userModal = document.querySelector('user-modal-window');
         this.#uploadButton = document.querySelector('.fa-photo-film');
     }
 
@@ -8521,7 +8647,7 @@ class Messages extends s$1 {
             ? $`<i class="fa-solid fa-check"></i>`
             : '';
         const icon = $`<i class="fa-solid fa-${
-            icons[this.conversationPartner.type]
+            userIcons[this.conversationPartner.type]
         }"></i>`;
         const idIndicator =
             this.conversationPartner.type !== 'system'
@@ -8794,7 +8920,9 @@ class SettingsMenu extends s$1 {
         const nickname = $`<div class="settings-container"><p>Nickname is ${this.ME.nickname}</p><input @input="${this.changeName}" type="text" value="${this.ME.nickname}" maxlength="20"></div>`;
         const codes = $`<div class="settings-container"><p>Destroy and Unlock</p><button @click="${
             this.clickOnCodes
-        }" class="danger">${this.ME.codes ? 'Update' : 'Setup'}</button></div>`;
+        }" class="danger-background">${
+            this.ME.codes ? 'Update' : 'Setup'
+        }</button></div>`;
         const notifications = $`<div class="settings-container"><p>Notifications</p><button @click="${this.clickOnNotifications}">Activate</button></div>`;
 
         return $`<h1>Settings</h1>${nickname}${notifications}${codes}`;
@@ -8802,6 +8930,46 @@ class SettingsMenu extends s$1 {
 }
 
 customElements.define('settings-menu', SettingsMenu);
+
+function generateSanText(text, isSystem) {
+    if (isSystem) {
+        return SYSTEMTITLES[text];
+    }
+    if (text.length <= 25 && SYSTEMTITLES[text]) {
+        return SYSTEMTITLES[text];
+    }
+
+    return text.substring(0, 23) + '…';
+}
+
+function renderThread({
+    endless,
+    expire,
+    nickname,
+    sender,
+    text,
+    threadID,
+    ts,
+    type,
+    status,
+}) {
+    const isSystem = type === 'system';
+    const dateTime = humanReadAbleLastTime(ts);
+    const icon = $`<i class="fa-solid fa-${userIcons[type]} thread-avatar"></i>`;
+    const endlessIcon =
+        endless || isSystem
+            ? $`<i class="fa-solid fa-check danger-color"></i>`
+            : '';
+    const senderID = isSystem
+        ? ''
+        : $`<span class="float-right">#${sender}<span></span></span>`;
+    const sanText = generateSanText(text, isSystem);
+    const readIndicator = $`<span class="thread-read-indicator${
+        status === 'read' ? ' shrink-to-zero' : ''
+    }"></span>`;
+
+    return $`<div expire="${expire}" id="${threadID}" sender="${sender}" type="${type}" class="thread hover-background">${readIndicator}${icon}<div><p>${nickname}  ${endlessIcon}${senderID}</p><p>${sanText} <span class="float-right unselectable">${dateTime}</span></p></div></div>`;
+}
 
 class Threads extends s$1 {
     static properties = {
@@ -8822,6 +8990,14 @@ class Threads extends s$1 {
 
             oldActive?.classList.remove('active-thread');
             active?.classList.add('active-thread');
+        }
+    }
+
+    #removeThreadReadIndicator(parent) {
+        const readIndicator = parent.querySelector('.thread-read-indicator');
+
+        if (!readIndicator.classList.contains('shrink-to-zero')) {
+            readIndicator.classList.add('shrink-to-zero');
         }
     }
 
@@ -8849,9 +9025,11 @@ class Threads extends s$1 {
                 .classList.add('active-setting');
         }
 
-        this.#setActiveThread(parent);
         domCache.menus.messagesMenu.messages = [];
         domCache.menus.messagesMenu.conversationPartner = thread;
+
+        this.#removeThreadReadIndicator(parent);
+        this.#setActiveThread(parent);
         domCache.menus.messagesMenu.setActive(thread);
         return domCache.app.dispatchEvent(threadEvent);
     }
@@ -8871,50 +9049,8 @@ class Threads extends s$1 {
         });
     }
 
-    #generateSanText(text, isSystem) {
-        if (isSystem) {
-            return SYSTEMTITLES[text];
-        }
-        if (text.length <= 25 && SYSTEMTITLES[text]) {
-            return SYSTEMTITLES[text];
-        }
-
-        return text.substring(0, 23) + '…';
-    }
-
     render() {
-        return c(
-            this.threads,
-            (thread) => thread.id,
-            ({
-                endless,
-                expire,
-                nickname,
-                sender,
-                text,
-                threadID,
-                ts,
-                type,
-                status,
-            }) => {
-                const isSystem = type === 'system';
-                const dateTime = humanReadAbleLastTime(ts);
-                const icon = $`<i class="fa-solid fa-${icons[type]} thread-avatar"></i>`;
-                const endlessIcon =
-                    endless || isSystem
-                        ? $`<i class="fa-solid fa-check color-danger-font"></i>`
-                        : '';
-                const senderID = isSystem
-                    ? ''
-                    : $`<span class="float-right">#${sender}<span></span></span>`;
-                const sanText = this.#generateSanText(text, isSystem);
-                const readIndicator = $`<span class="thread-read-indicator${
-                    status === 'read' ? ' shrink-to-zero' : ''
-                }"></span>`;
-
-                return $`<div expire="${expire}" id="${threadID}" sender="${sender}" type="${type}" class="thread hover-background">${readIndicator}${icon}<div><p>${nickname}  ${endlessIcon}${senderID}</p><p>${sanText} <span class="float-right unselectable">${dateTime}</span></p></div></div>`;
-            }
-        );
+        return c(this.threads, (thread) => thread.id, renderThread);
     }
 }
 
@@ -8945,6 +9081,7 @@ class AppLayout extends s$1 {
         userMenu: {},
     };
     #threads = {};
+    #userGroupModal = document.querySelector('groupuser-modal-window');
     #modal = document.querySelector('modal-window');
     #inviteModal = document.querySelector('invite-modal-window');
     #panicModal = document.querySelector('panic-modal-window');
@@ -8957,6 +9094,7 @@ class AppLayout extends s$1 {
             menu.ME = val;
         });
 
+        this.#userGroupModal.ME = val;
         this.#codesModal.ME = val;
         this.#lockModal.ME = val;
         this.#panicModal.ME = val;
@@ -9085,7 +9223,19 @@ class AppLayout extends s$1 {
         return this.#lockModal.open(done);
     }
 
-    setMessages(messages) {
+    setGroupMember({ members, valid }) {
+        if (!valid) {
+            return;
+        }
+
+        this.#userGroupModal.members = members;
+    }
+
+    setMessages({ messages, valid }) {
+        if (!valid) {
+            return;
+        }
+
         requestAnimationFrame(() => {
             this.#menus.messagesMenu.messages = messages;
             this.#menus.messagesMenu.scrollToBottom();
@@ -9760,6 +9910,32 @@ async function firstTimeVisitor() {
     }
 }
 
+async function getDialogMessages(detail) {
+    const raw = await fetch('/getmessages', {
+        ...POST,
+        body: JSON.stringify(detail),
+    });
+    const data = await raw.json();
+
+    return app.setMessages(data);
+}
+
+async function getGroupMessages(detail) {
+    const rawMessage = await fetch('/getmessages', {
+        ...POST,
+        body: JSON.stringify(detail),
+    });
+    const rawMembers = await fetch('/groupgetmembers', {
+        ...POST,
+        body: JSON.stringify(detail),
+    });
+    const messages = await rawMessage.json();
+    const members = await rawMembers.json();
+
+    app.setMessages(messages);
+    return app.setGroupMember(members);
+}
+
 document.addEventListener('DOMContentLoaded', async function () {
     const { error, accObj } = await fetch('/me', GET).then((raw) => raw.json());
 
@@ -9902,14 +10078,11 @@ app.addEventListener('createGroup', async function ({ detail }) {
     }
 });
 app.addEventListener('threadSelect', async function ({ detail }) {
-    const raw = await fetch('/getmessages', {
-        ...POST,
-        body: JSON.stringify(detail),
-    });
-    const data = await raw.json();
-
-    if (data.valid) {
-        return app.setMessages(data.messages);
+    if (detail.type === 'group') {
+        return getGroupMessages(detail);
+    }
+    if (detail.type === 'user' || detail.type === 'system') {
+        return getDialogMessages(detail);
     }
 });
 app.addEventListener('writeMessage', async function ({ detail }) {

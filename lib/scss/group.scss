@@ -1,0 +1,48 @@
+.group-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    gap: var(--small-padding);
+    padding-top: var(--big-padding);
+    border-top: 1px solid #fff;
+}
+
+.group-actions div {
+    display: inline-flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+.group-members {
+    padding-bottom: var(--big-padding);
+}
+
+.group-member {
+    padding: var(--small-padding);
+    display: grid; 
+    grid-template-columns: auto 1fr; 
+    grid-template-rows: auto 1fr; 
+    gap: var(--verysmall-padding) var(--small-padding);
+    grid-template-areas: 
+        "membericon firstline"
+        "membericon secondline"; 
+}
+
+.group-member i { 
+    grid-area: membericon; 
+    align-self: center;
+}
+
+.group-member .member-firstline { 
+    grid-area: firstline; 
+}
+
+.group-member .member-secondline { 
+    grid-area: secondline; 
+}
+
+.group-type-badge {
+    font-size: 11px;
+    border-radius: 3.5px;
+    padding: 2px 4px;
+}

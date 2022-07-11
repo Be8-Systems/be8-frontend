@@ -34,6 +34,7 @@
   --color-on-surface: #000;
   --color-on-error: #FFF;
   --font: "Lato", sans-serif;
+  --font-size: 18px;
   /* Sizes */
   --verysmall-padding: 2.5px;
   --small-padding: 10px;
@@ -47,7 +48,7 @@
 }
 
 html, body, main, div, p, span, input, textarea, button, select {
-  font-size: 16px;
+  font-size: var(--font-size);
   padding: 0;
   margin: 0;
   font-family: var(--font);
@@ -135,7 +136,7 @@ a:hover {
     transform: rotate(90deg);
   }
 }
-.danger {
+.danger-background {
   background-color: var(--color-error);
   border-color: var(--color-error);
   color: var(--color-on-error);
@@ -147,6 +148,11 @@ a:hover {
 
 .highlight-color {
   color: var(--color-highlight-variant);
+}
+
+.orange-background {
+  color: var(--color-on-background);
+  background-color: var(--color-orange);
 }
 
 .disabled {
@@ -191,7 +197,7 @@ nav {
   color: var(--color-on-primary);
   padding: var(--small-padding);
   padding-bottom: 0;
-  height: calc(100vh - var(--top-navi-height) - 71px);
+  height: calc(100vh - var(--top-navi-height) - 75px);
   overflow-y: scroll;
 }
 
@@ -262,6 +268,53 @@ user-menu {
   width: 4px;
   background-color: var(--color-error);
   border-radius: var(--big-border-radius);
+}
+
+.group-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  gap: var(--small-padding);
+  padding-top: var(--big-padding);
+  border-top: 1px solid #fff;
+}
+
+.group-actions div {
+  display: inline-flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.group-members {
+  padding-bottom: var(--big-padding);
+}
+
+.group-member {
+  padding: var(--small-padding);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto 1fr;
+  gap: var(--verysmall-padding) var(--small-padding);
+  grid-template-areas: "membericon firstline" "membericon secondline";
+}
+
+.group-member i {
+  grid-area: membericon;
+  align-self: center;
+}
+
+.group-member .member-firstline {
+  grid-area: firstline;
+}
+
+.group-member .member-secondline {
+  grid-area: secondline;
+}
+
+.group-type-badge {
+  font-size: 11px;
+  border-radius: 3.5px;
+  padding: 2px 4px;
 }
 
 .settings-container {
