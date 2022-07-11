@@ -9763,11 +9763,23 @@ async function firstTimeVisitor() {
     }
 }
 
+async function groupGetVersion(groupID) {
+    const raw = await fetch('/groupgetcurrentversion', {
+        ...POST,
+        body: JSON.stringify({ groupID }),
+    });
+
+    return await raw.json();
+}
+
 async function groupJoinMember(groupID) {
     const raw = await fetch('/groupjoinmember', {
         ...POST,
         body: JSON.stringify({ groupID }),
     });
+    const groupVersion = await groupGetVersion(groupID);
+    const groupKeys = await be8.generateGroupKeys(groupVersion);
+    console.log(groupKeys);
 
     return await raw.json();
 }
