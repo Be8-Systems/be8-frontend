@@ -9374,7 +9374,7 @@ const initialiseDB = new Promise(function (success, error) {
             keyPath: 'accID',
         });
         const groupKeysStore = db.createObjectStore('groupKeys', {
-            keyPath: 'accID',
+            keyPath: ['groupID', 'version'],
         });
         const indexs = [
             ['crv', 'crv', { unique: false }],
