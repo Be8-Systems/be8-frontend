@@ -354,10 +354,10 @@ messages-menu {
 
 .system-message {
   text-align: center;
-  max-width: 870px;
 }
 
 .system-message .message {
+  max-width: 870px;
   background-color: var(--colorsurface);
   color: var(--color-on-surface);
 }
