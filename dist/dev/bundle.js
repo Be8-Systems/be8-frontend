@@ -9849,12 +9849,17 @@ async function generateEngine({ id }) {
     return await be8.setup();
 }
 
-async function syncPublicKeys() {
+async function getCachedUserIDs() {
     const cachedKeys = await be8.getCachedKeys();
-    const cachedIDs = cachedKeys.map((acc) => acc.accID);
+    return cachedKeys.map((acc) => acc.accID);
+}
+
+async function syncPublicKeys(extra = []) {
+    const cachedIDs = await getCachedUserIDs();
+    const allIDS = cachedIDs.concat(extra);
     const accIDs = app
         .getConversationPartners()
-        .filter((id) => !cachedIDs.find((cID) => cID === id));
+        .filter((id) => !allIDS.find((cID) => cID === id));
 
     if (accIDs.length === 0) {
         return;
@@ -9954,15 +9959,29 @@ async function updateGroupKeyForParticipants(groupID, groupKey) {
         ...POST,
         body: JSON.stringify({ groupID }),
     });
-    const members = await membersRaw.json();
-    const proms = members.map(async function (accID) {
-        await fetch('/groupstorekey', {
+    const { members } = await membersRaw.json();
+    const memberIDs = members.map((m) => m.id);
+
+    await syncPublicKeys(memberIDs);
+
+    const proms = members.map(async function ({ id }) {
+        const keyholder = be8.getAccID();
+        const { cipherText, iv } = await be8.encryptTextSimple(
+            keyholder,
+            id,
+            keyString
+        );
+
+        console.log(keyString);
+        console.log(cipherText);
+        return await fetch('/groupstorekey', {
             ...POST,
             body: JSON.stringify({
-                keyHolder: '',
+                keyholder,
                 groupID,
-                groupKey: keyString,
-                accID,
+                groupKey: cipherText,
+                accID: id,
+                iv,
             }),
         });
     });
@@ -9970,11 +9989,11 @@ async function updateGroupKeyForParticipants(groupID, groupKey) {
     return await Promise.all(proms);
 }
 
-async function groupStoreKeys(groupID) {
+async function generateGroupKey(groupID) {
     const groupVersion = await groupGetVersion(groupID);
     const [, groupKey] = await be8.generateGroupKeys(groupVersion);
-    console.log(groupKey);
-    await updateGroupKeyForParticipants(groupID, groupKey);
+
+    return groupKey;
 }
 
 async function groupJoinMember(groupID) {
@@ -9983,7 +10002,6 @@ async function groupJoinMember(groupID) {
         body: JSON.stringify({ groupID }),
     });
 
-    await groupStoreKeys(groupID);
     return await raw.json();
 }
 
@@ -10111,12 +10129,14 @@ app.addEventListener('createGroup', async function ({ detail }) {
             groupType: detail.groupType,
         }),
     });
-    const data = await raw.json();
+    const { valid, groupID } = await raw.json();
 
-    if (data.valid) {
-        const addData = await groupJoinMember(data.groupID);
+    if (valid) {
+        const { valid } = await groupJoinMember(groupID);
+        const groupKey = await generateGroupKey(groupID);
+        await updateGroupKeyForParticipants(groupID, groupKey);
 
-        if (addData.valid) {
+        if (valid) {
             return detail.success();
         }
     }
@@ -10130,9 +10150,9 @@ app.addEventListener('threadSelect', async function ({ detail }) {
     }
 });
 app.addEventListener('writeMessage', async function ({ detail }) {
-    console.log(detail);
-    const { cipherText } = await be8.encryptTextSimple(
-        detail.ME.id,
+    const sender = be8.getAccID();
+    const { cipherText, iv } = await be8.encryptTextSimple(
+        sender,
         detail.convPartner.id,
         detail.message
     );
@@ -10142,8 +10162,9 @@ app.addEventListener('writeMessage', async function ({ detail }) {
         body: JSON.stringify({
             nickname: detail.ME.nickname,
             receiver: detail.convPartner.id,
-            sender: detail.ME.id,
+            sender,
             text: cipherText,
+            iv,
             threadID: detail.convPartner.threadID,
             type: 'textMessage',
         }),
