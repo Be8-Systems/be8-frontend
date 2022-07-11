@@ -271,18 +271,8 @@ user-menu {
 }
 
 .group-actions {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  gap: var(--small-padding);
   padding-top: var(--big-padding);
   border-top: 1px solid #fff;
-}
-
-.group-actions div {
-  display: inline-flex;
-  flex-direction: column;
-  text-align: center;
 }
 
 .group-members {
@@ -315,6 +305,12 @@ user-menu {
   font-size: 11px;
   border-radius: 3.5px;
   padding: 2px 4px;
+}
+
+.adduser-group-modal,
+.leave-group-modal,
+.invite-group-modal {
+  position: relative;
 }
 
 .settings-container {

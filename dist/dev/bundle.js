@@ -1246,6 +1246,9 @@ var LANG = Object.freeze({
     CONVERSATION: 'Enter a Be8 id to start a 1on1 chatting.',
     UNLOCKSETUPTEXT:
         'You have to remind your unlock code otherwise there is no way to access your account again! Enter your destroy code to destroy your acc! There is no way to recover destroyed accs',
+    LEAVEGROUPADMIN:
+        'When you leave this group, the group and every message gets destroyed',
+    LEAVEGROUPMEMBER: 'Do you want to leave the group?',
 });
 
 var ME = {
@@ -7183,65 +7186,6 @@ var Crypto = {
     RC4Drop,
 };
 
-class InviteModal extends Modal {
-    static properties = {
-        url: { type: String },
-        ME: { type: Object },
-    };
-
-    constructor() {
-        super();
-
-        this.ME = ME;
-        this.isGenerated = false;
-    }
-
-    createRenderRoot() {
-        return this; // prevents creating a shadow root
-    }
-
-    #generateSafeLink(parameterName, content) {
-        const urlObj = new URL(window.location.href);
-        const cipherPW = Crypto.AES.encrypt(
-            content,
-            '392e32oijsdfweoir'
-        ).toString();
-
-        return `${urlObj.origin}?${parameterName}=${encodeURIComponent(
-            cipherPW
-        )}`;
-    }
-
-    open() {
-        const inviteGenerate = new CustomEvent('inviteGenerated', {
-            bubbles: false,
-            detail: {
-                type: 'join',
-                sentInviteLink: true,
-            },
-        });
-
-        super.open();
-
-        this.querySelector('.qr').innerHTML = '';
-        new QRCode(this.querySelector('.qr'), { text: this.url });
-        return domCache.app.dispatchEvent(inviteGenerate);
-    }
-
-    render() {
-        const url = this.#generateSafeLink('join', this.ME.id);
-        const content = $`<p>${o(
-            LANG.INVITELINK.replaceAll('{{link}}', this.url)
-        )}</p><br><div class="qr"></div><br>`;
-
-        this.url = url;
-
-        return super.render(content);
-    }
-}
-
-customElements.define('invite-modal-window', InviteModal);
-
 const adjectives = [
     'Aquatic',
     'Aesthetical',
@@ -7599,6 +7543,64 @@ function randomNickname() {
 
     return `${adjective} ${animale}`;
 }
+
+function generateSafeLink(parameterName, content) {
+    const urlObj = new URL(window.location.href);
+    const cipherPW = Crypto.AES.encrypt(
+        content,
+        '392e32oijsdfweoir'
+    ).toString();
+
+    return `${urlObj.origin}?${parameterName}=${encodeURIComponent(cipherPW)}`;
+}
+
+class InviteModal extends Modal {
+    static properties = {
+        url: { type: String },
+        ME: { type: Object },
+    };
+
+    constructor() {
+        super();
+
+        this.ME = ME;
+        this.isGenerated = false;
+    }
+
+    createRenderRoot() {
+        return this; // prevents creating a shadow root
+    }
+
+    open() {
+        const inviteGenerate = new CustomEvent('inviteGenerated', {
+            bubbles: false,
+            detail: {
+                type: 'join',
+                sentInviteLink: true,
+            },
+        });
+        const qr = this.querySelector('.qr');
+
+        super.open();
+
+        qr.innerHTML = '';
+        new QRCode(qr, { text: this.url });
+        return domCache.app.dispatchEvent(inviteGenerate);
+    }
+
+    render() {
+        const url = generateSafeLink('join', this.ME.id);
+        const content = $`<p class="create-group-headline">Invite Friends to be8</p><p>${o(
+            LANG.INVITELINK.replaceAll('{{link}}', this.url)
+        )}</p><br><div class="qr"></div><br>`;
+
+        this.url = url;
+
+        return super.render(content);
+    }
+}
+
+customElements.define('invite-modal-window', InviteModal);
 
 class PanicModal extends Modal {
     static properties = {
@@ -8394,14 +8396,19 @@ const u = (e, s, t) => {
         }
     );
 
-const maxGroupUser = 20;
-
 class GroupUsermodal extends Modal {
     static properties = {
-        ME: {},
+        ME: { type: Object },
+        state: { type: String },
         conversationPartner: { type: Object },
         members: { type: Array },
+        inviteUrl: { type: String },
     };
+
+    #inviteGroupSide = {};
+    #addUserSide = {};
+    #leaveGroupSide = {};
+    #modalContent = {};
 
     constructor() {
         super();
@@ -8410,45 +8417,87 @@ class GroupUsermodal extends Modal {
     }
 
     #addUser() {
-        const addUserEvent = new CustomEvent('addGroupMember', {
-            detail: {
-                ...this.conversationPartner,
-            },
-        });
-
-        if (this.members.length >= maxGroupUser) {
-            domCache.toast.notification = {
-                type: 'error',
-                text:
-                    'Group is full, max size of groups is currently ' +
-                    maxGroupUser,
-            };
-
-            return domCache.toast.open();
-        }
-
-        return domCache.app.dispatchEvent(addUserEvent);
+        this.state = 'addUser';
+        animateMainToSide(this.#modalContent, this.#addUserSide);
     }
 
-    #inviteUser() {}
+    #inviteUser() {
+        this.state = 'invite';
+        animateMainToSide(this.#modalContent, this.#inviteGroupSide);
+    }
 
     #leaveGroup() {
-        console.log('leaveGroup');
+        this.state = 'leaveGroup';
+        animateMainToSide(this.#modalContent, this.#leaveGroupSide);
     }
 
     #renderGroupSettings() {
         const isPrivate = this.conversationPartner.groupType === 'private';
         const invite = isPrivate
             ? ''
-            : $`<div class="hover-font" @click="${
+            : $`<div class="sub-modal-button hover-background" @click="${
                   this.#inviteUser
-              }"><i class="fa-solid fa-person-circle-plus"></i> Invite User</div>`;
+              }"><i class="fa-solid fa-person-circle-plus"></i> Invite User <i class="fa-solid fa-arrow-right float-right"></i></div>`;
 
         return $`<div class="group-actions"><div @click="${
             this.#addUser
-        }" class="hover-font"><i class="fa-solid fa-plus"></i> Add User</div>${invite}<div class="hover-font" @click="${
+        }" class="sub-modal-button hover-background"><i class="fa-solid fa-plus"></i> Add Member <i class="fa-solid fa-arrow-right float-right"></i></div>${invite}<div class="sub-modal-button hover-background" @click="${
             this.#leaveGroup
-        }"><i class="fa-solid fa-person-through-window"></i> Leave Group</div></div>`;
+        }"><i class="fa-solid fa-person-through-window"></i> Leave Group <i class="fa-solid fa-arrow-right float-right"></i></div></div>`;
+    }
+
+    open() {
+        const qr = this.querySelector('.qr');
+
+        qr.innerHTML = '';
+        new QRCode(qr, { text: this.inviteUrl });
+
+        return super.open();
+    }
+
+    close() {
+        super.close();
+        this.#clickOnBackToMain();
+    }
+
+    #clickOnBackToMain() {
+        if (this.state === 'invite') {
+            animateSideToMain(this.#modalContent, this.#inviteGroupSide);
+        }
+        if (this.state === 'leaveGroup') {
+            animateSideToMain(this.#modalContent, this.#leaveGroupSide);
+        }
+        if (this.state === 'addUser') {
+            animateSideToMain(this.#modalContent, this.#addUserSide);
+        }
+
+        this.state = 'main';
+    }
+
+    firstUpdated() {
+        this.#inviteGroupSide = this.querySelector('.invite-group-modal');
+        this.#addUserSide = this.querySelector('.adduser-group-modal');
+        this.#leaveGroupSide = this.querySelector('.leave-group-modal');
+        this.#modalContent = this.querySelector('.modal-content');
+    }
+
+    #renderSiderGroup(amIAdmin) {
+        const url = generateSafeLink('group', this.conversationPartner.id);
+        const backToMain = $`<i @click="${
+            this.#clickOnBackToMain
+        }" class="fa-solid fa-arrow-left float-left hover-font"></i>`;
+        const addUser = $`<div class="adduser-group-modal hide"><p class="create-group-headline">${backToMain} Add new Member</p><small></small></div>`;
+        const leaveText = amIAdmin
+            ? LANG.LEAVEGROUPADMIN
+            : LANG.LEAVEGROUPMEMBER;
+        const leaveGroup = $`<div class="leave-group-modal hide"><p class="create-group-headline">${backToMain} Leave Group</p><small>${leaveText}</small></div>`;
+        const invite = $`<div class="invite-group-modal hide"><p class="create-group-headline">${backToMain} Invite Friends to your Group</p><p>${o(
+            LANG.INVITELINK.replaceAll('{{link}}', url)
+        )}</p><br><div class="qr"></div><br></div>`;
+
+        this.inviteUrl = url;
+
+        return $`${addUser}${invite}${leaveGroup}`;
     }
 
     render() {
@@ -8458,6 +8507,7 @@ class GroupUsermodal extends Modal {
                 : 'danger-background';
         const hl = $`<p class="create-group-headline"><small class="group-type-badge ${color} float-left">${this.conversationPartner.groupType}</small> ${this.conversationPartner.nickname}</p>`;
         const settings = this.#renderGroupSettings();
+        const amIAdmin = this.ME.id === this.conversationPartner.admin;
         const members = c(
             this.members,
             (members) => members.id,
@@ -8466,8 +8516,8 @@ class GroupUsermodal extends Modal {
                     endless || isSystem
                         ? $`<i class="fa-solid fa-check danger-color"></i>`
                         : '';
-                const amIAdmin = this.ME.id === id;
-                const kick = amIAdmin
+                const isMe = this.ME.id === id;
+                const kick = isMe
                     ? ''
                     : $`<span class="float-right hover-font">kick</span>`;
                 const icon = $`<i class="fa-solid fa-${
@@ -8480,8 +8530,9 @@ class GroupUsermodal extends Modal {
             }
         );
         const content = $`${hl}<div class="group-members">${members}</div>${settings}`;
+        const sideContent = this.#renderSiderGroup(amIAdmin);
 
-        return super.render(content);
+        return super.render(content, sideContent);
     }
 }
 
@@ -8677,6 +8728,7 @@ class Messages extends s$1 {
                 .replace('{{extra2}}', message.extra2)
                 .replace('{{extra3}}', message.extra3)
                 .replace('{{id}}', this.ME.id)
+                .replace('{{threadID}}', message.threadID)
                 .replace('{{nickname}}', this.ME.nickname)
                 .replace('{{conversationID}}', this.conversationPartner.sender);
             return $`<p>${o(sanText)}</p>`;
@@ -9854,6 +9906,12 @@ async function getCachedUserIDs() {
     return cachedKeys.map((acc) => acc.accID);
 }
 
+async function syncGroupKeys() {
+    // fetch all groupkeys
+    // decrypt
+    // store them via be8.addGroupKeys();
+}
+
 async function syncPublicKeys(extra = []) {
     const cachedIDs = await getCachedUserIDs();
     const allIDS = cachedIDs.concat(extra);
@@ -9972,8 +10030,6 @@ async function updateGroupKeyForParticipants(groupID, groupKey) {
             keyString
         );
 
-        console.log(keyString);
-        console.log(cipherText);
         return await fetch('/groupstorekey', {
             ...POST,
             body: JSON.stringify({
@@ -10135,6 +10191,7 @@ app.addEventListener('createGroup', async function ({ detail }) {
         const { valid } = await groupJoinMember(groupID);
         const groupKey = await generateGroupKey(groupID);
         await updateGroupKeyForParticipants(groupID, groupKey);
+        await syncGroupKeys();
 
         if (valid) {
             return detail.success();
