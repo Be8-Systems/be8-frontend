@@ -8381,6 +8381,8 @@ const SYSTEMMESSAGES = Object.freeze({
         '<i class="highlight-color">{{extra3}}</i> with id <i class="highlight-color">#{{extra1}}</i> added you to group {{extra2}}',
     ACCADDEDTOGROUP:
         '<i class="highlight-color">{{extra1}}</i> id <i class="highlight-color">#{{extra2}}</i> was.',
+    ACCJOINEDGROUP:
+        '<i class="highlight-color">{{extra2}}</i> with id <i class="highlight-color">{{extra1}}</i> joined {{threadID}}.',
     STARTCONVERSATION:
         'Start conversation with <i class="highlight-color">#{{conversationID}}</i>',
     ACCDELETED:
@@ -8396,6 +8398,7 @@ const SYSTEMTITLES = Object.freeze({
     CREATEDGROUP: 'You created a new group',
     ADDEDTOGROUP: 'You were added to the group',
     ACCADDEDTOGROUP: 'A new User was added to the group',
+    ACCJOINEDGROUP: 'Acc joined group',
     STARTCONVERSATION: 'A new conversation started',
     ACCDELETED: 'An account you know is destroyed',
     CHANGENICKNAME: 'Your nickname has changed',
@@ -9760,6 +9763,15 @@ async function firstTimeVisitor() {
     }
 }
 
+async function groupJoinMember(groupID) {
+    const raw = await fetch('/groupjoinmember', {
+        ...POST,
+        body: JSON.stringify({ groupID }),
+    });
+
+    return await raw.json();
+}
+
 document.addEventListener('DOMContentLoaded', async function () {
     const { error, accObj } = await fetch('/me', GET).then((raw) => raw.json());
 
@@ -9887,14 +9899,7 @@ app.addEventListener('createGroup', async function ({ detail }) {
     const data = await raw.json();
 
     if (data.valid) {
-        const raw = await fetch('/groupaddmember', {
-            ...POST,
-            body: JSON.stringify({
-                groupID: data.groupID,
-                memberID: detail.id,
-            }),
-        });
-        const addData = await raw.json();
+        const addData = await groupJoinMember(data.groupID);
 
         if (addData.valid) {
             return detail.success();
