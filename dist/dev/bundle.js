@@ -9516,12 +9516,27 @@ class Be8 {
         return this.#publicKeys.set(accID, key);
     }
 
-    addGroupKey(groupID, key) {
-        if (groupID && key) {
-            this.#groupKeys.set(groupID, key);
+    async addGroupKeys(groupID, groupKeys) {
+        if (groupID && groupKeys?.length > 0) {
+            const tx = this.#indexedDB.result.transaction(
+                'groupKeys',
+                'readwrite'
+            );
+            const groupKeysStore = tx.objectStore('groupKeys');
+
+            groupKeys.forEach(({ version, groupKey }) =>
+                this.#groupKeys.set(`${groupID}:${version}`, groupKey)
+            );
+            const proms = groupKeys.map(function ({ version, groupKey }) {
+                groupKeysStore.put({ groupID, version, ...groupKey });
+                groupKeysStore.onsuccess = () =>
+                    console.log(`added group key for ${groupID}`);
+            });
+
+            return await Promise.all(proms);
         } else {
             console.log(
-                `missing accID: "${groupID}" or key: "${key}" in addGroupKey`
+                `missing groupID: "${groupID}" or keys: "${groupKeys}" in addGroupKey`
             );
         }
     }
@@ -9640,6 +9655,7 @@ class Be8 {
     async encryptText(derivedKey, text = '') {
         const encodedText = new TextEncoder().encode(text);
         const iv = generateIV();
+        const stringifiedIV = new TextDecoder().decode(iv);
         const algorithm = {
             name: 'AES-GCM',
             iv,
@@ -9656,7 +9672,7 @@ class Be8 {
                 const string = String.fromCharCode.apply(null, uintArray);
                 const cipherText = window.btoa(string);
 
-                return { cipherText, iv };
+                return { cipherText, iv: stringifiedIV };
             });
     }
 
@@ -9665,9 +9681,10 @@ class Be8 {
         const uintArray = new Uint8Array(
             [...mstring].map((char) => char.charCodeAt(0))
         );
+        const parsedIV = new TextEncoder('utf-8').encode(iv);
         const algorithm = {
             name: 'AES-GCM',
-            iv,
+            iv: parsedIV,
         };
 
         if (!derivedKey) {
@@ -9854,6 +9871,25 @@ async function getCachedUserIDs() {
     return cachedKeys.map((acc) => acc.accID);
 }
 
+async function syncGroupKeys(groupID) {
+    const accID = be8.getAccID();
+    const rawKeys = await fetch('/groupGetkeys', {
+        ...POST,
+        body: JSON.stringify({ groupID, accID }),
+    });
+    const { groupKeys } = await rawKeys.json();
+    const decryptProms = groupKeys.map(function ({ groupKey, keyholder, iv }) {
+        return be8.decryptTextSimple(keyholder, accID, groupKey, iv);
+    });
+    const decryptedKeys = await Promise.all(decryptProms);
+    const sanKeys = decryptedKeys.map(function (key, i) {
+        const groupKey = JSON.parse(key);
+        return { groupKey, version: groupKeys[i].groupVersion };
+    });
+
+    return await be8.addGroupKeys(groupID, sanKeys);
+}
+
 async function syncPublicKeys(extra = []) {
     const cachedIDs = await getCachedUserIDs();
     const allIDS = cachedIDs.concat(extra);
@@ -9972,8 +10008,6 @@ async function updateGroupKeyForParticipants(groupID, groupKey) {
             keyString
         );
 
-        console.log(keyString);
-        console.log(cipherText);
         return await fetch('/groupstorekey', {
             ...POST,
             body: JSON.stringify({
@@ -10135,6 +10169,7 @@ app.addEventListener('createGroup', async function ({ detail }) {
         const { valid } = await groupJoinMember(groupID);
         const groupKey = await generateGroupKey(groupID);
         await updateGroupKeyForParticipants(groupID, groupKey);
+        await syncGroupKeys(groupID);
 
         if (valid) {
             return detail.success();
