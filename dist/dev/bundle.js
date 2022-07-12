@@ -8665,6 +8665,8 @@ const SYSTEMMESSAGES = Object.freeze({
         'You nickname was changed from <i class="highlight-color">{{extra1}}</i> to <i class="highlight-color">{{extra2}}</i>',
     LEFTGROUP:
         'You left group <i class="highlight-color">{{extra2}}</i> with id <i class="highlight-color">#{{extra1}}</i>.',
+    ACCLEFTGROUP:
+        '<i class="highlight-color">{{extra2}}</i> with id <i class="highlight-color">#{{extra1}}</i> left <i class="highlight-color">{{threadID}}</i>.',
     KICKEDFROMGROUP:
         'You were kicked from group <i class="highlight-color">{{extra2}}</i> with id <i class="highlight-color">#{{extra1}}</i>',
     ACCKICKEDFROMGROUP:
@@ -8684,6 +8686,7 @@ const SYSTEMTITLES = Object.freeze({
     CHANGENICKNAME: 'Your nickname has changed',
     LEFTGROUP: 'An user left the group',
     KICKEDFROMGROUP: 'You were kicked from a group',
+    ACCLEFTGROUP: 'Acc left group',
     ACCKICKEDFROMGROUP: 'User was kicked from group',
 });
 
@@ -8822,10 +8825,12 @@ class Messages extends s$1 {
         }"></i>`;
         const idIndicator =
             this.conversationPartner.type !== 'system'
-                ? this.conversationPartner.id ||
-                  this.conversationPartner.groupID
+                ? $`<span>#${
+                      this.conversationPartner.id ||
+                      this.conversationPartner.groupID
+                  }</span>`
                 : '';
-        const name = $`<p @click="${this.clickOnUser}" class="hover-font">${icon} ${this.conversationPartner.nickname} ${idIndicator}</p>`;
+        const name = $`<p @click="${this.clickOnUser}" class="hover-font">${icon} ${this.conversationPartner.nickname}</p>${idIndicator}`;
         const back = $`<i @click="${
             this.clickOnBack
         }" class="fa-solid fa-arrow-left ${
@@ -10182,7 +10187,7 @@ async function getDialogMessages(detail) {
         body: JSON.stringify(detail),
     });
     const data = await raw.json();
-
+    console.log(detail);
     return app.setMessages(data);
 }
 
