@@ -8481,16 +8481,56 @@ class GroupUsermodal extends Modal {
         this.#modalContent = this.querySelector('.modal-content');
     }
 
+    #sendAddGroupUser(id) {
+        const event = new CustomEvent('addGroupMember', {
+            bubbles: false,
+            detail: {
+                ...this.conversationPartner,
+                id,
+            },
+        });
+
+        return domCache.app.dispatchEvent(event);
+    }
+
+    enterBe8Id(e) {
+        if (e.key === 'Enter') {
+            // enter
+            const id = e.target.value.trim();
+
+            if (id.length === 0) {
+                domCache.toast.notification = {
+                    type: 'error',
+                    text: 'Enter a be8 id',
+                };
+
+                return domCache.toast.open();
+            }
+            if (id === this.ME.id) {
+                domCache.toast.notification = {
+                    type: 'error',
+                    text: 'You can not chat with yourself.',
+                };
+
+                return domCache.toast.open();
+            }
+
+            return this.#sendAddGroupUser(id);
+        }
+    }
+
     #renderSiderGroup(amIAdmin) {
         const url = generateSafeLink('group', this.conversationPartner.id);
         const backToMain = $`<i @click="${
             this.#clickOnBackToMain
         }" class="fa-solid fa-arrow-left float-left hover-font"></i>`;
-        const addUser = $`<div class="adduser-group-modal hide"><p class="create-group-headline">${backToMain} Add new Member</p><small></small></div>`;
+        const addUser = $`<div class="adduser-group-modal hide"><p class="create-group-headline">${backToMain} Add new Member</p><small>Enter a valid be8 id.</small><input @keydown="${(
+            e
+        ) => this.enterBe8Id(e)}" type="text"></div>`;
         const leaveText = amIAdmin
             ? LANG.LEAVEGROUPADMIN
             : LANG.LEAVEGROUPMEMBER;
-        const leaveGroup = $`<div class="leave-group-modal hide"><p class="create-group-headline">${backToMain} Leave Group</p><small>${leaveText}</small></div>`;
+        const leaveGroup = $`<div class="leave-group-modal hide"><p class="create-group-headline">${backToMain} Leave Group</p><small>${leaveText}</small><div><button>Yes</button><button>No</button></div></div>`;
         const invite = $`<div class="invite-group-modal hide"><p class="create-group-headline">${backToMain} Invite Friends to your Group</p><p>${o(
             LANG.INVITELINK.replaceAll('{{link}}', url)
         )}</p><br><div class="qr"></div><br></div>`;
@@ -9431,7 +9471,7 @@ function arrayBufferToBase64(buffer) {
 
 function getTypeOfKey(id) {
     if (!id) {
-        throw 'engine: id is required in getTypeOfKey';
+        throw 'id is required in getTypeOfKey';
     }
     if (id.charAt(0) === 'g') {
         return 'group';
@@ -9464,10 +9504,10 @@ class Be8 {
         this.#indexedDB = indexedDB;
 
         if (typeof accID !== 'string' || isNaN(accID)) {
-            throw `engine: no acc id or wrong type passed to the constructor got ${accID}`;
+            throw `no acc id or wrong type passed to the constructor got ${accID}`;
         }
         if (!indexedDB) {
-            throw 'engine: no indexedDB passed to the constructor';
+            throw 'no indexedDB passed to the constructor';
         }
     }
 
@@ -9489,10 +9529,10 @@ class Be8 {
         });
 
         if (!privateKey) {
-            console.log('engine: brand new acc');
+            console.log('brand new acc');
             await this.generatePrivAndPubKey();
         } else {
-            console.log('engine: old acc');
+            console.log('old acc');
             this.#privateKeys.set(this.#accID, privateKey);
         }
 
@@ -9512,10 +9552,10 @@ class Be8 {
         const privatekey = this.#privateKeys.has(this.#accID);
 
         if (!publicKey) {
-            console.log(`engine: No public key for ${this.#accID} in hasKeys`);
+            console.log(`No public key for ${this.#accID} in hasKeys`);
         }
         if (!privatekey) {
-            console.log(`engine: No private key for ${this.#accID} in hasKeys`);
+            console.log(`No private key for ${this.#accID} in hasKeys`);
         }
 
         return publicKey && privatekey;
@@ -9547,7 +9587,7 @@ class Be8 {
         const proms = publicKeys.map(function ({ accID, publicKey }) {
             publicKeysStore.put({ accID, ...publicKey });
             publicKeysStore.onsuccess = () =>
-                console.log(`engine: added public key for ${accID}`);
+                console.log(`added public key for ${accID}`);
         });
 
         return await Promise.all(proms);
@@ -9561,10 +9601,10 @@ class Be8 {
         const publicKeysStore = tx.objectStore('publicKeys');
 
         if (!accID) {
-            console.log(`engine: missing accID: "${accID}" at addPublicKey`);
+            console.log(`missing accID: "${accID}" at addPublicKey`);
         }
         if (!key) {
-            console.log(`engine: missing key: "${key}" at addPublicKey`);
+            console.log(`missing key: "${key}" at addPublicKey`);
         }
 
         publicKeysStore.put({ accID, ...key });
@@ -9585,13 +9625,13 @@ class Be8 {
             const proms = groupKeys.map(function ({ version, groupKey }) {
                 groupKeysStore.put({ groupID, version, ...groupKey });
                 groupKeysStore.onsuccess = () =>
-                    console.log(`engine: added group key for ${groupID}`);
+                    console.log(`added group key for ${groupID}`);
             });
 
             return await Promise.all(proms);
         } else {
             console.log(
-                `engine: missing groupID: "${groupID}" or keys: "${groupKeys}" in addGroupKey`
+                `missing groupID: "${groupID}" or keys: "${groupKeys}" in addGroupKey`
             );
         }
     }
@@ -9615,7 +9655,7 @@ class Be8 {
         });
     }
 
-    async generateGroupKeys(version, groupID) {
+    async generateGroupKeys(version) {
         const { privateKey, publicKey } =
             await window.crypto.subtle.generateKey(algorithm, true, keyUsages);
         const proms = [
@@ -9623,14 +9663,14 @@ class Be8 {
             window.crypto.subtle.exportKey(format, privateKey),
         ];
         const keys = await Promise.all(proms);
-        const hasKeys = this.#groupKeys.get(`${groupID}:${version}`);
+        const hasKeys = this.#groupKeys.get(version);
 
         if (hasKeys) {
-            console.log(`engine: Group keys for ${version} already exist`);
+            console.log(`Group keys for ${version} already exist`);
             return hasKeys;
         }
 
-        this.#groupKeys.set(`${groupID}:${version}`, keys[1]);
+        this.#groupKeys.set(version, keys[1]);
 
         return keys;
     }
@@ -9667,10 +9707,10 @@ class Be8 {
 
     async getDerivedKey(publicKey, privateKey) {
         if (!publicKey) {
-            throw 'engine: no public key passed to getDerivedKey';
+            throw 'no public key passed to getDerivedKey';
         }
         if (!privateKey) {
-            throw 'engine: no private key passed to getDerivedKey';
+            throw 'no private key passed to getDerivedKey';
         }
 
         const publicKeyProm = window.crypto.subtle.importKey(
@@ -9717,7 +9757,7 @@ class Be8 {
         };
 
         if (!derivedKey) {
-            throw 'engine: no derived key passed to encryptText';
+            throw 'no derived key passed to encryptText';
         }
 
         return window.crypto.subtle
@@ -9743,10 +9783,10 @@ class Be8 {
         };
 
         if (!derivedKey) {
-            throw 'engine: no derived key passed to decryptText';
+            throw 'no derived key passed to decryptText';
         }
         if (!iv) {
-            throw 'engine: no iv (Initialization vector) passed to decryptText';
+            throw 'no iv (Initialization vector) passed to decryptText';
         }
 
         return window.crypto.subtle
@@ -9761,10 +9801,10 @@ class Be8 {
         const privateKey = this.#privateKeys.get(accIDSender);
 
         if (!publicKey) {
-            throw `engine: Missing public key for ${accIDReceiver} at encryptTextSimple`;
+            throw `Missing public key for ${accIDReceiver} at encryptTextSimple`;
         }
         if (!privateKey) {
-            throw `engine: Missing private key for ${accIDSender} at encryptTextSimple`;
+            throw `Missing private key for ${accIDSender} at encryptTextSimple`;
         }
 
         const derivedKey = await this.getDerivedKey(publicKey, privateKey);
@@ -9777,10 +9817,10 @@ class Be8 {
         const privateKey = this.#privateKeys.get(accIDReceiver);
 
         if (!publicKey) {
-            throw `engine: Missing public key for ${accIDSender} at decryptTextSimple`;
+            throw `Missing public key for ${accIDSender} at decryptTextSimple`;
         }
         if (!privateKey) {
-            throw `engine: Missing private key for ${accIDReceiver} at decryptTextSimple`;
+            throw `Missing private key for ${accIDReceiver} at decryptTextSimple`;
         }
 
         const derivedKey = await this.getDerivedKey(publicKey, privateKey);
@@ -9793,7 +9833,7 @@ class Be8 {
         const iv = generateIV();
 
         if (!derivedKey) {
-            throw 'engine: no derived key passed to decryptText';
+            throw 'no derived key passed to decryptText';
         }
 
         return window.crypto.subtle
@@ -9817,7 +9857,7 @@ class Be8 {
         };
 
         if (!derivedKey) {
-            throw 'engine: no derived key passed to decryptText';
+            throw 'no derived key passed to decryptText';
         }
 
         return window.crypto.subtle
@@ -9832,10 +9872,10 @@ class Be8 {
         const privateKey = this.#privateKeys.get(accIDSender);
 
         if (!publicKey) {
-            throw `engine: Missing public key for ${accIDSender} at encryptImageSimple`;
+            throw `Missing public key for ${accIDSender} at encryptImageSimple`;
         }
         if (!privateKey) {
-            throw `engine: Missing private key for ${accIDReceiver} at encryptImageSimple`;
+            throw `Missing private key for ${accIDReceiver} at encryptImageSimple`;
         }
 
         const derivedKey = await this.getDerivedKey(publicKey, privateKey);
@@ -9848,10 +9888,10 @@ class Be8 {
         const privateKey = this.#privateKeys.get(accIDReceiver);
 
         if (!publicKey) {
-            throw `engine: Missing public key for ${accIDSender} at decryptImageSimple`;
+            throw `Missing public key for ${accIDSender} at decryptImageSimple`;
         }
         if (!privateKey) {
-            throw `engine: Missing private key for ${accIDReceiver} at decryptImageSimple`;
+            throw `Missing private key for ${accIDReceiver} at decryptImageSimple`;
         }
 
         const derivedKey = await this.getDerivedKey(publicKey, privateKey);
@@ -10229,6 +10269,9 @@ app.addEventListener('createGroup', async function ({ detail }) {
             return detail.success();
         }
     }
+});
+app.addEventListener('addGroupMember', async function ({ detail }) {
+    console.log(detail);
 });
 app.addEventListener('threadSelect', async function ({ detail }) {
     if (detail.type === 'group') {
