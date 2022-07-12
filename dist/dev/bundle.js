@@ -8493,6 +8493,15 @@ class GroupUsermodal extends Modal {
             detail: {
                 ...this.conversationPartner,
                 id,
+                done: () => {
+                    domCache.toast.notification = {
+                        type: 'success',
+                        text: 'You added ' + id + ' to your group',
+                    };
+
+                    domCache.toast.open();
+                    return this.close();
+                },
             },
         });
 
@@ -10308,6 +10317,7 @@ app.addEventListener('addGroupMember', async function ({ detail }) {
 
         await updateGroupKeyForParticipants(detail.groupID, groupKey);
         await syncGroupKeys(detail.groupID);
+        return detail.done();
     }
 });
 app.addEventListener('threadSelect', async function ({ detail }) {
