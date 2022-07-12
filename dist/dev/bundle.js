@@ -10055,6 +10055,31 @@ async function generateEngine({ id }, database) {
     return await be8.setup();
 }
 
+async function decryptMessages(cipherMessages, detail) {
+    const proms = cipherMessages.map(async function (message) {
+        const sender = detail?.sender || message.sender;
+
+        if (message.type === 'system') {
+            return message;
+        }
+
+        const text = await be8.decryptTextSimple(
+            sender,
+            be8.getAccID(),
+            message.text,
+            message.iv
+        );
+
+        return {
+            ...message,
+            text,
+        };
+    });
+    const messages = await Promise.all(proms);
+
+    return app.setMessages(messages);
+}
+
 async function getCachedUserIDs() {
     const cachedKeys = await be8.getCachedKeys();
     return cachedKeys.map((acc) => acc.accID);
@@ -10142,7 +10167,9 @@ async function getThreads() {
         return;
     }
 
-    app.setThreads(threads);
+    const decthreads = await decryptMessages(threads);
+
+    app.setThreads(decthreads);
     await syncAllGroupKeys(groupIDs);
     return await syncPublicKeys();
 }
@@ -10177,29 +10204,6 @@ async function firstTimeVisitor(database) {
     }
 }
 
-async function decryptMessage(messages, detail) {
-    const proms = messages.map(async function (message) {
-        if (message.type === 'system') {
-            return message;
-        }
-
-        const text = await be8.decryptTextSimple(
-            detail.sender,
-            be8.getAccID(),
-            message.text,
-            message.iv
-        );
-
-        return {
-            ...message,
-            text,
-        };
-    });
-    const decryptMessage = await Promise.all(proms);
-
-    return app.setMessages(decryptMessage);
-}
-
 async function getDialogMessages(detail) {
     const raw = await fetch('/getmessages', {
         ...POST,
@@ -10208,7 +10212,7 @@ async function getDialogMessages(detail) {
     const { valid, messages } = await raw.json();
 
     if (valid) {
-        return await decryptMessage(messages, detail);
+        return await decryptMessages(messages, detail);
     }
 }
 
