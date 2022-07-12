@@ -42,3 +42,10 @@
 .invite-group-modal {
     position: relative;
 }
+
+.leave-group-settings {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--small-padding);
+    padding-top: var(--small-padding);
+}
