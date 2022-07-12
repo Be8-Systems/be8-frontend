@@ -9686,6 +9686,23 @@ class Be8 {
         });
     }
 
+    async getCachedGroupVersions(groupID) {
+        const tx = this.#indexedDB.result.transaction('groupKeys', 'readwrite');
+        const groupKeysStore = tx.objectStore('groupKeys');
+        const all = groupKeysStore.getAllKeys();
+
+        return await new Promise(function (success) {
+            all.onsuccess = function (event) {
+                const allVersions = event.target.result;
+                const groupVersions = allVersions
+                    .filter((v) => v[0] === groupID)
+                    .map((v) => v.pop());
+
+                return success(groupVersions);
+            };
+        });
+    }
+
     async generateGroupKeys(version, groupID) {
         const { privateKey, publicKey } =
             await window.crypto.subtle.generateKey(algorithm, true, keyUsages);
@@ -9997,21 +10014,34 @@ async function getCachedUserIDs() {
 
 async function syncGroupKeys(groupID) {
     const accID = be8.getAccID();
+    const cachedVersions = await be8.getCachedGroupVersions(groupID);
     const rawKeys = await fetch('/groupGetkeys', {
         ...POST,
         body: JSON.stringify({ groupID, accID }),
     });
     const { groupKeys } = await rawKeys.json();
-    const decryptProms = groupKeys.map(function ({ groupKey, keyholder, iv }) {
+    const filteredKeys = groupKeys.filter(
+        (gk) => !cachedVersions.includes(gk.groupVersion)
+    );
+    const decryptProms = filteredKeys.map(function ({
+        groupKey,
+        keyholder,
+        iv,
+    }) {
         return be8.decryptTextSimple(keyholder, accID, groupKey, iv);
     });
     const decryptedKeys = await Promise.all(decryptProms);
     const sanKeys = decryptedKeys.map(function (key, i) {
         const groupKey = JSON.parse(key);
-        return { groupKey, version: groupKeys[i].groupVersion };
+        return { groupKey, version: filteredKeys[i].groupVersion };
     });
 
     return await be8.addGroupKeys(groupID, sanKeys);
+}
+
+async function syncAllGroupKeys(groupIDs) {
+    const proms = groupIDs.map((id) => syncGroupKeys(id));
+    return await Promise.all(proms);
 }
 
 async function syncPublicKeys(extra = []) {
@@ -10041,12 +10071,14 @@ async function syncPublicKeys(extra = []) {
 async function getThreads() {
     const raw = await fetch('/getthreads', GET);
     const { valid, threads } = await raw.json();
+    const groupIDs = threads.filter((t) => t.groupID).map((t) => t.groupID);
 
     if (!valid) {
         return;
     }
 
     app.setThreads(threads);
+    await syncAllGroupKeys(groupIDs);
     return await syncPublicKeys();
 }
 
@@ -10102,6 +10134,7 @@ async function getGroupMessages(detail) {
     const messages = await rawMessage.json();
     const members = await rawMembers.json();
 
+    await syncGroupKeys(detail.groupID);
     app.setMessages(messages);
     return app.setGroupMember(members);
 }
