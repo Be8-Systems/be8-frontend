@@ -10012,7 +10012,7 @@ async function syncPublicKeys(extra = []) {
         .filter(
             (id) => !id.includes('g') && !cachedIDs.find((cID) => cID === id)
         );
-    console.log('accIDs: ', accIDs);
+
     if (accIDs.length === 0) {
         return;
     }
