@@ -9363,8 +9363,9 @@ const GET = {
     headers: { 'Content-Type': 'application/json' },
 };
 
-const connection = indexedDB.open('be8', 1);
-function initialiseDB() {
+const connection = indexedDB.open('be8', 3);
+
+async function initialiseDB() {
     return new Promise(function (success, error) {
         connection.onupgradeneeded = function () {
             const db = connection.result;
@@ -9391,8 +9392,7 @@ function initialiseDB() {
                 privateKeysStore.createIndex(...parameters);
                 groupKeysStore.createIndex(...parameters);
             });
-
-            return success();
+            console.log('upgrade');
         };
 
         connection.onsuccess = function (event) {
@@ -9915,9 +9915,7 @@ function refreshAPP(accObj) {
     app.ME = accObj;
 }
 
-async function generateEngine({ id }) {
-    const database = await initialiseDB$1();
-
+async function generateEngine({ id }, database) {
     be8 = new Be8(id, database);
     return await be8.setup();
 }
@@ -9988,7 +9986,7 @@ async function storePublicKey() {
     });
 }
 
-async function firstTimeVisitor() {
+async function firstTimeVisitor(database) {
     const raw = await fetch('/newacc', {
         ...POST,
         body: JSON.stringify({
@@ -10003,7 +10001,7 @@ async function firstTimeVisitor() {
         const { accObj } = await raw.json();
 
         refreshAPP(accObj);
-        await generateEngine(accObj);
+        await generateEngine(accObj, database);
         await storePublicKey();
         await getThreads();
         return app.openWelcomeWindow(accObj);
@@ -10096,14 +10094,15 @@ async function groupJoinMember(groupID) {
 }
 
 document.addEventListener('DOMContentLoaded', async function () {
+    const database = await initialiseDB$1();
     const { error, accObj } = await fetch('/me', GET).then((raw) => raw.json());
 
     if (error === 'NOTAUTH') {
-        return await firstTimeVisitor();
+        return await firstTimeVisitor(database);
     }
 
     refreshAPP(accObj);
-    await generateEngine(accObj);
+    await generateEngine(accObj, database);
     return await app.openLockModal(() => getThreads());
 });
 app.addEventListener('unlock', async function ({ detail }) {
