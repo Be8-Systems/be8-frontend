@@ -8581,7 +8581,8 @@ class GroupUsermodal extends Modal {
         const members = c(
             this.members,
             (members) => members.id,
-            ({ nickname, id, expire, endless }) => {
+            ({ nickname, id, expire, endless, type }) => {
+                const isSystem = type === 'system';
                 const endlessIcon =
                     endless || isSystem
                         ? $`<i class="fa-solid fa-check danger-color"></i>`
