@@ -10012,9 +10012,8 @@ async function getCachedUserIDs() {
     return cachedKeys.map((acc) => acc.accID);
 }
 
-async function syncGroupKeys(groupID) {
+async function fetchKeysAndAdd(groupID, cachedVersions) {
     const accID = be8.getAccID();
-    const cachedVersions = await be8.getCachedGroupVersions(groupID);
     const rawKeys = await fetch('/groupGetkeys', {
         ...POST,
         body: JSON.stringify({ groupID, accID }),
@@ -10039,6 +10038,17 @@ async function syncGroupKeys(groupID) {
         });
 
         return await be8.addGroupKeys(groupID, sanKeys);
+    }
+}
+
+async function syncGroupKeys(groupID) {
+    const cachedVersions = await be8.getCachedGroupVersions(groupID);
+    const lastVersion = cachedVersions[cachedVersions.length - 1];
+    const { groupVersion } = await groupGetVersion(groupID);
+    console.log(groupVersion, cachedVersions, lastVersion);
+    console.log(parseInt(groupVersion), parseInt(lastVersion));
+    if (!lastVersion || parseInt(groupVersion) > parseInt(lastVersion)) {
+        return await fetchKeysAndAdd(groupID, cachedVersions);
     }
 
     return;
