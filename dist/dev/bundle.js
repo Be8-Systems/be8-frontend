@@ -8224,7 +8224,7 @@ class Usermodal extends Modal {
             ? $`<i class="fa-solid fa-check danger-color"></i>`
             : $`<i class="fa-solid fa-times"></i>`;
         const endless = $`<p><span>Endless Account: </span>${endlessIcon}</p>`;
-        const content = $`${hl}${id}${nickname}${status}${expire}${endless}`;
+        const content = $`${hl}${id}${nickname}${expire}${endless}${status}`;
 
         return super.render(content);
     }
