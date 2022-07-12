@@ -5,6 +5,8 @@
 
 .group-members {
     padding-bottom: var(--big-padding);
+    max-height: calc(100vh - 364px);
+    overflow: scroll;
 }
 
 .group-member {
