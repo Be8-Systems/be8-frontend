@@ -165,6 +165,10 @@ a:hover {
   width: 100%;
 }
 
+button.danger-background:hover {
+  background-color: red;
+}
+
 app-layout {
   display: grid;
   row-gap: 0;
@@ -311,6 +315,13 @@ user-menu {
 .leave-group-modal,
 .invite-group-modal {
   position: relative;
+}
+
+.leave-group-settings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--small-padding);
+  padding-top: var(--small-padding);
 }
 
 .settings-container {

@@ -1247,7 +1247,7 @@ var LANG = Object.freeze({
     UNLOCKSETUPTEXT:
         'You have to remind your unlock code otherwise there is no way to access your account again! Enter your destroy code to destroy your acc! There is no way to recover destroyed accs',
     LEAVEGROUPADMIN:
-        'When you leave this group, the group and every message gets destroyed',
+        'When you leave this group, the group and every message gets destroyed, no way to recover any data.',
     LEAVEGROUPMEMBER: 'Do you want to leave the group?',
 });
 
@@ -8409,6 +8409,7 @@ class GroupUsermodal extends Modal {
     #addUserSide = {};
     #leaveGroupSide = {};
     #modalContent = {};
+    #addMemberId = {};
 
     constructor() {
         super();
@@ -8418,7 +8419,11 @@ class GroupUsermodal extends Modal {
 
     #addUser() {
         this.state = 'addUser';
-        animateMainToSide(this.#modalContent, this.#addUserSide);
+        animateMainToSide(
+            this.#modalContent,
+            this.#addUserSide,
+            this.#addMemberId
+        );
     }
 
     #inviteUser() {
@@ -8479,6 +8484,7 @@ class GroupUsermodal extends Modal {
         this.#addUserSide = this.querySelector('.adduser-group-modal');
         this.#leaveGroupSide = this.querySelector('.leave-group-modal');
         this.#modalContent = this.querySelector('.modal-content');
+        this.#addMemberId = this.querySelector('.adduser-group-modal input');
     }
 
     #sendAddGroupUser(id) {
@@ -8495,7 +8501,6 @@ class GroupUsermodal extends Modal {
 
     enterBe8Id(e) {
         if (e.key === 'Enter') {
-            // enter
             const id = e.target.value.trim();
 
             if (id.length === 0) {
@@ -8519,6 +8524,18 @@ class GroupUsermodal extends Modal {
         }
     }
 
+    #clickOnLeaveGroup() {
+        const event = new CustomEvent('leaveGroup', {
+            bubbles: false,
+            detail: {
+                ...this.conversationPartner,
+                ...this.Me,
+            },
+        });
+
+        return domCache.app.dispatchEvent(event);
+    }
+
     #renderSiderGroup(amIAdmin) {
         const url = generateSafeLink('group', this.conversationPartner.id);
         const backToMain = $`<i @click="${
@@ -8530,7 +8547,11 @@ class GroupUsermodal extends Modal {
         const leaveText = amIAdmin
             ? LANG.LEAVEGROUPADMIN
             : LANG.LEAVEGROUPMEMBER;
-        const leaveGroup = $`<div class="leave-group-modal hide"><p class="create-group-headline">${backToMain} Leave Group</p><small>${leaveText}</small><div><button>Yes</button><button>No</button></div></div>`;
+        const leaveGroup = $`<div class="leave-group-modal hide"><p class="create-group-headline">${backToMain} Leave Group</p><small>${leaveText}</small><div class="leave-group-settings"><button @click="${
+            this.#clickOnLeaveGroup
+        }" class="danger-background">Yes</button><button @click="${
+            this.close
+        }" class="hover-background">No</button></div></div>`;
         const invite = $`<div class="invite-group-modal hide"><p class="create-group-headline">${backToMain} Invite Friends to your Group</p><p>${o(
             LANG.INVITELINK.replaceAll('{{link}}', url)
         )}</p><br><div class="qr"></div><br></div>`;
