@@ -8880,9 +8880,9 @@ class Messages extends s$1 {
             this.messages,
             (message) => message.messageID,
             (message) => {
-                const { messageID, nickname, sender, status, ts, type } =
+                const { messageID, nickname, sender, status, ts, messageType } =
                     message;
-                const isSysMessage = type === 'system';
+                const isSysMessage = messageType === 'system';
                 const dateTime = new Date(ts);
                 const amIsender = sender === this.ME.id;
                 const time = dateTime.toLocaleTimeString();
@@ -10082,7 +10082,7 @@ async function decryptMessages(cipherMessages, detail) {
     const proms = cipherMessages.map(async function (message) {
         const sender = detail?.sender || message.sender;
 
-        if (message.type === 'system') {
+        if (message.messageType === 'system') {
             return message;
         }
 
