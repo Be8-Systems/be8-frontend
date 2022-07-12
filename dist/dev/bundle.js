@@ -10232,8 +10232,8 @@ async function getDialogMessages(detail) {
     const { valid, messages } = await raw.json();
 
     if (valid) {
-        const decryptMessages = await decryptMessages(messages, detail);
-        return app.setMessages(decryptMessages);
+        const sanMessages = await decryptMessages(messages, detail);
+        return app.setMessages(sanMessages);
     }
 }
 
