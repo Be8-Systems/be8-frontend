@@ -10065,6 +10065,9 @@ async function fetchKeysAndAdd(groupID, cachedVersions) {
     const filteredKeys = groupKeys.filter(
         (gk) => !cachedVersions.includes(gk.groupVersion)
     );
+    const keyholder = filteredKeys.map((fk) => fk.keyholder);
+    console.log(filteredKeys, keyholder);
+    await syncPublicKeys(keyholder);
 
     if (filteredKeys.length > 0) {
         const decryptProms = filteredKeys.map(function ({
