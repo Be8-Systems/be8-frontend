@@ -8216,7 +8216,7 @@ class Usermodal extends Modal {
         const hl = $`<p class="create-group-headline">${icon} ${this.conversationPartner.nickname}</p>`;
         const id = $`<p><span>ID:</span> <span>${this.conversationPartner.id}</span></p>`;
         const nickname = $`<p><span>Nickname:</span> <span>${this.conversationPartner.nickname}</span></p>`;
-        const status = $`<p><span>Status:</span> <span>"${this.conversationPartner.status}"</span></p>`;
+        const status = $`<p><span>Status:</span> <span>"${this.conversationPartner.userStatus}"</span></p>`;
         const expire = this.conversationPartner.endless
             ? ''
             : $`<p><span>Valid Account:</span> <span>${dateTime}</span></p>`;
@@ -8665,6 +8665,8 @@ const SYSTEMMESSAGES = Object.freeze({
         'You nickname was changed from <i class="highlight-color">{{extra1}}</i> to <i class="highlight-color">{{extra2}}</i>',
     LEFTGROUP:
         'You left group <i class="highlight-color">{{extra2}}</i> with id <i class="highlight-color">#{{extra1}}</i>.',
+    KICKEDFROMGROUP:
+        'You were kicked from group <i class="highlight-color">{{extra2}}</i> with id <i class="highlight-color">#{{extra1}}</i>',
     ACCKICKEDFROMGROUP:
         '<i class="highlight-color">{{extra2}}</i> with id <i class="highlight-color">#{{extra1}}</i> was kicked from <i class="highlight-color">{{threadID}}</i>.',
 });
@@ -8681,6 +8683,7 @@ const SYSTEMTITLES = Object.freeze({
     ACCDELETED: 'Account you know is destroyed',
     CHANGENICKNAME: 'Your nickname has changed',
     LEFTGROUP: 'An user left the group',
+    KICKEDFROMGROUP: 'You were kicked from a group',
     ACCKICKEDFROMGROUP: 'User was kicked from group',
 });
 
@@ -8973,11 +8976,11 @@ class User extends s$1 {
         return domCache.app.dispatchEvent(tokenEvent);
     }
 
-    #sendStatusChangeEvent(status) {
-        const statusEvent = new CustomEvent('setStatus', {
+    #sendStatusChangeEvent(userStatus) {
+        const statusEvent = new CustomEvent('setUserStatus', {
             bubbles: false,
             detail: {
-                status,
+                userStatus,
             },
         });
 
@@ -10348,8 +10351,8 @@ app.addEventListener('updateCode', async function ({ detail }) {
         return detail.done();
     }
 });
-app.addEventListener('setStatus', async function ({ detail }) {
-    await fetch('/statusset', { ...POST, body: JSON.stringify(detail) });
+app.addEventListener('setUserStatus', async function ({ detail }) {
+    await fetch('/userstatusset', { ...POST, body: JSON.stringify(detail) });
 });
 app.addEventListener('setToken', async function ({ detail }) {
     const raw = await fetch('/endlessvalidate', {
