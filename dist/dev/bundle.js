@@ -8822,8 +8822,10 @@ class Messages extends s$1 {
         }"></i>`;
         const idIndicator =
             this.conversationPartner.type !== 'system'
-                ? this.conversationPartner.id ||
-                  this.conversationPartner.groupID
+                ? `#${
+                      this.conversationPartner.id ||
+                      this.conversationPartner.groupID
+                  }`
                 : '';
         const name = $`<p @click="${this.clickOnUser}" class="hover-font">${icon} ${this.conversationPartner.nickname} ${idIndicator}</p>`;
         const back = $`<i @click="${
@@ -9591,6 +9593,7 @@ class Be8 {
 
     async setup() {
         const databaseKeys = await this.getCachedKeys();
+        const databaseGroupKeys = await this.getCachedGroupKeys();
         const privateTx = this.#indexedDB.result.transaction(
             'privateKeys',
             'readwrite'
@@ -9616,6 +9619,9 @@ class Be8 {
 
         databaseKeys.forEach(({ accID, publicKey }) =>
             this.#publicKeys.set(accID, publicKey)
+        );
+        databaseGroupKeys.forEach(({ groupID, version, groupKey }) =>
+            this.#groupKeys.set(`${groupID}:${version}`, groupKey)
         );
 
         return databaseKeys;
@@ -9727,6 +9733,23 @@ class Be8 {
                 const keys = event.target.result.map((key) => ({
                     accID: key.accID,
                     publicKey: key,
+                }));
+                return success(keys);
+            };
+        });
+    }
+
+    async getCachedGroupKeys() {
+        const tx = this.#indexedDB.result.transaction('groupKeys', 'readwrite');
+        const groupKeysStore = tx.objectStore('groupKeys');
+        const all = groupKeysStore.getAll();
+
+        return await new Promise(function (success) {
+            all.onsuccess = function (event) {
+                const keys = event.target.result.map((key) => ({
+                    groupID: key.groupID,
+                    version: key.version,
+                    groupKey: key,
                 }));
                 return success(keys);
             };
@@ -10027,8 +10050,10 @@ class Be8 {
             });
         });
         const groupKeyProms = groupKeys.map(function (key) {
+            const sanKey = key.split(':');
+
             return new Promise(function (resolve) {
-                groupKeysStore.delete(key);
+                groupKeysStore.delete(sanKey);
                 return resolve();
             });
         });
@@ -10247,7 +10272,7 @@ async function updateGroupKeyForParticipants(groupID, groupKey) {
 }
 
 async function generateGroupKey(groupID) {
-    const groupVersion = await groupGetVersion(groupID);
+    const { groupVersion } = await groupGetVersion(groupID);
     const [, groupKey] = await be8.generateGroupKeys(groupVersion, groupID);
 
     return groupKey;
