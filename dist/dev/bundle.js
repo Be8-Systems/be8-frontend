@@ -10066,7 +10066,7 @@ async function fetchKeysAndAdd(groupID, cachedVersions) {
         (gk) => !cachedVersions.includes(gk.groupVersion)
     );
     const keyholder = filteredKeys.map((fk) => fk.keyholder);
-    console.log(filteredKeys, keyholder);
+
     await syncPublicKeys(keyholder);
 
     if (filteredKeys.length > 0) {
