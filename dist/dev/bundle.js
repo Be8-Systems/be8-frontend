@@ -8665,6 +8665,8 @@ const SYSTEMMESSAGES = Object.freeze({
         'You nickname was changed from <i class="highlight-color">{{extra1}}</i> to <i class="highlight-color">{{extra2}}</i>',
     LEFTGROUP:
         'You left group <i class="highlight-color">{{extra2}}</i> with id <i class="highlight-color">#{{extra1}}</i>.',
+    ACCLEFTGROUP:
+        '<i class="highlight-color">{{extra2}}</i> with id <i class="highlight-color">#{{extra1}}</i> left <i class="highlight-color">{{threadID}}</i>.',
     KICKEDFROMGROUP:
         'You were kicked from group <i class="highlight-color">{{extra2}}</i> with id <i class="highlight-color">#{{extra1}}</i>',
     ACCKICKEDFROMGROUP:
@@ -8684,6 +8686,7 @@ const SYSTEMTITLES = Object.freeze({
     CHANGENICKNAME: 'Your nickname has changed',
     LEFTGROUP: 'An user left the group',
     KICKEDFROMGROUP: 'You were kicked from a group',
+    ACCLEFTGROUP: 'Acc left group',
     ACCKICKEDFROMGROUP: 'User was kicked from group',
 });
 
@@ -8822,12 +8825,12 @@ class Messages extends s$1 {
         }"></i>`;
         const idIndicator =
             this.conversationPartner.type !== 'system'
-                ? `#${
+                ? $`<span>#${
                       this.conversationPartner.id ||
                       this.conversationPartner.groupID
-                  }`
+                  }</span>`
                 : '';
-        const name = $`<p @click="${this.clickOnUser}" class="hover-font">${icon} ${this.conversationPartner.nickname} ${idIndicator}</p>`;
+        const name = $`<p @click="${this.clickOnUser}" class="hover-font">${icon} ${this.conversationPartner.nickname}</p>${idIndicator}`;
         const back = $`<i @click="${
             this.clickOnBack
         }" class="fa-solid fa-arrow-left ${
@@ -9406,11 +9409,7 @@ class AppLayout extends s$1 {
         this.#userGroupModal.members = members;
     }
 
-    setMessages({ messages, valid }) {
-        if (!valid) {
-            return;
-        }
-
+    setMessages(messages) {
         requestAnimationFrame(() => {
             this.#menus.messagesMenu.messages = messages;
             this.#menus.messagesMenu.scrollToBottom();
@@ -10079,6 +10078,30 @@ async function generateEngine({ id }, database) {
     return await be8.setup();
 }
 
+async function decryptMessages(cipherMessages, detail) {
+    const proms = cipherMessages.map(async function (message) {
+        const sender = detail?.sender || message.sender;
+
+        if (message.type === 'system') {
+            return message;
+        }
+
+        const text = await be8.decryptTextSimple(
+            sender,
+            be8.getAccID(),
+            message.text,
+            message.iv
+        );
+
+        return {
+            ...message,
+            text,
+        };
+    });
+
+    return await Promise.all(proms);
+}
+
 async function getCachedUserIDs() {
     const cachedKeys = await be8.getCachedKeys();
     return cachedKeys.map((acc) => acc.accID);
@@ -10166,7 +10189,9 @@ async function getThreads() {
         return;
     }
 
-    app.setThreads(threads);
+    const decthreads = await decryptMessages(threads);
+
+    app.setThreads(decthreads);
     await syncAllGroupKeys(groupIDs);
     return await syncPublicKeys();
 }
@@ -10206,9 +10231,12 @@ async function getDialogMessages(detail) {
         ...POST,
         body: JSON.stringify(detail),
     });
-    const data = await raw.json();
+    const { valid, messages } = await raw.json();
 
-    return app.setMessages(data);
+    if (valid) {
+        const sanMessages = await decryptMessages(messages, detail);
+        return app.setMessages(sanMessages);
+    }
 }
 
 async function getGroupMessages(detail) {
