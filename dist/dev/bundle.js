@@ -10023,20 +10023,25 @@ async function syncGroupKeys(groupID) {
     const filteredKeys = groupKeys.filter(
         (gk) => !cachedVersions.includes(gk.groupVersion)
     );
-    const decryptProms = filteredKeys.map(function ({
-        groupKey,
-        keyholder,
-        iv,
-    }) {
-        return be8.decryptTextSimple(keyholder, accID, groupKey, iv);
-    });
-    const decryptedKeys = await Promise.all(decryptProms);
-    const sanKeys = decryptedKeys.map(function (key, i) {
-        const groupKey = JSON.parse(key);
-        return { groupKey, version: filteredKeys[i].groupVersion };
-    });
 
-    return await be8.addGroupKeys(groupID, sanKeys);
+    if (filteredKeys.length > 0) {
+        const decryptProms = filteredKeys.map(function ({
+            groupKey,
+            keyholder,
+            iv,
+        }) {
+            return be8.decryptTextSimple(keyholder, accID, groupKey, iv);
+        });
+        const decryptedKeys = await Promise.all(decryptProms);
+        const sanKeys = decryptedKeys.map(function (key, i) {
+            const groupKey = JSON.parse(key);
+            return { groupKey, version: filteredKeys[i].groupVersion };
+        });
+
+        return await be8.addGroupKeys(groupID, sanKeys);
+    }
+
+    return;
 }
 
 async function syncAllGroupKeys(groupIDs) {
