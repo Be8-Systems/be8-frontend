@@ -9392,11 +9392,10 @@ async function initialiseDB() {
                 privateKeysStore.createIndex(...parameters);
                 groupKeysStore.createIndex(...parameters);
             });
-            console.log('upgrade');
+            console.log('upgrade or insert db');
         };
 
-        connection.onsuccess = function (event) {
-            console.log(event);
+        connection.onsuccess = function () {
             return success();
         };
 
