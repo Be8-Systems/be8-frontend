@@ -9944,11 +9944,12 @@ async function syncGroupKeys(groupID) {
 
 async function syncPublicKeys(extra = []) {
     const cachedIDs = await getCachedUserIDs();
-    const allIDS = cachedIDs.concat(extra);
+    const allIDs = cachedIDs.concat(extra);
+    console.log(allIDs);
     const accIDs = app
         .getConversationPartners()
-        .filter((id) => !allIDS.find((cID) => cID === id));
-
+        .filter((id) => !allIDs.find((cID) => cID === id));
+    console.log(accIDs);
     if (accIDs.length === 0) {
         return;
     }
@@ -10077,7 +10078,7 @@ async function updateGroupKeyForParticipants(groupID, groupKey) {
 
 async function generateGroupKey(groupID) {
     const groupVersion = await groupGetVersion(groupID);
-    const [, groupKey] = await be8.generateGroupKeys(groupVersion);
+    const [, groupKey] = await be8.generateGroupKeys(groupVersion, groupID);
 
     return groupKey;
 }
