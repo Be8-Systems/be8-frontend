@@ -8427,8 +8427,16 @@ class GroupUsermodal extends Modal {
     }
 
     #inviteUser() {
+        const event = new CustomEvent('inviteGenerated', {
+            detail: {
+                sentInviteLink: true,
+                type: 'group',
+            },
+        });
+
         this.state = 'invite';
         animateMainToSide(this.#modalContent, this.#inviteGroupSide);
+        return domCache.app.dispatchEvent(event);
     }
 
     #leaveGroup() {
@@ -8539,6 +8547,9 @@ class GroupUsermodal extends Modal {
             detail: {
                 ...this.conversationPartner,
                 ...this.Me,
+                done: () => {
+                    return this.close();
+                },
             },
         });
 
@@ -8570,6 +8581,28 @@ class GroupUsermodal extends Modal {
         return $`${addUser}${invite}${leaveGroup}`;
     }
 
+    #clickOnKick(e) {
+        const accID = e.target.getAttribute('data-id');
+        const event = new CustomEvent('kickMemberFromGroup', {
+            bubbles: false,
+            detail: {
+                ...this.conversationPartner,
+                accID,
+                done: () => {
+                    domCache.toast.notification = {
+                        type: 'success',
+                        text:
+                            'You kicked ' + accID + ' someone from your group',
+                    };
+
+                    return domCache.toast.open();
+                },
+            },
+        });
+
+        return domCache.app.dispatchEvent(event);
+    }
+
     render() {
         const color =
             this.conversationPartner.groupType === 'public'
@@ -8588,11 +8621,15 @@ class GroupUsermodal extends Modal {
                         ? $`<i class="fa-solid fa-check danger-color"></i>`
                         : '';
                 const isMe = this.ME.id === id;
-                const kick = isMe
-                    ? ''
-                    : $`<span class="float-right hover-font">kick</span>`;
+                const kick =
+                    amIAdmin && !isMe
+                        ? $`<span data-id="${id}" @click="${
+                              this.#clickOnKick
+                          }" class="float-right hover-font">kick</span>`
+                        : '';
+                const isUserAdmin = this.conversationPartner.admin === id;
                 const icon = $`<i class="fa-solid fa-${
-                    groupMemberIcons[amIAdmin ? 'admin' : 'user']
+                    groupMemberIcons[isUserAdmin ? 'admin' : 'user']
                 }"></i>`;
 
                 return $`<div class="group-member hover-background">${icon}<p class="member-firstline">${nickname} ${endlessIcon}<span class="float-right">#${id}</span></p><p class="member-secondline">${sanitizeTime(
@@ -8626,6 +8663,10 @@ const SYSTEMMESSAGES = Object.freeze({
         'Account <i class="highlight-color">#{{extra1}}</i> has been destroyed.',
     CHANGENICKNAME:
         'You nickname was changed from <i class="highlight-color">{{extra1}}</i> to <i class="highlight-color">{{extra2}}</i>',
+    LEFTGROUP:
+        'You left group <i class="highlight-color">{{extra2}}</i> with id <i class="highlight-color">#{{extra1}}</i>.',
+    ACCKICKEDFROMGROUP:
+        '<i class="highlight-color">{{extra2}}</i> with id <i class="highlight-color">#{{extra1}}</i> was kicked from <i class="highlight-color">{{threadID}}</i>.',
 });
 
 // max 30 chars, yeah intendation like this is no allowed
@@ -8639,6 +8680,8 @@ const SYSTEMTITLES = Object.freeze({
     STARTCONVERSATION: 'A new conversation started',
     ACCDELETED: 'Account you know is destroyed',
     CHANGENICKNAME: 'Your nickname has changed',
+    LEFTGROUP: 'An user left the group',
+    ACCKICKEDFROMGROUP: 'User was kicked from group',
 });
 
 class Messages extends s$1 {
@@ -10016,6 +10059,7 @@ async function syncGroupKeys(groupID) {
 
 async function syncPublicKeys(extra = []) {
     const cachedIDs = await getCachedUserIDs();
+    console.log(app.getConversationPartners());
     const accIDs = app
         .getConversationPartners()
         .concat(extra)
@@ -10194,7 +10238,15 @@ app.addEventListener('unlock', async function ({ detail }) {
     return detail.error();
 });
 app.addEventListener('leaveGroup', async function ({ detail }) {
-    console.log(detail);
+    const raw = await fetch('/groupleavemember', {
+        ...POST,
+        body: JSON.stringify(detail),
+    });
+    const { valid } = await raw.json(detail);
+
+    if (valid) {
+        return detail.done();
+    }
 });
 app.addEventListener('panic', async function ({ detail }) {
     await be8.panic();
@@ -10304,6 +10356,17 @@ app.addEventListener('createGroup', async function ({ detail }) {
         if (valid) {
             return detail.success();
         }
+    }
+});
+app.addEventListener('kickMemberFromGroup', async function ({ detail }) {
+    const raw = await fetch('/groupkickmember', {
+        ...POST,
+        body: JSON.stringify(detail),
+    });
+    const { valid } = await raw.json();
+
+    if (valid) {
+        return detail.done();
     }
 });
 app.addEventListener('addGroupMember', async function ({ detail }) {
