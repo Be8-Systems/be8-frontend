@@ -9409,11 +9409,7 @@ class AppLayout extends s$1 {
         this.#userGroupModal.members = members;
     }
 
-    setMessages({ messages, valid }) {
-        if (!valid) {
-            return;
-        }
-
+    setMessages(messages) {
         requestAnimationFrame(() => {
             this.#menus.messagesMenu.messages = messages;
             this.#menus.messagesMenu.scrollToBottom();
@@ -10181,14 +10177,39 @@ async function firstTimeVisitor(database) {
     }
 }
 
+async function decryptMessage(messages, detail) {
+    const proms = messages.map(async function (message) {
+        if (message.type === 'system') {
+            return message;
+        }
+
+        const text = await be8.decryptTextSimple(
+            detail.sender,
+            be8.getAccID(),
+            message.text,
+            message.iv
+        );
+
+        return {
+            ...message,
+            text,
+        };
+    });
+    const decryptMessage = await Promise.all(proms);
+
+    return app.setMessages(decryptMessage);
+}
+
 async function getDialogMessages(detail) {
     const raw = await fetch('/getmessages', {
         ...POST,
         body: JSON.stringify(detail),
     });
-    const data = await raw.json();
-    console.log(detail);
-    return app.setMessages(data);
+    const { valid, messages } = await raw.json();
+
+    if (valid) {
+        return await decryptMessage(messages, detail);
+    }
 }
 
 async function getGroupMessages(detail) {
