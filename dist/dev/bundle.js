@@ -8822,7 +8822,8 @@ class Messages extends s$1 {
         }"></i>`;
         const idIndicator =
             this.conversationPartner.type !== 'system'
-                ? $`#${this.conversationPartner.id}`
+                ? this.conversationPartner.id ||
+                  this.conversationPartner.groupID
                 : '';
         const name = $`<p @click="${this.clickOnUser}" class="hover-font">${icon} ${this.conversationPartner.nickname} ${idIndicator}</p>`;
         const back = $`<i @click="${
