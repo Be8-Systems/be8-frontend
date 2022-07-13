@@ -9696,7 +9696,7 @@ class Be8 {
         return publicKey && privatekey;
     }
 
-    #getKey(id) {
+    #getPublicKey(id) {
         const type = getTypeOfKey(id);
 
         if (type === 'group') {
@@ -9707,6 +9707,19 @@ class Be8 {
         }
 
         return this.#publicKeys.get(id);
+    }
+
+    #getPrivateKey(id) {
+        const type = getTypeOfKey(id);
+
+        if (type === 'group') {
+            return this.#groupKeys.get(id);
+        }
+        if (type === 'channel') {
+            return this.#channelKeys.get(id);
+        }
+
+        return this.#privateKeys.get(id);
     }
 
     async addPublicKeys(publicKeys = []) {
@@ -9966,8 +9979,8 @@ class Be8 {
     }
 
     async encryptTextSimple(accIDSender, accIDReceiver, text) {
-        const publicKey = this.#getKey(accIDReceiver);
-        const privateKey = this.#privateKeys.get(accIDSender);
+        const publicKey = this.#getPublicKey(accIDReceiver);
+        const privateKey = this.#getPrivateKey(accIDSender);
 
         if (!publicKey) {
             throw `engine: Missing public key for ${accIDReceiver} at encryptTextSimple`;
@@ -9982,8 +9995,8 @@ class Be8 {
     }
 
     async decryptTextSimple(accIDSender, accIDReceiver, cipherText, iv) {
-        const publicKey = this.#getKey(accIDSender);
-        const privateKey = this.#privateKeys.get(accIDReceiver);
+        const publicKey = this.#getPublicKey(accIDSender);
+        const privateKey = this.#getPrivateKey(accIDReceiver);
 
         if (!publicKey) {
             throw `engine: Missing public key for ${accIDSender} at decryptTextSimple`;
@@ -10039,8 +10052,8 @@ class Be8 {
     }
 
     async encryptImageSimple(accIDSender, accIDReceiver, base64Image) {
-        const publicKey = this.#getKey(accIDReceiver);
-        const privateKey = this.#privateKeys.get(accIDSender);
+        const publicKey = this.#getPublicKey(accIDReceiver);
+        const privateKey = this.#getPrivateKey(accIDSender);
 
         if (!publicKey) {
             throw `engine: Missing public key for ${accIDSender} at encryptImageSimple`;
@@ -10055,8 +10068,8 @@ class Be8 {
     }
 
     async decryptImageSimple(accIDSender, accIDReceiver, cipherImage, iv) {
-        const publicKey = this.#getKey(accIDSender);
-        const privateKey = this.#privateKeys.get(accIDReceiver);
+        const publicKey = this.#getPublicKey(accIDSender);
+        const privateKey = this.#getPrivateKey(accIDReceiver);
 
         if (!publicKey) {
             throw `engine: Missing public key for ${accIDSender} at decryptImageSimple`;
@@ -10204,7 +10217,7 @@ async function fetchKeysAndAdd(groupID, cachedVersions) {
 async function syncGroupKeys(groupID) {
     const cachedVersions = await be8.getCachedGroupVersions(groupID);
     const lastVersion = cachedVersions[cachedVersions.length - 1];
-    const { groupVersion } = await groupGetVersion(groupID);
+    const groupVersion = await groupGetVersion(groupID);
 
     if (!lastVersion || parseInt(groupVersion) > parseInt(lastVersion)) {
         return await fetchKeysAndAdd(groupID, cachedVersions);
@@ -10329,8 +10342,9 @@ async function groupGetVersion(groupID) {
         ...POST,
         body: JSON.stringify({ groupID }),
     });
+    const { groupVersion } = await raw.json();
 
-    return await raw.json();
+    return groupVersion;
 }
 
 async function updateGroupKeyForParticipants(groupID, groupKey) {
@@ -10368,7 +10382,7 @@ async function updateGroupKeyForParticipants(groupID, groupKey) {
 }
 
 async function generateGroupKey(groupID) {
-    const { groupVersion } = await groupGetVersion(groupID);
+    const groupVersion = await groupGetVersion(groupID);
     const [, groupKey] = await be8.generateGroupKeys(groupVersion, groupID);
 
     return groupKey;
@@ -10567,10 +10581,13 @@ app.addEventListener('threadSelect', async function ({ detail }) {
     }
 });
 app.addEventListener('writeMessage', async function ({ detail }) {
-    const sender = be8.getAccID();
+    const groupID = detail.convPartner.groupID;
+    const groupVersion = groupID ? await groupGetVersion(groupID) : undefined;
+    const sender = groupID ? `${groupID}:${groupVersion}` : be8.getAccID();
+    const receiver = groupID ? be8.getAccID() : detail.convPartner.id;
     const { cipherText, iv } = await be8.encryptTextSimple(
         sender,
-        detail.convPartner.id,
+        receiver,
         detail.message
     );
 
@@ -10578,8 +10595,8 @@ app.addEventListener('writeMessage', async function ({ detail }) {
         ...POST,
         body: JSON.stringify({
             nickname: detail.ME.nickname,
-            receiver: detail.convPartner.id,
-            sender,
+            receiver: detail.convPartner.id || detail.convPartner.groupID,
+            sender: be8.getAccID(),
             text: cipherText,
             iv,
             threadID: detail.convPartner.threadID,
