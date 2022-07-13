@@ -8785,12 +8785,21 @@ class Messages extends s$1 {
     writeMessage(e) {
         if (e.key === 'Enter') {
             const message = this.#messageInput.value.trim();
+            const isGroup = !!this.conversationPartner.groupID;
+            const receiver =
+                this.conversationPartner.id ||
+                this.conversationPartner.groupID ||
+                this.conversationPartner.channelID;
             const writeEvent = new CustomEvent('writeMessage', {
                 bubbles: false,
                 detail: {
                     message,
-                    ME: this.ME,
-                    convPartner: this.conversationPartner,
+                    ...this.ME,
+                    sender: this.ME.id,
+                    receiver,
+                    threadID: this.conversationPartner.threadID,
+                    isGroup,
+                    messageType: 'text',
                 },
             });
 
@@ -10146,25 +10155,31 @@ async function generateEngine({ id }, database) {
 }
 
 async function decryptMessages(cipherMessages, detail) {
+    const yourID = be8.getAccID();
     const proms = cipherMessages.map(async function (message) {
-        const sender = detail?.sender || message.sender;
+        const sender =
+            message.groupVersionKey || detail?.sender || message.sender;
+        const receiver = message.groupVersionKey ? message.receiver : yourID;
 
         if (message.messageType === 'system') {
             return message;
         }
         if (message.messageType === 'text') {
+            console.log(message);
+            console.log(sender, receiver);
             const text = await be8.decryptTextSimple(
                 sender,
-                be8.getAccID(),
+                receiver,
                 message.text,
                 message.iv
             );
+
             message.text = text;
         }
         if (message.messageType === 'image') {
             const content = await be8.decryptImageSimple(
                 sender,
-                be8.getAccID(),
+                receiver,
                 message.text,
                 message.iv
             );
@@ -10581,10 +10596,13 @@ app.addEventListener('threadSelect', async function ({ detail }) {
     }
 });
 app.addEventListener('writeMessage', async function ({ detail }) {
-    const groupID = detail.convPartner.groupID;
-    const groupVersion = groupID ? await groupGetVersion(groupID) : undefined;
-    const sender = groupID ? `${groupID}:${groupVersion}` : be8.getAccID();
-    const receiver = groupID ? be8.getAccID() : detail.convPartner.id;
+    const groupVersion = detail.isGroup
+        ? await groupGetVersion(detail.receiver)
+        : false;
+    const sender = detail.isGroup
+        ? `${detail.receiver}:${groupVersion}`
+        : be8.getAccID();
+    const receiver = detail.isGroup ? be8.getAccID() : detail.receiver;
     const { cipherText, iv } = await be8.encryptTextSimple(
         sender,
         receiver,
@@ -10594,13 +10612,12 @@ app.addEventListener('writeMessage', async function ({ detail }) {
     await fetch('/writemessage', {
         ...POST,
         body: JSON.stringify({
-            nickname: detail.ME.nickname,
-            receiver: detail.convPartner.id || detail.convPartner.groupID,
-            sender: be8.getAccID(),
+            ...detail,
+            ...(detail.isGroup
+                ? { groupVersionKey: `${detail.receiver}:${groupVersion}` }
+                : {}),
             text: cipherText,
             iv,
-            threadID: detail.convPartner.threadID,
-            messageType: 'text',
         }),
     });
 });
