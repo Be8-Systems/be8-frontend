@@ -8671,6 +8671,8 @@ const SYSTEMMESSAGES = Object.freeze({
         'You were kicked from group <i class="highlight-color">{{extra2}}</i> with id <i class="highlight-color">#{{extra1}}</i>',
     ACCKICKEDFROMGROUP:
         '<i class="highlight-color">{{extra2}}</i> with id <i class="highlight-color">#{{extra1}}</i> was kicked from <i class="highlight-color">{{threadID}}</i>.',
+    GROUPDELETED:
+        'Group <i class="highlight-color">{{extra2}}</i> with id <i class="highlight-color">#{{extra1}}</i> was deleted.',
 });
 
 // max 30 chars, yeah intendation like this is no allowed
@@ -8688,7 +8690,10 @@ const SYSTEMTITLES = Object.freeze({
     KICKEDFROMGROUP: 'You were kicked from a group',
     ACCLEFTGROUP: 'Acc left group',
     ACCKICKEDFROMGROUP: 'User was kicked from group',
+    GROUPDELETED: 'Group was deleted',
 });
+
+const maxImageSize = 2097152; // 2mb
 
 class Messages extends s$1 {
     static properties = {
@@ -8794,14 +8799,7 @@ class Messages extends s$1 {
     }
 
     uploadMedia() {
-        const writeEvent = new CustomEvent('uploadMedia', {
-            bubbles: false,
-            detail: {
-                ...this.ME,
-            },
-        });
-
-        return domCache.app.dispatchEvent(writeEvent);
+        this.querySelector('input[type="file"]').click();
     }
 
     scrollToBottom() {
@@ -8812,8 +8810,60 @@ class Messages extends s$1 {
         });
     }
 
+    #sendImage(content) {
+        const uploadEvent = new CustomEvent('uploadMedia', {
+            bubbles: false,
+            detail: {
+                contentID: randomString(),
+                contentType: 'image',
+                content,
+                receiver: this.conversationPartner.sender,
+                sender: this.ME.id,
+                threadID: this.conversationPartner.threadID,
+                messageType: 'image',
+                done: () => {},
+            },
+        });
+
+        return domCache.app.dispatchEvent(uploadEvent);
+    }
+
+    #generateImageBlob(file) {
+        const reader = new FileReader();
+        const imgTag = document.createElement('img');
+        const url = URL.createObjectURL(file);
+
+        reader.onload = () => {
+            imgTag.src = url;
+
+            imgTag.onload = () => {
+                this.#sendImage(reader.result);
+                return URL.revokeObjectURL(url);
+            };
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    changeInputEvent({ target }) {
+        const file = [...target.files][0];
+
+        if (file.size >= maxImageSize) {
+            domCache.toast.notification = {
+                type: 'error',
+                text: 'Max allowed file size for images is 2mb. Please choose a smaller one.',
+            };
+
+            return domCache.toast.open();
+        }
+
+        this.#generateImageBlob(file);
+        target.setAttribute('value', ''); // allow double upload of the same picture
+        target.value = null;
+    }
+
     renderWriteContainer() {
-        return $`<div class="write-container"><input @keydown="${this.writeMessage}" class="write-message-input" type="text" maxlength="1000"><div><i @click="${this.uploadMedia}" class="fa-solid fa-photo-film hover-font"></i></div></div>`;
+        return $`<div class="write-container"><input @keydown="${this.writeMessage}" class="write-message-input" type="text" maxlength="1000"><div><i @click="${this.uploadMedia}" class="fa-solid fa-photo-film hover-font"></i><input class="hide" @change="${this.changeInputEvent}" type="file" accept="image/png, image/gif, image/jpeg"></div></div>`;
     }
 
     renderConversationPartner() {
@@ -9948,6 +9998,7 @@ class Be8 {
     async encryptImage(derivedKey, base64Image) {
         const encodedText = new TextEncoder().encode(base64Image);
         const iv = generateIV();
+        const stringifiedIV = new TextDecoder().decode(iv);
 
         if (!derivedKey) {
             throw 'engine: no derived key passed to decryptText';
@@ -9958,7 +10009,7 @@ class Be8 {
             .then(function (encryptedData) {
                 return {
                     cipherImage: arrayBufferToBase64(encryptedData),
-                    iv,
+                    iv: stringifiedIV,
                 };
             });
     }
@@ -9968,9 +10019,10 @@ class Be8 {
         const uintArray = new Uint8Array(
             [...mstring].map((char) => char.charCodeAt(0))
         );
+        const parsedIV = new TextEncoder('utf-8').encode(iv);
         const algorithm = {
             name: 'AES-GCM',
-            iv,
+            iv: parsedIV,
         };
 
         if (!derivedKey) {
@@ -10085,18 +10137,26 @@ async function decryptMessages(cipherMessages, detail) {
         if (message.messageType === 'system') {
             return message;
         }
+        if (message.messageType === 'text') {
+            const text = await be8.decryptTextSimple(
+                sender,
+                be8.getAccID(),
+                message.text,
+                message.iv
+            );
+            message.text = text;
+        }
+        if (message.messageType === 'image') {
+            const content = await be8.decryptImageSimple(
+                sender,
+                be8.getAccID(),
+                message.text,
+                message.iv
+            );
+            message.content = content;
+        }
 
-        const text = await be8.decryptTextSimple(
-            sender,
-            be8.getAccID(),
-            message.text,
-            message.iv
-        );
-
-        return {
-            ...message,
-            text,
-        };
+        return message;
     });
 
     return await Promise.all(proms);
@@ -10521,10 +10581,27 @@ app.addEventListener('writeMessage', async function ({ detail }) {
             text: cipherText,
             iv,
             threadID: detail.convPartner.threadID,
-            type: 'textMessage',
+            messageType: 'text',
         }),
     });
 });
 app.addEventListener('uploadMedia', async function ({ detail }) {
-    console.log(detail);
+    const { cipherImage, iv } = await be8.encryptImageSimple(
+        detail.sender,
+        detail.receiver,
+        detail.content
+    );
+    const raw = await fetch('/imageupload', {
+        ...POST,
+        body: JSON.stringify({
+            ...detail,
+            content: cipherImage,
+            iv,
+        }),
+    });
+    const { valid } = await raw.json();
+
+    if (valid) {
+        return detail.done();
+    }
 });
