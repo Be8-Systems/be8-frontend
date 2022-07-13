@@ -8691,6 +8691,8 @@ const SYSTEMTITLES = Object.freeze({
     ACCLEFTGROUP: 'Acc left group',
     ACCKICKEDFROMGROUP: 'User was kicked from group',
     GROUPDELETED: 'Group was deleted',
+    SENTIMAGE: 'You sent an image',
+    RECEIVEDIMAGE: 'You received an image',
 });
 
 const maxImageSize = 2097152; // 2mb
