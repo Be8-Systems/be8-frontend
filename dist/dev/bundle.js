@@ -8649,6 +8649,8 @@ customElements.define('groupuser-modal-window', GroupUsermodal);
 const SYSTEMMESSAGES = Object.freeze({
     WELCOME:
         'Welcome to Be8, your nickname is <i class="highlight-color">{{nickname}}</i>. Be8 is the first ever real privacy messenger. Everything is End-to-End encrypted, only your device knows your key! Everything gets deleted after 30 days even your account, but you can create as much accounts as you want. Your id is <i class="highlight-color">#{{id}}</i>. You can find your expire date on the top left. Have fun.',
+    STARTCONVERSATION:
+        'Start conversation with <i class="highlight-color">#{{conversationID}}</i>',
     CREATEDGROUP:
         'You created a new group with the id <i class="highlight-color">{{extra1}}</i> and name <i class="highlight-color">{{extra2}}</i>',
     ADDEDTOGROUP:
@@ -8657,8 +8659,6 @@ const SYSTEMMESSAGES = Object.freeze({
         '<i class="highlight-color">{{extra1}}</i> id <i class="highlight-color">#{{extra2}}</i> was added to the group.',
     ACCJOINEDGROUP:
         '<i class="highlight-color">{{extra2}}</i> with id <i class="highlight-color">{{extra1}}</i> joined {{threadID}}.',
-    STARTCONVERSATION:
-        'Start conversation with <i class="highlight-color">#{{conversationID}}</i>',
     ACCDELETED:
         'Account <i class="highlight-color">#{{extra1}}</i> has been destroyed.',
     CHANGENICKNAME:
@@ -8679,11 +8679,11 @@ const SYSTEMMESSAGES = Object.freeze({
 // but in this case it helps to figure out how long your title is.
 const SYSTEMTITLES = Object.freeze({
     WELCOME: 'Welcome to the Be8 messenger',
+    STARTCONVERSATION: 'A new conversation started',
     CREATEDGROUP: 'You created a new group',
     ADDEDTOGROUP: 'You were added to the group',
     ACCADDEDTOGROUP: 'User was added to the group',
     ACCJOINEDGROUP: 'Acc joined group',
-    STARTCONVERSATION: 'A new conversation started',
     ACCDELETED: 'Account you know is destroyed',
     CHANGENICKNAME: 'Your nickname has changed',
     LEFTGROUP: 'An user left the group',
@@ -8691,8 +8691,8 @@ const SYSTEMTITLES = Object.freeze({
     ACCLEFTGROUP: 'Acc left group',
     ACCKICKEDFROMGROUP: 'User was kicked from group',
     GROUPDELETED: 'Group was deleted',
-    SENTIMAGE: 'You sent an image',
-    RECEIVEDIMAGE: 'You received an image',
+    SENTIMAGE: '🌆 You sent an image',
+    RECEIVEDIMAGE: '🌆 You received an image',
 });
 
 const maxImageSize = 2097152; // 2mb
@@ -8794,7 +8794,6 @@ class Messages extends s$1 {
                 bubbles: false,
                 detail: {
                     message,
-                    ...this.ME,
                     sender: this.ME.id,
                     receiver,
                     threadID: this.conversationPartner.threadID,
@@ -8914,7 +8913,10 @@ class Messages extends s$1 {
                 .replace('{{id}}', this.ME.id)
                 .replace('{{threadID}}', message.threadID)
                 .replace('{{nickname}}', this.ME.nickname)
-                .replace('{{conversationID}}', this.conversationPartner.sender);
+                .replace(
+                    '{{conversationID}}',
+                    this.conversationPartner.partner
+                );
             return $`<p>${o(sanText)}</p>`;
         }
 
@@ -9186,6 +9188,7 @@ function renderThread({
     expire,
     nickname,
     sender,
+    partner,
     text,
     threadID,
     ts,
@@ -9201,13 +9204,13 @@ function renderThread({
             : '';
     const senderID = isSystem
         ? ''
-        : $`<span class="float-right">#${sender}<span></span></span>`;
+        : $`<span class="float-right">#${partner}<span></span></span>`;
     const sanText = generateSanText(text, isSystem);
     const readIndicator = $`<span class="thread-read-indicator${
         status === 'read' ? ' shrink-to-zero' : ''
     }"></span>`;
 
-    return $`<div expire="${expire}" id="${threadID}" sender="${sender}" type="${type}" class="thread hover-background">${readIndicator}${icon}<div><p>${nickname}  ${endlessIcon}${senderID}</p><p>${sanText} <span class="float-right unselectable">${dateTime}</span></p></div></div>`;
+    return $`<div partner="${partner}" type="${type}" class="thread hover-background">${readIndicator}${icon}<div><p>${nickname}  ${endlessIcon}${senderID}</p><p>${sanText} <span class="float-right unselectable">${dateTime}</span></p></div></div>`;
 }
 
 class Threads extends s$1 {
@@ -9242,8 +9245,8 @@ class Threads extends s$1 {
 
     clickOnThreads(e) {
         const parent = e.target.expire ? e.target : e.target.closest('.thread');
-        const sender = parent.getAttribute('sender');
-        const thread = this.threads.find((t) => t.sender === sender);
+        const partner = parent.getAttribute('partner');
+        const thread = this.threads.find((t) => t.partner === partner);
         const threadEvent = new CustomEvent('threadSelect', {
             bubbles: false,
             detail: {
@@ -9471,10 +9474,8 @@ class AppLayout extends s$1 {
     }
 
     setMessages(messages) {
-        requestAnimationFrame(() => {
-            this.#menus.messagesMenu.messages = messages;
-            this.#menus.messagesMenu.scrollToBottom();
-        });
+        this.#menus.messagesMenu.messages = messages.filter((m) => m.valid);
+        this.#menus.messagesMenu.scrollToBottom();
     }
 
     setThreads(threads) {
@@ -9484,7 +9485,7 @@ class AppLayout extends s$1 {
 
     getConversationPartners() {
         return this.#threads.threads
-            .map((t) => t.sender)
+            .map((t) => t.partner)
             .filter((id) => id !== 's1');
     }
 
@@ -9703,6 +9704,19 @@ class Be8 {
         }
 
         return publicKey && privatekey;
+    }
+
+    hasKey(id) {
+        const type = getTypeOfKey(id);
+
+        if (type === 'group') {
+            return this.#groupKeys.has(id);
+        }
+        if (type === 'channel') {
+            return this.#channelKeys.has(id);
+        }
+
+        return this.#privateKeys.has(id);
     }
 
     #getPublicKey(id) {
@@ -10154,22 +10168,28 @@ async function generateEngine({ id }, database) {
     return await be8.setup();
 }
 
-async function decryptMessages(cipherMessages, detail) {
+async function decryptMessages(cipherMessages) {
     const yourID = be8.getAccID();
     const proms = cipherMessages.map(async function (message) {
-        const sender =
-            message.groupVersionKey || detail?.sender || message.sender;
-        const receiver = message.groupVersionKey ? message.receiver : yourID;
+        const dialogPublicId =
+            message.sender === yourID ? message.receiver : message.sender;
+        const idForPublicKey = message.groupVersionKey
+            ? message.sender
+            : dialogPublicId;
+        const idForPrivateKey = message.groupVersionKey || yourID;
+        const hasKey = be8.hasKey(idForPrivateKey);
 
         if (message.messageType === 'system') {
             return message;
         }
+        if (!hasKey) {
+            message.valid = false;
+            return message;
+        }
         if (message.messageType === 'text') {
-            console.log(message);
-            console.log(sender, receiver);
             const text = await be8.decryptTextSimple(
-                sender,
-                receiver,
+                idForPublicKey,
+                idForPrivateKey,
                 message.text,
                 message.iv
             );
@@ -10178,8 +10198,8 @@ async function decryptMessages(cipherMessages, detail) {
         }
         if (message.messageType === 'image') {
             const content = await be8.decryptImageSimple(
-                sender,
-                receiver,
+                idForPublicKey,
+                idForPrivateKey,
                 message.text,
                 message.iv
             );
@@ -10237,8 +10257,6 @@ async function syncGroupKeys(groupID) {
     if (!lastVersion || parseInt(groupVersion) > parseInt(lastVersion)) {
         return await fetchKeysAndAdd(groupID, cachedVersions);
     }
-
-    return;
 }
 
 async function syncAllGroupKeys(groupIDs) {
@@ -10275,11 +10293,21 @@ async function getThreads() {
     const { valid, threads } = await raw.json();
     const groupIDs = threads.filter((t) => t.groupID).map((t) => t.groupID);
     const dialogIDs = threads
-        .filter((t) => !t.groupID && t.sender !== 's1')
-        .map((t) => t.sender);
+        .filter((t) => !t.groupID && t.partner !== 's1')
+        .map((t) => t.partner);
+    const allMembersOfGroups = groupIDs.map(async function (groupID) {
+        const raw = await fetch('/groupgetmembers', {
+            ...POST,
+            body: JSON.stringify({ groupID }),
+        });
+        return await raw.json();
+    });
+    const members = await Promise.all(allMembersOfGroups);
+    const memberIDs = members.flatMap((amg) => amg.members.map((m) => m.id));
+    const uniqueMembersIDs = [...new Set(dialogIDs.concat(memberIDs))];
 
     await syncAllGroupKeys(groupIDs);
-    await syncPublicKeys(dialogIDs);
+    await syncPublicKeys(uniqueMembersIDs);
 
     if (!valid) {
         return;
@@ -10328,7 +10356,7 @@ async function getDialogMessages(detail) {
     const { valid, messages } = await raw.json();
 
     if (valid) {
-        const sanMessages = await decryptMessages(messages, detail);
+        const sanMessages = await decryptMessages(messages);
         return app.setMessages(sanMessages);
     }
 }
@@ -10347,7 +10375,8 @@ async function getGroupMessages(detail) {
 
     if (valid) {
         await syncGroupKeys(detail.groupID);
-        app.setMessages(messages);
+        const sanMessages = await decryptMessages(messages);
+        app.setMessages(sanMessages);
         return app.setGroupMember(members);
     }
 }
