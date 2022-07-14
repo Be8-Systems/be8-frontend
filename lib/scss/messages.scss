@@ -72,9 +72,24 @@ messages-menu {
     color: var(--color-on-surface);
 }
 
-.message i.fa-check {
+.message-bottom-line .read-check {
+    color: var(--color-check);
+}
+
+.message-top-line {
+    display: flex;
+    justify-content: space-between;
+}
+
+.sent-check {
     color: var(--color-secondary-variant);
 }
+
+.message-bottom-line {
+    color: var(--color-secondary-variant);
+    margin-top: 10px;
+    margin-left: 5px;
+} 
 
 .write-container {
     display: flex;
