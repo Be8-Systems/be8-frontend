@@ -8199,6 +8199,102 @@ const groupMemberIcons = Object.freeze({
     specialUser: 'user-graduate',
     user: 'user',
 });
+const memberIcons = Object.freeze([
+    '🦖',
+    '🦕',
+    '🐙',
+    '🦑',
+    '🦐',
+    '🦞',
+    '🦀',
+    '🐡',
+    '🐠',
+    '🐟',
+    '🐬',
+    '🐳',
+    '🐋',
+    '🦈',
+    '🐊',
+    '🐶',
+    '🐱',
+    '🐭',
+    '🐹',
+    '🐰',
+    '🦊',
+    '🐻',
+    '🐼',
+    '🐨',
+    '🐯',
+    '🦁',
+    '🐮',
+    '🐷',
+    '🐽',
+    '🐸',
+    '🐵',
+    '🐔',
+    '🐧',
+    '🐦',
+    '🐤',
+    '🐣',
+    '🦆',
+    '🦅',
+    '🦉',
+    '🦇',
+    '🐺',
+    '🐗',
+    '🐴',
+    '🦄',
+    '🐝',
+    '🐛',
+    '🦋',
+    '🐌',
+    '🐞',
+    '🐜',
+    '🦟',
+    '🦗',
+    '🕷',
+    '🦂',
+    '🐢',
+    '🐍',
+    '🦎',
+    '🐅',
+    '🐆',
+    '🦓',
+    '🦍',
+    '🐘',
+    '🦛',
+    '🦏',
+    '🐪',
+    '🐫',
+    '🦒',
+    '🦘',
+    '🐃',
+    '🐂',
+    '🐄',
+    '🐎',
+    '🐖',
+    '🐏',
+    '🐑',
+    '🦙',
+    '🐐',
+    '🦌',
+    '🐕',
+    '🐩',
+    '🐈',
+    '🐓',
+    '🦃',
+    '🦚',
+    '🦜',
+    '🦢',
+    '🕊',
+    '🐇',
+    '🦝',
+    '🦡',
+    '🐁',
+    '🐀',
+    '🐿',
+    '🦔',
+]);
 
 class Usermodal extends Modal {
     static properties = {
@@ -8444,17 +8540,21 @@ class GroupUsermodal extends Modal {
         animateMainToSide(this.#modalContent, this.#leaveGroupSide);
     }
 
-    #renderGroupSettings() {
+    #renderGroupSettings(amIAdmin) {
         const isPrivate = this.conversationPartner.groupType === 'private';
         const invite = isPrivate
             ? ''
             : $`<div class="sub-modal-button hover-background" @click="${
                   this.#inviteUser
               }"><i class="fa-solid fa-person-circle-plus"></i> Invite User <i class="fa-solid fa-arrow-right float-right"></i></div>`;
+        const addUser =
+            amIAdmin || !isPrivate
+                ? $`<div @click="${
+                      this.#addUser
+                  }" class="sub-modal-button hover-background"><i class="fa-solid fa-plus"></i> Add Member <i class="fa-solid fa-arrow-right float-right"></i></div>`
+                : '';
 
-        return $`<div class="group-actions"><div @click="${
-            this.#addUser
-        }" class="sub-modal-button hover-background"><i class="fa-solid fa-plus"></i> Add Member <i class="fa-solid fa-arrow-right float-right"></i></div>${invite}<div class="sub-modal-button hover-background" @click="${
+        return $`<div class="group-actions">${addUser}${invite}<div class="sub-modal-button hover-background" @click="${
             this.#leaveGroup
         }"><i class="fa-solid fa-person-through-window"></i> Leave Group <i class="fa-solid fa-arrow-right float-right"></i></div></div>`;
     }
@@ -8462,8 +8562,10 @@ class GroupUsermodal extends Modal {
     open() {
         const qr = this.querySelector('.qr');
 
-        qr.innerHTML = '';
-        new QRCode(qr, { text: this.inviteUrl });
+        if (qr) {
+            qr.innerHTML = '';
+            new QRCode(qr, { text: this.inviteUrl });
+        }
 
         return super.open();
     }
@@ -8556,7 +8658,8 @@ class GroupUsermodal extends Modal {
         return domCache.app.dispatchEvent(event);
     }
 
-    #renderSiderGroup(amIAdmin) {
+    #renderSideGroup(amIAdmin) {
+        const isPrivate = this.conversationPartner.groupType === 'private';
         const url = generateSafeLink('group', this.conversationPartner.id);
         const backToMain = $`<i @click="${
             this.#clickOnBackToMain
@@ -8572,9 +8675,11 @@ class GroupUsermodal extends Modal {
         }" class="danger-background">Yes</button><button @click="${
             this.close
         }" class="hover-background">No</button></div></div>`;
-        const invite = $`<div class="invite-group-modal hide"><p class="create-group-headline">${backToMain} Invite Friends to your Group</p><p>${o(
-            LANG.INVITELINK.replaceAll('{{link}}', url)
-        )}</p><br><div class="qr"></div><br></div>`;
+        const invite = isPrivate
+            ? $`<div class="invite-group-modal hide"><p class="create-group-headline">${backToMain} Invite Friends to your Group</p><p>${o(
+                  LANG.INVITELINK.replaceAll('{{link}}', url)
+              )}</p><br><div class="qr"></div><br></div>`
+            : '';
 
         this.inviteUrl = url;
 
@@ -8609,8 +8714,8 @@ class GroupUsermodal extends Modal {
                 ? 'orange-background'
                 : 'danger-background';
         const hl = $`<p class="create-group-headline"><small class="group-type-badge ${color} float-left">${this.conversationPartner.groupType}</small> ${this.conversationPartner.nickname}</p>`;
-        const settings = this.#renderGroupSettings();
         const amIAdmin = this.ME.id === this.conversationPartner.admin;
+        const settings = this.#renderGroupSettings(amIAdmin);
         const members = c(
             this.members,
             (members) => members.id,
@@ -8638,7 +8743,7 @@ class GroupUsermodal extends Modal {
             }
         );
         const content = $`${hl}<div class="group-members">${members}</div>${settings}`;
-        const sideContent = this.#renderSiderGroup(amIAdmin);
+        const sideContent = this.#renderSideGroup(amIAdmin);
 
         return super.render(content, sideContent);
     }
@@ -8901,26 +9006,12 @@ class Messages extends s$1 {
         return $`<div class="conversation-partner">${back}${user}</div>`;
     }
 
-    #renderSecondLine(message, isSysMessage) {
+    #renderMessageContent(message, timeIndicator) {
         if (message.type === 'imageMessage') {
             return $`<img data-contentid="${message.contentID}" src="">`;
         }
-        if (isSysMessage) {
-            const sanText = SYSTEMMESSAGES[message.text]
-                .replace('{{extra1}}', message.extra1)
-                .replace('{{extra2}}', message.extra2)
-                .replace('{{extra3}}', message.extra3)
-                .replace('{{id}}', this.ME.id)
-                .replace('{{threadID}}', message.threadID)
-                .replace('{{nickname}}', this.ME.nickname)
-                .replace(
-                    '{{conversationID}}',
-                    this.conversationPartner.partner
-                );
-            return $`<p>${o(sanText)}</p>`;
-        }
 
-        return $`<p>${message.text}</p>`;
+        return $`<p class="message-text">${message.text} ${timeIndicator}</p>`;
     }
 
     #renderStatusIndicator(amIsender, status, isGroup) {
@@ -8928,13 +9019,66 @@ class Messages extends s$1 {
             return '';
         }
         if (!isGroup && status.length === 1) {
-            return $`  <i class="fa-solid fa-check"></i><i class="fa-solid fa-check"></i>`;
+            return $`  <i class="fa-solid fa-check read-check"></i><i class="fa-solid fa-check read-check"></i>`;
         }
-        /*if (false) { // implement group logic
+        if (
+            isGroup &&
+            this.#userGroupModal.members.every(
+                (m) => status.includes(m.id) || m.id === this.ME.id
+            )
+        ) {
+            return $`  <i class="fa-solid fa-check read-check"></i><i class="fa-solid fa-check read-check"></i>`;
+        }
 
-        }*/
+        return $`  <i class="fa-solid fa-check sent-check"></i>`;
+    }
 
-        return $`  <i class="fa-solid fa-check"></i>`;
+    #getNicknameLine(message) {
+        const { nickname, id, memberIcon, color } =
+            this.#userGroupModal.members.find(
+                (member) => member.id === message.sender
+            );
+        return $`<p class="group-color-${color} message-top-line"><span>${memberIcon} ${nickname}</span>  <span>#${id}</span></p>`;
+    }
+
+    #renderUserMessage(message, isGroup) {
+        const { messageID, nickname, sender, status, ts } = message;
+        const amIsender = sender === this.ME.id;
+        const dateTime = new Date(ts);
+        const time = dateTime.toLocaleTimeString();
+        const firstLine =
+            isGroup && !amIsender ? this.#getNicknameLine(message) : '';
+        const statusIndicator = this.#renderStatusIndicator(
+            amIsender,
+            status,
+            isGroup
+        );
+        const thirdLine = $`<small class="message-bottom-line float-right unselectable">${time}${statusIndicator}</small>`;
+        const secondLine = this.#renderMessageContent(message, thirdLine);
+
+        return $`<div alt="${nickname}" data-messageid="${messageID}" class="message-container"><div class="message ${
+            amIsender ? 'sent-message' : 'received-message'
+        }">${firstLine}${secondLine}</div></div>`;
+    }
+
+    #renderSysMessage(message) {
+        const dateTime = new Date(message.ts);
+        const time = dateTime.toLocaleTimeString();
+        const secondLine = SYSTEMMESSAGES[message.text]
+            .replace('{{extra1}}', message.extra1)
+            .replace('{{extra2}}', message.extra2)
+            .replace('{{extra3}}', message.extra3)
+            .replace('{{id}}', this.ME.id)
+            .replace('{{threadID}}', message.threadID)
+            .replace('{{nickname}}', this.ME.nickname)
+            .replace('{{conversationID}}', this.conversationPartner.partner);
+        const thirdLine = $`<p><small class="float-right unselectable">${time}</small></p>`;
+
+        return $`<div alt="${message.nickname}" data-messageid="${
+            message.messageID
+        }" class="message-container system-message"><div class="message"><p>${o(
+            secondLine
+        )}</p>${thirdLine}</div></div>`;
     }
 
     render() {
@@ -8943,28 +9087,13 @@ class Messages extends s$1 {
             this.messages,
             (message) => message.messageID,
             (message) => {
-                const { messageID, nickname, sender, status, ts, messageType } =
-                    message;
-                const isSysMessage = messageType === 'system';
-                const dateTime = new Date(ts);
-                const amIsender = sender === this.ME.id;
-                const time = dateTime.toLocaleTimeString();
-                const firstLine = $``;
-                const secondLine = this.#renderSecondLine(
-                    message,
-                    isSysMessage
-                );
-                const statusIndicator = this.#renderStatusIndicator(
-                    amIsender,
-                    status,
-                    isGroup
-                );
-                const thirdLine = $`<p><small class="float-right unselectable">${time}${statusIndicator}</small></p>`;
-                const classes = isSysMessage ? ' system-message' : '';
+                const isSysMessage = message.messageType === 'system';
 
-                return $`<div alt="${nickname}" data-messageid="${messageID}" class="message-container${classes}"><div class="message ${
-                    amIsender ? 'sent-message' : 'received-message'
-                }">${firstLine}${secondLine}${thirdLine}</div></div>`;
+                if (isSysMessage) {
+                    return this.#renderSysMessage(message);
+                }
+
+                return this.#renderUserMessage(message, isGroup);
             }
         );
         const messagesContainer = $`<div class="messages">${messages}</div>`;
@@ -9470,7 +9599,12 @@ class AppLayout extends s$1 {
             return;
         }
 
-        this.#userGroupModal.members = members;
+        this.#userGroupModal.members = members.map(function (member, i) {
+            member.memberIcon = memberIcons[i <= 16 ? i : i - 16];
+            member.color = i + 1;
+
+            return member;
+        });
     }
 
     setMessages(messages) {
@@ -10362,11 +10496,11 @@ async function getDialogMessages(detail) {
 }
 
 async function getGroupMessages(detail) {
-    const rawMessage = await fetch('/getmessages', {
+    const rawMembers = await fetch('/groupgetmembers', {
         ...POST,
         body: JSON.stringify(detail),
     });
-    const rawMembers = await fetch('/groupgetmembers', {
+    const rawMessage = await fetch('/getmessages', {
         ...POST,
         body: JSON.stringify(detail),
     });
