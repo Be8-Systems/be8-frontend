@@ -9007,7 +9007,7 @@ class Messages extends s$1 {
     }
 
     #renderMessageContent(message, timeIndicator) {
-        if (message.type === 'imageMessage') {
+        if (message.messageType === 'image') {
             return $`<img data-contentid="${message.contentID}" src="">`;
         }
 
