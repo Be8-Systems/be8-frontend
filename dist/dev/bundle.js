@@ -9089,6 +9089,9 @@ class Messages extends s$1 {
             (message) => {
                 const isSysMessage = message.messageType === 'system';
 
+                if (message.messageType === 'removed') {
+                    return 'removed!';
+                }
                 if (isSysMessage) {
                     return this.#renderSysMessage(message);
                 }
