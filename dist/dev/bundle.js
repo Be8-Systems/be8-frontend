@@ -10538,7 +10538,6 @@ async function getGroupMembers(groupID) {
 async function updateGroupKeyForParticipants(groupID, groupKey, groupMembers) {
     const keyString = JSON.stringify(groupKey);
     const members = groupMembers || (await getGroupMembers(groupID));
-    console.log(groupMembers, members);
     const memberIDs = members.map((m) => m.id);
 
     await syncPublicKeys(memberIDs);
@@ -10589,7 +10588,7 @@ async function generateNewGroupKeyBeforeLeave(groupID) {
     const sanGroupMembers = groupMembers.filter(
         ({ id }) => id !== be8.getAccID()
     );
-    console.log(groupMembers, sanGroupMembers, '_________________________');
+
     await updateGroupKeyForParticipants(groupID, groupKey, sanGroupMembers);
     return await syncGroupKeys(groupID);
 }
