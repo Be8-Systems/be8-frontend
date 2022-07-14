@@ -10506,7 +10506,7 @@ async function getGroupMessages(detail) {
     });
     const { valid, messages } = await rawMessage.json();
     const members = await rawMembers.json();
-    const memberIDs = members.map(({ id }) => id);
+    const memberIDs = members.members.map(({ id }) => id);
 
     if (valid) {
         await syncGroupKeys(detail.groupID);
