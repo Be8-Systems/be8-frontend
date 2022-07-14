@@ -10525,13 +10525,20 @@ async function groupGetVersion(groupID) {
     return groupVersion;
 }
 
-async function updateGroupKeyForParticipants(groupID, groupKey) {
-    const keyString = JSON.stringify(groupKey);
+async function getGroupMembers(groupID) {
     const membersRaw = await fetch('/groupgetmembers', {
         ...POST,
         body: JSON.stringify({ groupID }),
     });
     const { members } = await membersRaw.json();
+
+    return members;
+}
+
+async function updateGroupKeyForParticipants(groupID, groupKey, groupMembers) {
+    const keyString = JSON.stringify(groupKey);
+    const members = groupMembers || (await getGroupMembers(groupID));
+    console.log(groupMembers, members);
     const memberIDs = members.map((m) => m.id);
 
     await syncPublicKeys(memberIDs);
@@ -10559,11 +10566,32 @@ async function updateGroupKeyForParticipants(groupID, groupKey) {
     return await Promise.all(proms);
 }
 
+async function groupIncreaseVersion(groupID) {
+    const raw = await fetch('/groupincreaseversion', {
+        ...POST,
+        body: JSON.stringify({ groupID }),
+    });
+    const { groupVersion } = await raw.json();
+
+    return groupVersion;
+}
+
 async function generateGroupKey(groupID) {
-    const groupVersion = await groupGetVersion(groupID);
+    const groupVersion = await groupIncreaseVersion(groupID);
     const [, groupKey] = await be8.generateGroupKeys(groupVersion, groupID);
 
     return groupKey;
+}
+
+async function generateNewGroupKeyBeforeLeave(groupID) {
+    const groupKey = await generateGroupKey(groupID);
+    const groupMembers = await getGroupMembers(groupID);
+    const sanGroupMembers = groupMembers.filter(
+        ({ id }) => id !== be8.getAccID()
+    );
+    console.log(groupMembers, sanGroupMembers, '_________________________');
+    await updateGroupKeyForParticipants(groupID, groupKey, sanGroupMembers);
+    return await syncGroupKeys(groupID);
 }
 
 async function groupJoinMember(groupID) {
@@ -10604,6 +10632,8 @@ app.addEventListener('unlock', async function ({ detail }) {
     return detail.error();
 });
 app.addEventListener('leaveGroup', async function ({ detail }) {
+    await generateNewGroupKeyBeforeLeave(detail.groupID);
+
     const raw = await fetch('/groupleavemember', {
         ...POST,
         body: JSON.stringify(detail),
@@ -10732,6 +10762,10 @@ app.addEventListener('kickMemberFromGroup', async function ({ detail }) {
     const { valid } = await raw.json();
 
     if (valid) {
+        const groupKey = await generateGroupKey(detail.groupID);
+
+        await updateGroupKeyForParticipants(detail.groupID, groupKey);
+        await syncGroupKeys(detail.groupID);
         return detail.done();
     }
 });
