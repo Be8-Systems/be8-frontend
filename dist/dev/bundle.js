@@ -9043,7 +9043,7 @@ class Messages extends s$1 {
     }
 
     #renderRemoveMessage() {
-        return $`<div class="message-container"><div class="message sent-message">${LANG.MESSAGEREMOVED}</div></div>`;
+        return $`<div class="message-container"><div class="message received-message">${LANG.MESSAGEREMOVED}</div></div>`;
     }
 
     #renderUserMessage(message, isGroup) {
