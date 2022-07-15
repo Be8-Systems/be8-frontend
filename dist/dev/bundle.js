@@ -1249,6 +1249,7 @@ var LANG = Object.freeze({
     LEAVEGROUPADMIN:
         'When you leave this group, the group and every message gets destroyed, no way to recover any data.',
     LEAVEGROUPMEMBER: 'Do you want to leave the group?',
+    MESSAGEREMOVED: 'The message was removed',
 });
 
 var ME = {
@@ -9041,6 +9042,10 @@ class Messages extends s$1 {
         return $`<p class="group-color-${color} message-top-line"><span>${memberIcon} ${nickname}</span>  <span>#${id}</span></p>`;
     }
 
+    #renderRemoveMessage() {
+        return $`<div class="message-container"><div class="message sent-message">${LANG.MESSAGEREMOVED}</div></div>`;
+    }
+
     #renderUserMessage(message, isGroup) {
         const { messageID, nickname, sender, status, ts } = message;
         const amIsender = sender === this.ME.id;
@@ -9090,7 +9095,7 @@ class Messages extends s$1 {
                 const isSysMessage = message.messageType === 'system';
 
                 if (message.messageType === 'removed') {
-                    return 'removed!';
+                    return this.#renderRemoveMessage(message);
                 }
                 if (isSysMessage) {
                     return this.#renderSysMessage(message);
