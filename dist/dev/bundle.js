@@ -1250,6 +1250,8 @@ var LANG = Object.freeze({
         'When you leave this group, the group and every message gets destroyed, no way to recover any data.',
     LEAVEGROUPMEMBER: 'Do you want to leave the group?',
     MESSAGEREMOVED: 'The message was removed',
+    MEMBERNOTEXISTING:
+        'This member does not exist or turned off group features.',
 });
 
 var ME = {
@@ -8613,6 +8615,14 @@ class GroupUsermodal extends Modal {
                     domCache.toast.open();
                     return this.close();
                 },
+                warning: (reason) => {
+                    domCache.toast.notification = {
+                        type: 'warning',
+                        text: LANG[reason],
+                    };
+
+                    return domCache.toast.open();
+                },
             },
         });
 
@@ -10795,6 +10805,8 @@ app.addEventListener('addGroupMember', async function ({ detail }) {
         await updateGroupKeyForParticipants(detail.groupID, groupKey);
         await syncGroupKeys(detail.groupID);
         return detail.done();
+    } else {
+        return detail.warning(data.reason);
     }
 });
 app.addEventListener('threadSelect', async function ({ detail }) {
