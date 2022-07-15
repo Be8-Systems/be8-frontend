@@ -9042,8 +9042,11 @@ class Messages extends s$1 {
         return $`<p class="group-color-${color} message-top-line"><span>${memberIcon} ${nickname}</span>  <span>#${id}</span></p>`;
     }
 
-    #renderRemoveMessage() {
-        return $`<div class="message-container"><div class="message received-message">${LANG.MESSAGEREMOVED}</div></div>`;
+    #renderRemoveMessage({ sender }) {
+        const amIsender = sender === this.ME.id;
+        return $`<div class="message-container"><div class="message ${
+            amIsender ? 'sent-message' : 'received-message'
+        }">${LANG.MESSAGEREMOVED}</div></div>`;
     }
 
     #renderUserMessage(message, isGroup) {
