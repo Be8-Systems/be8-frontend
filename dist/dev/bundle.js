@@ -8630,6 +8630,11 @@ class GroupUsermodal extends Modal {
     }
 
     enterBe8Id(e) {
+        if (!isKeyDownNumber(e)) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
         if (e.key === 'Enter') {
             const id = e.target.value.trim();
 
