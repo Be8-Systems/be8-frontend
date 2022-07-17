@@ -3,4 +3,4 @@
 
 ## Bootstrap flow
 
-![](/doc/user_bootstrap.jpg "flow diagram")
+![](/doc/user_bootstrap.png "flow diagram")

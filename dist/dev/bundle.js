@@ -7551,15 +7551,23 @@ function generateSafeLink(parameterName, content) {
     const urlObj = new URL(window.location.href);
     const cipherPW = Crypto.AES.encrypt(
         content,
-        '392e32oijsdfweoir'
+        'hamburgerANDpizza0987654e3'
     ).toString();
 
     return `${urlObj.origin}?${parameterName}=${encodeURIComponent(cipherPW)}`;
 }
 
+function decryptSafeLink(ciphter) {
+    return decodeURIComponent(
+        Crypto.AES.decrypt(ciphter, 'hamburgerANDpizza0987654e3').toString(
+            Crypto.enc.Utf8
+        )
+    );
+}
+
 class InviteModal extends Modal {
     static properties = {
-        url: { type: String },
+        inviteURL: { type: String },
         ME: { type: Object },
     };
 
@@ -7584,6 +7592,7 @@ class InviteModal extends Modal {
         });
         const qr = this.querySelector('.qr');
 
+        navigator.clipboard.writeText(this.url).then(() => {});
         super.open();
 
         qr.innerHTML = '';
@@ -8532,6 +8541,7 @@ class GroupUsermodal extends Modal {
                 type: 'group',
             },
         });
+        navigator.clipboard.writeText(this.inviteUrl).then(() => {});
 
         this.state = 'invite';
         animateMainToSide(this.#modalContent, this.#inviteGroupSide);
@@ -8541,25 +8551,6 @@ class GroupUsermodal extends Modal {
     #leaveGroup() {
         this.state = 'leaveGroup';
         animateMainToSide(this.#modalContent, this.#leaveGroupSide);
-    }
-
-    #renderGroupSettings(amIAdmin) {
-        const isPrivate = this.conversationPartner.groupType === 'private';
-        const invite = isPrivate
-            ? ''
-            : $`<div class="sub-modal-button hover-background" @click="${
-                  this.#inviteUser
-              }"><i class="fa-solid fa-person-circle-plus"></i> Invite User <i class="fa-solid fa-arrow-right float-right"></i></div>`;
-        const addUser =
-            amIAdmin || !isPrivate
-                ? $`<div @click="${
-                      this.#addUser
-                  }" class="sub-modal-button hover-background"><i class="fa-solid fa-plus"></i> Add Member <i class="fa-solid fa-arrow-right float-right"></i></div>`
-                : '';
-
-        return $`<div class="group-actions">${addUser}${invite}<div class="sub-modal-button hover-background" @click="${
-            this.#leaveGroup
-        }"><i class="fa-solid fa-person-through-window"></i> Leave Group <i class="fa-solid fa-arrow-right float-right"></i></div></div>`;
     }
 
     open() {
@@ -8674,6 +8665,25 @@ class GroupUsermodal extends Modal {
         return domCache.app.dispatchEvent(event);
     }
 
+    #renderGroupSettings(amIAdmin) {
+        const isPrivate = this.conversationPartner.groupType === 'private';
+        const invite = isPrivate
+            ? ''
+            : $`<div class="sub-modal-button hover-background" @click="${
+                  this.#inviteUser
+              }"><i class="fa-solid fa-person-circle-plus"></i> Invite User <i class="fa-solid fa-arrow-right float-right"></i></div>`;
+        const addUser =
+            amIAdmin || !isPrivate
+                ? $`<div @click="${
+                      this.#addUser
+                  }" class="sub-modal-button hover-background"><i class="fa-solid fa-plus"></i> Add Member <i class="fa-solid fa-arrow-right float-right"></i></div>`
+                : '';
+
+        return $`<div class="group-actions">${addUser}${invite}<div class="sub-modal-button hover-background" @click="${
+            this.#leaveGroup
+        }"><i class="fa-solid fa-person-through-window"></i> Leave Group <i class="fa-solid fa-arrow-right float-right"></i></div></div>`;
+    }
+
     #renderSideGroup(amIAdmin) {
         const isPrivate = this.conversationPartner.groupType === 'private';
         const url = generateSafeLink('group', this.conversationPartner.id);
@@ -8692,10 +8702,10 @@ class GroupUsermodal extends Modal {
             this.close
         }" class="hover-background">No</button></div></div>`;
         const invite = isPrivate
-            ? $`<div class="invite-group-modal hide"><p class="create-group-headline">${backToMain} Invite Friends to your Group</p><p>${o(
+            ? ''
+            : $`<div class="invite-group-modal hide"><p class="create-group-headline">${backToMain} Invite Friends to your Group</p><p>${o(
                   LANG.INVITELINK.replaceAll('{{link}}', url)
-              )}</p><br><div class="qr"></div><br></div>`
-            : '';
+              )}</p><br><div class="qr"></div><br></div>`;
 
         this.inviteUrl = url;
 
@@ -10319,13 +10329,28 @@ class Be8 {
 const app = document.querySelector('app-layout');
 let be8 = {};
 
-function refreshAPP(accObj) {
+function refreshAppComponent(accObj) {
     app.ME = accObj;
 }
 
 async function generateEngine({ id }, database) {
     be8 = new Be8(id, database);
     return await be8.setup();
+}
+
+async function startConversation({ detail }) {
+    const raw = await fetch('/startConversation', {
+        ...POST,
+        body: JSON.stringify(detail),
+    });
+    const data = await raw.json();
+
+    if (data.valid) {
+        return detail.success();
+    }
+    if (data.error === 'ACCNOTEXISTS') {
+        return detail.idDoesNotExist();
+    }
 }
 
 async function decryptMessages(cipherMessages) {
@@ -10486,28 +10511,6 @@ async function storePublicKey() {
     });
 }
 
-async function firstTimeVisitor(database) {
-    const raw = await fetch('/newacc', {
-        ...POST,
-        body: JSON.stringify({
-            ...generatePassword(),
-            nickname: randomNickname(),
-        }),
-    });
-    const data = await raw.json();
-
-    if (data.valid) {
-        const raw = await fetch('/me', GET);
-        const { accObj } = await raw.json();
-
-        refreshAPP(accObj);
-        await generateEngine(accObj, database);
-        await storePublicKey();
-        await getThreads();
-        return app.openWelcomeWindow(accObj);
-    }
-}
-
 async function getDialogMessages(detail) {
     const raw = await fetch('/getmessages', {
         ...POST,
@@ -10622,6 +10625,38 @@ async function generateNewGroupKeyBeforeLeave(groupID) {
     return await syncGroupKeys(groupID);
 }
 
+async function joinGroup(groupId) {
+    return groupId;
+}
+
+async function joinDialog(joinId) {
+    const raw = await startConversation({
+        detail: {
+            id: be8.getAccID(),
+            receiverID: joinId,
+            success: () => {},
+        },
+    });
+    const data = await raw.json();
+
+    console.log(data);
+}
+
+async function checkURL() {
+    const url = new URL(window.location.href);
+    const joinId = url.searchParams.get('join');
+    const groupId = url.searchParams.get('group');
+
+    window.history.replaceState({}, document.title, '/');
+
+    if (joinId) {
+        return await joinDialog(decryptSafeLink(joinId));
+    }
+    if (groupId) {
+        return await joinGroup(decryptSafeLink(groupId));
+    }
+}
+
 async function groupJoinMember(groupID) {
     const raw = await fetch('/groupjoinmember', {
         ...POST,
@@ -10631,18 +10666,38 @@ async function groupJoinMember(groupID) {
     return await raw.json();
 }
 
-document.addEventListener('DOMContentLoaded', async function () {
-    const database = await initialiseDB$1();
-    const { error, accObj } = await fetch('/me', GET).then((raw) => raw.json());
-
-    if (error === 'NOTAUTH') {
-        return await firstTimeVisitor(database);
-    }
-
-    refreshAPP(accObj);
+async function recurringVisitor(accObj, database) {
+    refreshAppComponent(accObj);
     await generateEngine(accObj, database);
-    return await app.openLockModal(() => getThreads());
-});
+    return await app.openLockModal(async () => {
+        await getThreads();
+        await checkURL();
+    });
+}
+
+async function firstTimeVisitor(database) {
+    const raw = await fetch('/newacc', {
+        ...POST,
+        body: JSON.stringify({
+            ...generatePassword(),
+            nickname: randomNickname(),
+        }),
+    });
+    const data = await raw.json();
+
+    if (data.valid) {
+        const raw = await fetch('/me', GET);
+        const { accObj } = await raw.json();
+
+        refreshAppComponent(accObj);
+        await generateEngine(accObj, database);
+        await storePublicKey();
+        await getThreads();
+        await checkURL();
+        return app.openWelcomeWindow(accObj);
+    }
+}
+
 app.addEventListener('unlock', async function ({ detail }) {
     const raw = await fetch('/codeunlock', {
         ...POST,
@@ -10695,7 +10750,7 @@ app.addEventListener('changeNickName', async function ({ detail }) {
         const raw = await fetch('/me', GET);
         const { accObj } = await raw.json();
 
-        return refreshAPP(accObj);
+        return refreshAppComponent(accObj);
     }
 });
 app.addEventListener('setupCodes', async function ({ detail }) {
@@ -10737,7 +10792,7 @@ app.addEventListener('setToken', async function ({ detail }) {
         const raw = await fetch('/me', GET);
         const { accObj } = await raw.json();
 
-        refreshAPP(accObj);
+        refreshAppComponent(accObj);
         return detail.success(data);
     }
     if (data.error === 'TOKENNOTEXIST') {
@@ -10747,20 +10802,7 @@ app.addEventListener('setToken', async function ({ detail }) {
         return detail.tokenInUse();
     }
 });
-app.addEventListener('startConversation', async function ({ detail }) {
-    const raw = await fetch('/startConversation', {
-        ...POST,
-        body: JSON.stringify(detail),
-    });
-    const data = await raw.json();
-
-    if (data.valid) {
-        return detail.success();
-    }
-    if (data.error === 'ACCNOTEXISTS') {
-        return detail.idDoesNotExist();
-    }
-});
+app.addEventListener('startConversation', startConversation);
 app.addEventListener('createGroup', async function ({ detail }) {
     const raw = await fetch('/groupcreate', {
         ...POST,
@@ -10867,4 +10909,14 @@ app.addEventListener('uploadMedia', async function ({ detail }) {
     if (valid) {
         return detail.done();
     }
+});
+document.addEventListener('DOMContentLoaded', async function bootstrapApp() {
+    const database = await initialiseDB$1();
+    const { error, accObj } = await fetch('/me', GET).then((raw) => raw.json());
+
+    if (error === 'NOTAUTH') {
+        return await firstTimeVisitor(database);
+    }
+
+    return recurringVisitor(accObj, database);
 });
