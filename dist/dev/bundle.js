@@ -8955,6 +8955,7 @@ class Messages extends s$1 {
                 contentID: randomString(),
                 contentType: 'image',
                 content,
+                isGroup: !!this.conversationPartner.groupID,
                 receiver: this.conversationPartner.partner,
                 sender: this.ME.id,
                 threadID: this.conversationPartner.threadID,
@@ -8980,18 +8981,17 @@ class Messages extends s$1 {
             };
         };
 
-        reader.readAsDataURL(file);
+        return reader.readAsDataURL(file);
     }
 
     insertImage(image) {
-        const domContainer = this.querySelector(
+        const domImage = this.querySelector(
             `[data-contentid="${image.contentID}"]`
         );
-        const spinner = domContainer.querySelector('i');
-        const domImage = domContainer.querySelector('img');
+        const spinner = domImage.previousSibling;
 
         domImage.setAttribute('src', image.content);
-        return domContainer.removeChild(spinner);
+        return domImage.parentNode.removeChild(spinner);
     }
 
     changeInputEvent({ target }) {
@@ -9651,11 +9651,7 @@ class AppLayout extends s$1 {
         });
     }
 
-    insertImage({ image, valid }) {
-        if (!valid) {
-            return;
-        }
-
+    insertImage(image) {
         return this.#menus.messagesMenu.insertImage(image);
     }
 
@@ -10371,24 +10367,45 @@ async function startConversation({ detail }) {
 
 async function decryptImages(messages) {
     const imageMessages = messages.filter((m) => m.messageType === 'image');
-    const imageProms = await imageMessages.map(async function (image) {
+    const imageProms = await imageMessages.map(async function (imageMessage) {
         const raw = await fetch('/imageget', {
             ...POST,
             body: JSON.stringify({
-                contentID: image.contentID,
+                contentID: imageMessage.contentID,
+                threadID: imageMessage.threadID,
                 sender: be8.getAccID(),
+                messageID: imageMessage.messageID,
             }),
         });
 
         return await raw.json();
     });
     const images = await Promise.all(imageProms);
-    console.log(images);
-    images.forEach(({ receiver, sender, content, iv }) => {
-        console.log({ receiver, sender, content, iv });
+    const yourID = be8.getAccID();
+
+    images.forEach((imageMessage) => {
+        const dialogPublicId =
+            imageMessage.sender === yourID
+                ? imageMessage.receiver
+                : imageMessage.sender;
+        const idForPublicKey = imageMessage.groupVersionKey
+            ? imageMessage.sender
+            : dialogPublicId;
+        const idForPrivateKey = imageMessage.groupVersionKey || yourID;
+        console.log(idForPublicKey, idForPrivateKey);
         return be8
-            .decryptImageSimple(sender, receiver, content, iv)
-            .then(app.insertImage);
+            .decryptImageSimple(
+                idForPublicKey,
+                idForPrivateKey,
+                imageMessage.content,
+                imageMessage.iv
+            )
+            .then((content) =>
+                app.insertImage({
+                    ...imageMessage,
+                    content,
+                })
+            );
     });
 }
 
@@ -10923,15 +10940,25 @@ app.addEventListener('writeMessage', async function ({ detail }) {
     });
 });
 app.addEventListener('uploadMedia', async function ({ detail }) {
+    const groupVersion = detail.isGroup
+        ? await groupGetVersion(detail.receiver)
+        : false;
+    const sender = detail.isGroup
+        ? `${detail.receiver}:${groupVersion}`
+        : be8.getAccID();
+    const receiver = detail.isGroup ? be8.getAccID() : detail.receiver;
     const { cipherImage, iv } = await be8.encryptImageSimple(
-        detail.sender,
-        detail.receiver,
+        sender,
+        receiver,
         detail.content
     );
     const raw = await fetch('/imageupload', {
         ...POST,
         body: JSON.stringify({
             ...detail,
+            ...(detail.isGroup
+                ? { groupVersionKey: `${detail.receiver}:${groupVersion}` }
+                : {}),
             content: cipherImage,
             iv,
         }),
