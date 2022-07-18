@@ -8984,11 +8984,14 @@ class Messages extends s$1 {
     }
 
     insertImage(image) {
-        const domImage = this.querySelector(
-            `[data-contentid="${image.contentID}"] img`
+        const domContainer = this.querySelector(
+            `[data-contentid="${image.contentID}"]`
         );
+        const spinner = domContainer.querySelector('i');
+        const domImage = domContainer.querySelector('img');
 
         domImage.setAttribute('src', image.content);
+        return domContainer.removeChild(spinner);
     }
 
     changeInputEvent({ target }) {
@@ -9039,7 +9042,7 @@ class Messages extends s$1 {
 
     #renderMessageContent(message, timeIndicator) {
         if (message.messageType === 'image') {
-            return $`<img data-contentid="${message.contentID}" src="">`;
+            return $`<i class="fa-solid fa-spin fa-circle-notch"></i><img data-contentid="${message.contentID}" src="">`;
         }
 
         return $`<p class="message-text">${message.text} ${timeIndicator}</p>`;
