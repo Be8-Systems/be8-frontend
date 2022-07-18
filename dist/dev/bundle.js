@@ -8917,10 +8917,7 @@ class Messages extends s$1 {
         if (e.key === 'Enter') {
             const message = this.#messageInput.value.trim();
             const isGroup = !!this.conversationPartner.groupID;
-            const receiver =
-                this.conversationPartner.id ||
-                this.conversationPartner.groupID ||
-                this.conversationPartner.channelID;
+            const receiver = this.conversationPartner.partner;
             const writeEvent = new CustomEvent('writeMessage', {
                 bubbles: false,
                 detail: {
@@ -8958,7 +8955,7 @@ class Messages extends s$1 {
                 contentID: randomString(),
                 contentType: 'image',
                 content,
-                receiver: this.conversationPartner.sender,
+                receiver: this.conversationPartner.partner,
                 sender: this.ME.id,
                 threadID: this.conversationPartner.threadID,
                 messageType: 'image',
@@ -8984,6 +8981,14 @@ class Messages extends s$1 {
         };
 
         reader.readAsDataURL(file);
+    }
+
+    insertImage(image) {
+        const domImage = this.querySelector(
+            `[data-contentid="${image.contentID}"] img`
+        );
+
+        domImage.setAttribute('src', image.content);
     }
 
     changeInputEvent({ target }) {
@@ -9641,6 +9646,14 @@ class AppLayout extends s$1 {
 
             return member;
         });
+    }
+
+    insertImage({ image, valid }) {
+        if (!valid) {
+            return;
+        }
+
+        return this.#menus.messagesMenu.insertImage(image);
     }
 
     setMessages(messages) {
@@ -10353,6 +10366,29 @@ async function startConversation({ detail }) {
     }
 }
 
+async function decryptImages(messages) {
+    const imageMessages = messages.filter((m) => m.messageType === 'image');
+    const imageProms = await imageMessages.map(async function (image) {
+        const raw = await fetch('/imageget', {
+            ...POST,
+            body: JSON.stringify({
+                contentID: image.contentID,
+                sender: be8.getAccID(),
+            }),
+        });
+
+        return await raw.json();
+    });
+    const images = await Promise.all(imageProms);
+    console.log(images);
+    images.forEach(({ receiver, sender, content, iv }) => {
+        console.log({ receiver, sender, content, iv });
+        return be8
+            .decryptImageSimple(sender, receiver, content, iv)
+            .then(app.insertImage);
+    });
+}
+
 async function decryptMessages(cipherMessages) {
     const yourID = be8.getAccID();
     const proms = cipherMessages.map(async function (message) {
@@ -10380,15 +10416,6 @@ async function decryptMessages(cipherMessages) {
             );
 
             message.text = text;
-        }
-        if (message.messageType === 'image') {
-            const content = await be8.decryptImageSimple(
-                idForPublicKey,
-                idForPrivateKey,
-                message.text,
-                message.iv
-            );
-            message.content = content;
         }
 
         return message;
@@ -10520,7 +10547,9 @@ async function getDialogMessages(detail) {
 
     if (valid) {
         const sanMessages = await decryptMessages(messages);
-        return app.setMessages(sanMessages);
+
+        app.setMessages(sanMessages);
+        return await decryptImages(sanMessages);
     }
 }
 
@@ -10543,7 +10572,8 @@ async function getGroupMessages(detail) {
 
         const sanMessages = await decryptMessages(messages);
         app.setMessages(sanMessages);
-        return app.setGroupMember(members);
+        app.setGroupMember(members);
+        return await decryptImages(sanMessages);
     }
 }
 
@@ -10630,14 +10660,13 @@ async function joinGroup(groupId) {
 }
 
 async function joinDialog(joinId) {
-    const raw = await startConversation({
+    const data = await startConversation({
         detail: {
             id: be8.getAccID(),
             receiverID: joinId,
             success: () => {},
         },
     });
-    const data = await raw.json();
 
     console.log(data);
 }
