@@ -7673,7 +7673,7 @@ class PanicModal extends Modal {
         const text = o(LANG.PANICTEXT.replaceAll('{{id}}', this.ME.id));
         const content = $`<p>${text}</p><div><input tabindex="0" @keydown="${(
             e
-        ) => this.onKeyPress(e)}" type="text"></div><button @click="${
+        ) => this.onKeyPress(e)}" type="number"></div><button @click="${
             this.onClickDestroy
         }" class="danger-background">destroy everything</button>`;
 
@@ -7846,7 +7846,7 @@ class ConversationModal extends Modal {
 
     render() {
         const content = $`<p>${LANG.CONVERSATION}</p><input @keydown="${(e) =>
-            this.#keyDownOn1to1(e)}" tabindex="0" type="text"><div @click="${
+            this.#keyDownOn1to1(e)}" tabindex="0" type="number"><div @click="${
             this.#clickOnGoToGroup
         }" class="sub-modal-button hover-background">Create a group <i class="fa-solid fa-arrow-right float-right"></i></div>`;
         const groupsettings = $`<div><p>Name</p><input @keydown="${(e) =>
