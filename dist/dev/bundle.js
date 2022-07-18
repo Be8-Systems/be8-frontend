@@ -8930,7 +8930,7 @@ class Messages extends s$1 {
                     messageType: 'text',
                     done: () => {
                         this.#inputActive = true;
-                        this.#messageInput.value = '';
+                        this.#messageInput.value = ''; // to prevent double ^ insert after enter
                         return this.#focus();
                     },
                 },
