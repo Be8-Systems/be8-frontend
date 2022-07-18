@@ -10373,7 +10373,7 @@ async function decryptImages(messages) {
             body: JSON.stringify({
                 contentID: imageMessage.contentID,
                 threadID: imageMessage.threadID,
-                sender: be8.getAccID(),
+                sender: imageMessage.sender,
                 messageID: imageMessage.messageID,
             }),
         });
@@ -10392,7 +10392,7 @@ async function decryptImages(messages) {
             ? imageMessage.sender
             : dialogPublicId;
         const idForPrivateKey = imageMessage.groupVersionKey || yourID;
-        console.log(idForPublicKey, idForPrivateKey);
+
         return be8
             .decryptImageSimple(
                 idForPublicKey,
