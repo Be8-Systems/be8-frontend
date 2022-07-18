@@ -8835,6 +8835,7 @@ class Messages extends s$1 {
         ME: { type: Object },
     };
 
+    #inputActive = true;
     #userModal = document.querySelector('user-modal-window');
     #userGroupModal = document.querySelector('groupuser-modal-window');
     #userSysModal = document.querySelector('sysuser-modal-window');
@@ -8905,7 +8906,7 @@ class Messages extends s$1 {
     }
 
     #focus() {
-        return this.#messageInput.focus();
+        requestAnimationFrame(() => this.#messageInput.focus());
     }
 
     firstUpdated() {
@@ -8914,23 +8915,32 @@ class Messages extends s$1 {
     }
 
     writeMessage(e) {
-        if (e.key === 'Enter') {
-            const message = this.#messageInput.value.trim();
+        if (e.key === 'Enter' && this.#inputActive) {
+            const text = this.#messageInput.value.trim();
             const isGroup = !!this.conversationPartner.groupID;
             const receiver = this.conversationPartner.partner;
             const writeEvent = new CustomEvent('writeMessage', {
                 bubbles: false,
                 detail: {
-                    message,
+                    text: this.#messageInput.value,
                     sender: this.ME.id,
                     receiver,
                     threadID: this.conversationPartner.threadID,
                     isGroup,
                     messageType: 'text',
+                    done: () => {
+                        this.#inputActive = true;
+                        this.#messageInput.value = '';
+                        return this.#focus();
+                    },
                 },
             });
 
-            this.#messageInput.value = '';
+            this.#inputActive = false;
+
+            if (text.length === 0) {
+                return;
+            }
 
             return domCache.app.dispatchEvent(writeEvent);
         }
@@ -8989,6 +8999,10 @@ class Messages extends s$1 {
             `[data-contentid="${image.contentID}"]`
         );
         const spinner = domImage.previousSibling;
+
+        if (!spinner) {
+            return;
+        }
 
         domImage.setAttribute('src', image.content);
         return domImage.parentNode.removeChild(spinner);
@@ -9347,11 +9361,11 @@ customElements.define('settings-menu', SettingsMenu);
 
 const maxThreadTextLength = 23;
 
-function generateSanText(text, isSystem) {
+function generateSanText(text, messageType, isSystem) {
     if (isSystem) {
         return SYSTEMTITLES[text];
     }
-    if (text.messageType === 'system') {
+    if (messageType === 'system') {
         return SYSTEMTITLES[text];
     }
     if (text.length <= maxThreadTextLength) {
@@ -9363,14 +9377,12 @@ function generateSanText(text, isSystem) {
 
 function renderThread({
     endless,
-    expire,
     nickname,
-    sender,
     partner,
     text,
-    threadID,
     ts,
     type,
+    messageType,
     status,
 }) {
     const isSystem = type === 'system';
@@ -9383,7 +9395,7 @@ function renderThread({
     const senderID = isSystem
         ? ''
         : $`<span class="float-right">#${partner}<span></span></span>`;
-    const sanText = generateSanText(text, isSystem);
+    const sanText = generateSanText(text, messageType, isSystem);
     const readIndicator = $`<span class="thread-read-indicator${
         status === 'read' ? ' shrink-to-zero' : ''
     }"></span>`;
@@ -9654,6 +9666,10 @@ class AppLayout extends s$1 {
 
             return member;
         });
+    }
+
+    getConversationPartner() {
+        return this.#menus.messagesMenu.conversationPartner;
     }
 
     insertImage(image) {
@@ -10344,6 +10360,11 @@ class Be8 {
 }
 
 const app = document.querySelector('app-layout');
+const source = new EventSource('/events');
+const actions = {
+    newMessage,
+    messageRead,
+};
 let be8 = {};
 
 function refreshAppComponent(accObj) {
@@ -10563,6 +10584,15 @@ async function storePublicKey() {
     });
 }
 
+async function getMessages({ detail }) {
+    if (detail.type === 'group') {
+        return getGroupMessages(detail);
+    }
+    if (detail.type === 'user' || detail.type === 'system') {
+        return getDialogMessages(detail);
+    }
+}
+
 async function getDialogMessages(detail) {
     const raw = await fetch('/getmessages', {
         ...POST,
@@ -10752,6 +10782,24 @@ async function firstTimeVisitor(database) {
     }
 }
 
+async function newMessage(detail) {
+    console.log(detail);
+    if (detail.threadID === app.getConversationPartner().threadID) {
+        await getMessages({
+            detail: {
+                ...detail,
+                ...(detail.type === 'group'
+                    ? { groupID: detail.threadID }
+                    : {}),
+            },
+        });
+    }
+
+    return await getThreads();
+}
+
+async function messageRead() {}
+
 app.addEventListener('unlock', async function ({ detail }) {
     const raw = await fetch('/codeunlock', {
         ...POST,
@@ -10910,14 +10958,7 @@ app.addEventListener('addGroupMember', async function ({ detail }) {
         return detail.warning(data.reason);
     }
 });
-app.addEventListener('threadSelect', async function ({ detail }) {
-    if (detail.type === 'group') {
-        return getGroupMessages(detail);
-    }
-    if (detail.type === 'user' || detail.type === 'system') {
-        return getDialogMessages(detail);
-    }
-});
+app.addEventListener('threadSelect', getMessages);
 app.addEventListener('writeMessage', async function ({ detail }) {
     const groupVersion = detail.isGroup
         ? await groupGetVersion(detail.receiver)
@@ -10929,20 +10970,24 @@ app.addEventListener('writeMessage', async function ({ detail }) {
     const { cipherText, iv } = await be8.encryptTextSimple(
         sender,
         receiver,
-        detail.message
+        detail.text
     );
+    const options = {
+        ...detail,
+        ...(detail.isGroup
+            ? { groupVersionKey: `${detail.receiver}:${groupVersion}` }
+            : {}),
+        text: cipherText,
+        iv,
+        type: detail.isGroup ? 'group' : 'user',
+    };
 
     await fetch('/writemessage', {
         ...POST,
-        body: JSON.stringify({
-            ...detail,
-            ...(detail.isGroup
-                ? { groupVersionKey: `${detail.receiver}:${groupVersion}` }
-                : {}),
-            text: cipherText,
-            iv,
-        }),
+        body: JSON.stringify(options),
     });
+    await getMessages({ detail: options });
+    return detail.done();
 });
 app.addEventListener('uploadMedia', async function ({ detail }) {
     const groupVersion = detail.isGroup
@@ -10957,21 +11002,24 @@ app.addEventListener('uploadMedia', async function ({ detail }) {
         receiver,
         detail.content
     );
+    const body = {
+        ...detail,
+        ...(detail.isGroup
+            ? { groupVersionKey: `${detail.receiver}:${groupVersion}` }
+            : {}),
+        content: cipherImage,
+        iv,
+        type: detail.isGroup ? 'group' : 'user',
+    };
     const raw = await fetch('/imageupload', {
         ...POST,
-        body: JSON.stringify({
-            ...detail,
-            ...(detail.isGroup
-                ? { groupVersionKey: `${detail.receiver}:${groupVersion}` }
-                : {}),
-            content: cipherImage,
-            iv,
-        }),
+        body: JSON.stringify(body),
     });
     const { valid } = await raw.json();
 
     if (valid) {
-        return detail.done();
+        detail.done();
+        await getMessages({ detail: body });
     }
 });
 document.addEventListener('DOMContentLoaded', async function bootstrapApp() {
@@ -10984,3 +11032,11 @@ document.addEventListener('DOMContentLoaded', async function bootstrapApp() {
 
     return recurringVisitor(accObj, database);
 });
+source.addEventListener(
+    'message',
+    async function (e) {
+        const data = JSON.parse(e.data);
+        return actions[data.action](data);
+    },
+    false
+);

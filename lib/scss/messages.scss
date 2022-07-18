@@ -76,6 +76,10 @@ messages-menu {
     color: var(--color-check);
 }
 
+.message-text {
+    white-space: pre;
+}
+
 .message-top-line {
     display: flex;
     justify-content: space-between;
