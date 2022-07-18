@@ -9345,15 +9345,20 @@ class SettingsMenu extends s$1 {
 
 customElements.define('settings-menu', SettingsMenu);
 
+const maxThreadTextLength = 23;
+
 function generateSanText(text, isSystem) {
     if (isSystem) {
         return SYSTEMTITLES[text];
     }
-    if (text.length <= 25 && SYSTEMTITLES[text]) {
+    if (text.messageType === 'system') {
         return SYSTEMTITLES[text];
     }
+    if (text.length <= maxThreadTextLength) {
+        return text;
+    }
 
-    return text.substring(0, 23) + '…';
+    return text.substring(0, maxThreadTextLength) + '…';
 }
 
 function renderThread({
