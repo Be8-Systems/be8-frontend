@@ -9686,6 +9686,11 @@ class AppLayout extends s$1 {
         this.#threads.bootStrap();
     }
 
+    clickOnSystem() {
+        console.log(this.#threads.querySelector('[partner="s1"]'));
+        this.#threads.querySelector('[partner="s1"]')?.click();
+    }
+
     getConversationPartners() {
         return this.#threads.threads
             .map((t) => t.partner)
@@ -10360,19 +10365,58 @@ class Be8 {
 }
 
 const app = document.querySelector('app-layout');
-const source = new EventSource('/events');
+const refreshAppComponent = (accObj) => (app.ME = accObj);
 const actions = {
     newMessage,
     messageRead,
+    expiredAcc,
+    newConversation: () => getThreads(),
 };
 let be8 = {};
 
-function refreshAppComponent(accObj) {
-    app.ME = accObj;
+function setupSSE() {
+    const source = new EventSource('/events');
+
+    source.addEventListener(
+        'message',
+        async function (e) {
+            const data = JSON.parse(e.data);
+            console.log(data);
+            return await actions[data.action](data);
+        },
+        false
+    );
 }
+
+async function expiredAcc(detail) {
+    if (detail.threadID === app.getConversationPartner().threadID) {
+        app.clickOnSystem();
+    }
+
+    return await getThreads();
+}
+
+async function newMessage(detail) {
+    if (detail.threadID === app.getConversationPartner().threadID) {
+        await getMessages({
+            detail: {
+                ...detail,
+                ...(detail.type === 'group'
+                    ? { groupID: detail.threadID }
+                    : {}),
+            },
+        });
+    }
+
+    return await getThreads();
+}
+
+async function messageRead() {}
 
 async function generateEngine({ id }, database) {
     be8 = new Be8(id, database);
+
+    Object.freeze(be8);
     return await be8.setup();
 }
 
@@ -10782,24 +10826,6 @@ async function firstTimeVisitor(database) {
     }
 }
 
-async function newMessage(detail) {
-    console.log(detail);
-    if (detail.threadID === app.getConversationPartner().threadID) {
-        await getMessages({
-            detail: {
-                ...detail,
-                ...(detail.type === 'group'
-                    ? { groupID: detail.threadID }
-                    : {}),
-            },
-        });
-    }
-
-    return await getThreads();
-}
-
-async function messageRead() {}
-
 app.addEventListener('unlock', async function ({ detail }) {
     const raw = await fetch('/codeunlock', {
         ...POST,
@@ -11024,19 +11050,14 @@ app.addEventListener('uploadMedia', async function ({ detail }) {
 });
 document.addEventListener('DOMContentLoaded', async function bootstrapApp() {
     const database = await initialiseDB$1();
-    const { error, accObj } = await fetch('/me', GET).then((raw) => raw.json());
+    const raw = await fetch('/me', GET);
+    const { error, accObj } = await raw.json();
 
     if (error === 'NOTAUTH') {
-        return await firstTimeVisitor(database);
+        await firstTimeVisitor(database);
+    } else {
+        await recurringVisitor(accObj, database);
     }
 
-    return recurringVisitor(accObj, database);
+    return setupSSE();
 });
-source.addEventListener(
-    'message',
-    async function (e) {
-        const data = JSON.parse(e.data);
-        return actions[data.action](data);
-    },
-    false
-);
