@@ -8917,10 +8917,7 @@ class Messages extends s$1 {
         if (e.key === 'Enter') {
             const message = this.#messageInput.value.trim();
             const isGroup = !!this.conversationPartner.groupID;
-            const receiver =
-                this.conversationPartner.id ||
-                this.conversationPartner.groupID ||
-                this.conversationPartner.channelID;
+            const receiver = this.conversationPartner.partner;
             const writeEvent = new CustomEvent('writeMessage', {
                 bubbles: false,
                 detail: {
@@ -8958,7 +8955,8 @@ class Messages extends s$1 {
                 contentID: randomString(),
                 contentType: 'image',
                 content,
-                receiver: this.conversationPartner.sender,
+                isGroup: !!this.conversationPartner.groupID,
+                receiver: this.conversationPartner.partner,
                 sender: this.ME.id,
                 threadID: this.conversationPartner.threadID,
                 messageType: 'image',
@@ -8983,7 +8981,17 @@ class Messages extends s$1 {
             };
         };
 
-        reader.readAsDataURL(file);
+        return reader.readAsDataURL(file);
+    }
+
+    insertImage(image) {
+        const domImage = this.querySelector(
+            `[data-contentid="${image.contentID}"]`
+        );
+        const spinner = domImage.previousSibling;
+
+        domImage.setAttribute('src', image.content);
+        return domImage.parentNode.removeChild(spinner);
     }
 
     changeInputEvent({ target }) {
@@ -9034,7 +9042,7 @@ class Messages extends s$1 {
 
     #renderMessageContent(message, timeIndicator) {
         if (message.messageType === 'image') {
-            return $`<img data-contentid="${message.contentID}" src="">`;
+            return $`<i class="fa-solid fa-spin fa-circle-notch"></i><img data-contentid="${message.contentID}" src="">`;
         }
 
         return $`<p class="message-text">${message.text} ${timeIndicator}</p>`;
@@ -9641,6 +9649,10 @@ class AppLayout extends s$1 {
 
             return member;
         });
+    }
+
+    insertImage(image) {
+        return this.#menus.messagesMenu.insertImage(image);
     }
 
     setMessages(messages) {
@@ -10353,6 +10365,50 @@ async function startConversation({ detail }) {
     }
 }
 
+async function decryptImages(messages) {
+    const imageMessages = messages.filter((m) => m.messageType === 'image');
+    const imageProms = await imageMessages.map(async function (imageMessage) {
+        const raw = await fetch('/imageget', {
+            ...POST,
+            body: JSON.stringify({
+                contentID: imageMessage.contentID,
+                threadID: imageMessage.threadID,
+                sender: imageMessage.sender,
+                messageID: imageMessage.messageID,
+            }),
+        });
+
+        return await raw.json();
+    });
+    const images = await Promise.all(imageProms);
+    const yourID = be8.getAccID();
+
+    images.forEach((imageMessage) => {
+        const dialogPublicId =
+            imageMessage.sender === yourID
+                ? imageMessage.receiver
+                : imageMessage.sender;
+        const idForPublicKey = imageMessage.groupVersionKey
+            ? imageMessage.sender
+            : dialogPublicId;
+        const idForPrivateKey = imageMessage.groupVersionKey || yourID;
+
+        return be8
+            .decryptImageSimple(
+                idForPublicKey,
+                idForPrivateKey,
+                imageMessage.content,
+                imageMessage.iv
+            )
+            .then((content) =>
+                app.insertImage({
+                    ...imageMessage,
+                    content,
+                })
+            );
+    });
+}
+
 async function decryptMessages(cipherMessages) {
     const yourID = be8.getAccID();
     const proms = cipherMessages.map(async function (message) {
@@ -10380,15 +10436,6 @@ async function decryptMessages(cipherMessages) {
             );
 
             message.text = text;
-        }
-        if (message.messageType === 'image') {
-            const content = await be8.decryptImageSimple(
-                idForPublicKey,
-                idForPrivateKey,
-                message.text,
-                message.iv
-            );
-            message.content = content;
         }
 
         return message;
@@ -10520,7 +10567,9 @@ async function getDialogMessages(detail) {
 
     if (valid) {
         const sanMessages = await decryptMessages(messages);
-        return app.setMessages(sanMessages);
+
+        app.setMessages(sanMessages);
+        return await decryptImages(sanMessages);
     }
 }
 
@@ -10543,7 +10592,8 @@ async function getGroupMessages(detail) {
 
         const sanMessages = await decryptMessages(messages);
         app.setMessages(sanMessages);
-        return app.setGroupMember(members);
+        app.setGroupMember(members);
+        return await decryptImages(sanMessages);
     }
 }
 
@@ -10630,14 +10680,13 @@ async function joinGroup(groupId) {
 }
 
 async function joinDialog(joinId) {
-    const raw = await startConversation({
+    const data = await startConversation({
         detail: {
             id: be8.getAccID(),
             receiverID: joinId,
             success: () => {},
         },
     });
-    const data = await raw.json();
 
     console.log(data);
 }
@@ -10891,15 +10940,25 @@ app.addEventListener('writeMessage', async function ({ detail }) {
     });
 });
 app.addEventListener('uploadMedia', async function ({ detail }) {
+    const groupVersion = detail.isGroup
+        ? await groupGetVersion(detail.receiver)
+        : false;
+    const sender = detail.isGroup
+        ? `${detail.receiver}:${groupVersion}`
+        : be8.getAccID();
+    const receiver = detail.isGroup ? be8.getAccID() : detail.receiver;
     const { cipherImage, iv } = await be8.encryptImageSimple(
-        detail.sender,
-        detail.receiver,
+        sender,
+        receiver,
         detail.content
     );
     const raw = await fetch('/imageupload', {
         ...POST,
         body: JSON.stringify({
             ...detail,
+            ...(detail.isGroup
+                ? { groupVersionKey: `${detail.receiver}:${groupVersion}` }
+                : {}),
             content: cipherImage,
             iv,
         }),
