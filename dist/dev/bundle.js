@@ -8919,6 +8919,9 @@ class Messages extends s$1 {
             const text = this.#messageInput.value.trim();
             const isGroup = !!this.conversationPartner.groupID;
             const receiver = this.conversationPartner.partner;
+            const groupOptions = {
+                groupID: this.conversationPartner.groupID,
+            };
             const writeEvent = new CustomEvent('writeMessage', {
                 bubbles: false,
                 detail: {
@@ -8926,7 +8929,8 @@ class Messages extends s$1 {
                     sender: this.ME.id,
                     receiver,
                     threadID: this.conversationPartner.threadID,
-                    isGroup,
+                    type: isGroup ? 'group' : 'user',
+                    ...(isGroup ? groupOptions : {}),
                     messageType: 'text',
                     done: () => {
                         this.#inputActive = true;
@@ -9686,9 +9690,8 @@ class AppLayout extends s$1 {
         this.#threads.bootStrap();
     }
 
-    clickOnSystem() {
-        console.log(this.#threads.querySelector('[partner="s1"]'));
-        this.#threads.querySelector('[partner="s1"]')?.click();
+    clickOnThread({ partner }) {
+        this.#threads.querySelector(`[partner="${partner}"]`)?.click();
     }
 
     getConversationPartners() {
@@ -10370,7 +10373,7 @@ const actions = {
     newMessage,
     messageRead,
     expiredAcc,
-    newConversation: () => getThreads(),
+    newConversation,
 };
 let be8 = {};
 
@@ -10388,9 +10391,14 @@ function setupSSE() {
     );
 }
 
+async function newConversation(detail) {
+    await getThreads();
+    app.clickOnThread(detail);
+}
+
 async function expiredAcc(detail) {
     if (detail.threadID === app.getConversationPartner().threadID) {
-        app.clickOnSystem();
+        app.clickOnThread({ partner: 's1' });
     }
 
     return await getThreads();
@@ -10398,14 +10406,16 @@ async function expiredAcc(detail) {
 
 async function newMessage(detail) {
     if (detail.threadID === app.getConversationPartner().threadID) {
-        await getMessages({
+        const options = {
             detail: {
                 ...detail,
                 ...(detail.type === 'group'
                     ? { groupID: detail.threadID }
                     : {}),
             },
-        });
+        };
+
+        await getMessages(options);
     }
 
     return await getThreads();
@@ -10986,13 +10996,13 @@ app.addEventListener('addGroupMember', async function ({ detail }) {
 });
 app.addEventListener('threadSelect', getMessages);
 app.addEventListener('writeMessage', async function ({ detail }) {
-    const groupVersion = detail.isGroup
+    const groupVersion = detail.groupID
         ? await groupGetVersion(detail.receiver)
         : false;
-    const sender = detail.isGroup
+    const sender = detail.groupID
         ? `${detail.receiver}:${groupVersion}`
         : be8.getAccID();
-    const receiver = detail.isGroup ? be8.getAccID() : detail.receiver;
+    const receiver = detail.groupID ? be8.getAccID() : detail.receiver;
     const { cipherText, iv } = await be8.encryptTextSimple(
         sender,
         receiver,
@@ -11000,12 +11010,11 @@ app.addEventListener('writeMessage', async function ({ detail }) {
     );
     const options = {
         ...detail,
-        ...(detail.isGroup
-            ? { groupVersionKey: `${detail.receiver}:${groupVersion}` }
+        ...(detail.groupID
+            ? { groupVersionKey: `${detail.groupID}:${groupVersion}` }
             : {}),
         text: cipherText,
         iv,
-        type: detail.isGroup ? 'group' : 'user',
     };
 
     await fetch('/writemessage', {
@@ -11015,6 +11024,7 @@ app.addEventListener('writeMessage', async function ({ detail }) {
     await getMessages({ detail: options });
     return detail.done();
 });
+// build same options like write message or getGroupmembers breaks
 app.addEventListener('uploadMedia', async function ({ detail }) {
     const groupVersion = detail.isGroup
         ? await groupGetVersion(detail.receiver)
