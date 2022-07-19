@@ -7673,7 +7673,7 @@ class PanicModal extends Modal {
         const text = o(LANG.PANICTEXT.replaceAll('{{id}}', this.ME.id));
         const content = $`<p>${text}</p><div><input tabindex="0" @keydown="${(
             e
-        ) => this.onKeyPress(e)}" type="number"></div><button @click="${
+        ) => this.onKeyPress(e)}" type="number" min="0"></div><button @click="${
             this.onClickDestroy
         }" class="danger-background">destroy everything</button>`;
 
@@ -7846,7 +7846,9 @@ class ConversationModal extends Modal {
 
     render() {
         const content = $`<p>${LANG.CONVERSATION}</p><input @keydown="${(e) =>
-            this.#keyDownOn1to1(e)}" tabindex="0" type="number"><div @click="${
+            this.#keyDownOn1to1(
+                e
+            )}" tabindex="0" type="number" min="0"><div @click="${
             this.#clickOnGoToGroup
         }" class="sub-modal-button hover-background">Create a group <i class="fa-solid fa-arrow-right float-right"></i></div>`;
         const groupsettings = $`<div><p>Name</p><input @keydown="${(e) =>
@@ -8591,7 +8593,7 @@ class GroupUsermodal extends Modal {
         this.#addMemberId = this.querySelector('.adduser-group-modal input');
     }
 
-    #sendAddGroupUser(id) {
+    #sendAddGroupUser(id, input) {
         const event = new CustomEvent('addGroupMember', {
             bubbles: false,
             detail: {
@@ -8602,6 +8604,8 @@ class GroupUsermodal extends Modal {
                         type: 'success',
                         text: 'You added ' + id + ' to your group',
                     };
+
+                    input.value = '';
 
                     domCache.toast.open();
                     return this.close();
@@ -8646,7 +8650,7 @@ class GroupUsermodal extends Modal {
                 return domCache.toast.open();
             }
 
-            return this.#sendAddGroupUser(id);
+            return this.#sendAddGroupUser(id, e.target);
         }
     }
 
@@ -8792,8 +8796,6 @@ const SYSTEMMESSAGES = Object.freeze({
         '<i class="highlight-color">{{extra2}}</i> with id <i class="highlight-color">{{extra1}}</i> joined {{threadID}}.',
     ACCDELETED:
         'Account <i class="highlight-color">#{{extra1}}</i> has been destroyed.',
-    CHANGENICKNAME:
-        'You nickname was changed from <i class="highlight-color">{{extra1}}</i> to <i class="highlight-color">{{extra2}}</i>',
     LEFTGROUP:
         'You left group <i class="highlight-color">{{extra2}}</i> with id <i class="highlight-color">#{{extra1}}</i>.',
     ACCLEFTGROUP:
@@ -8815,8 +8817,7 @@ const SYSTEMTITLES = Object.freeze({
     ADDEDTOGROUP: 'You were added to the group',
     ACCADDEDTOGROUP: 'User was added to the group',
     ACCJOINEDGROUP: 'Acc joined group',
-    ACCDELETED: 'Account you know is destroyed',
-    CHANGENICKNAME: 'Your nickname has changed',
+    ACCDELETED: 'Acc you know is destroyed',
     LEFTGROUP: 'An user left the group',
     KICKEDFROMGROUP: 'You were kicked from a group',
     ACCLEFTGROUP: 'Acc left group',
@@ -10592,14 +10593,15 @@ async function fetchKeysAndAdd(groupID, cachedVersions) {
     await syncPublicKeys(keyholder);
 
     if (filteredKeys.length > 0) {
-        const decryptProms = filteredKeys.map(function ({
+        const decryptProms = filteredKeys.map(async function ({
             groupKey,
             keyholder,
             iv,
         }) {
-            return be8.decryptTextSimple(keyholder, accID, groupKey, iv);
+            return await be8.decryptTextSimple(keyholder, accID, groupKey, iv);
         });
         const decryptedKeys = await Promise.all(decryptProms);
+
         const sanKeys = decryptedKeys.map(function (key, i) {
             const groupKey = JSON.parse(key);
             return { groupKey, version: filteredKeys[i].groupVersion };
