@@ -8927,6 +8927,7 @@ class Messages extends s$1 {
                 bubbles: false,
                 detail: {
                     text: this.#messageInput.value,
+                    nickname: this.ME.nickname,
                     sender: this.ME.id,
                     receiver,
                     threadID: this.conversationPartner.threadID,
@@ -8976,6 +8977,7 @@ class Messages extends s$1 {
                 content,
                 isGroup,
                 receiver: this.conversationPartner.partner,
+                nickname: this.ME.nickname,
                 sender: this.ME.id,
                 threadID: this.conversationPartner.threadID,
                 messageType: 'image',
