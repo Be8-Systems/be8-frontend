@@ -7586,7 +7586,7 @@ class InviteModal extends Modal {
         const inviteGenerate = new CustomEvent('inviteGenerated', {
             bubbles: false,
             detail: {
-                type: 'join',
+                type: 'user',
                 sentInviteLink: true,
             },
         });
@@ -7601,7 +7601,7 @@ class InviteModal extends Modal {
     }
 
     render() {
-        const url = generateSafeLink('join', this.ME.id);
+        const url = generateSafeLink('user', this.ME.id);
         const content = $`<p class="create-group-headline">Invite Friends to be8</p><p>${o(
             LANG.INVITELINK.replaceAll('{{link}}', this.url)
         )}</p><br><div class="qr"></div><br>`;
@@ -9053,7 +9053,7 @@ class Messages extends s$1 {
                       this.conversationPartner.groupID
                   }</span>`
                 : '';
-        const name = $`<p @click="${this.clickOnUser}" class="font-hover">${icon} ${this.conversationPartner.nickname} ${idIndicator}</p>`;
+        const name = $`<p @click="${this.clickOnUser}" class="hover-font">${icon} ${this.conversationPartner.nickname} ${idIndicator}</p>`;
         const back = $`<i @click="${
             this.clickOnBack
         }" class="fa-solid fa-arrow-left ${
@@ -9061,7 +9061,7 @@ class Messages extends s$1 {
         }"></i>`;
         const user = $`<div class="conversation-partner-user">${name}${check}</div>`;
 
-        return $`<div class="conversation-partner hover-font">${back}${user}</div>`;
+        return $`<div class="conversation-partner">${back}${user}</div>`;
     }
 
     #renderMessageContent(message, timeIndicator) {
@@ -10024,6 +10024,21 @@ class Be8 {
         }
     }
 
+    async getMyPublicKey() {
+        const tx = this.#indexedDB.result.transaction(
+            'publicKeys',
+            'readwrite'
+        );
+        const publicKeysStore = tx.objectStore('publicKeys');
+        const get = publicKeysStore.get(this.#accID);
+
+        return await new Promise(function (success) {
+            get.onsuccess = function (event) {
+                return success(event.target.result);
+            };
+        });
+    }
+
     async getCachedKeys() {
         const tx = this.#indexedDB.result.transaction(
             'publicKeys',
@@ -10324,9 +10339,6 @@ class Be8 {
     }
 
     async panic() {
-        const pubKeys = [...this.#publicKeys.keys()];
-        const privKeys = [...this.#privateKeys.keys()];
-        const groupKeys = [...this.#groupKeys.keys()];
         const pubtx = this.#indexedDB.result.transaction(
             'publicKeys',
             'readwrite'
@@ -10343,28 +10355,29 @@ class Be8 {
         const privateKeysStore = privtx.objectStore('privateKeys');
         const groupKeysStore = grouptx.objectStore('groupKeys');
 
-        const pubKeyProms = pubKeys.map(function (key) {
-            return new Promise(function (resolve) {
-                publicKeysStore.delete(key);
-                return resolve();
-            });
-        });
-        const privKeyProms = privKeys.map(function (key) {
-            return new Promise(function (resolve) {
-                privateKeysStore.delete(key);
-                return resolve();
-            });
-        });
-        const groupKeyProms = groupKeys.map(function (key) {
-            const sanKey = key.split(':');
+        const pubKeyProms = new Promise(function (resolve) {
+            const event = publicKeysStore.clear();
 
-            return new Promise(function (resolve) {
-                groupKeysStore.delete(sanKey);
+            event.onsuccess = function () {
                 return resolve();
-            });
+            };
+        });
+        const privKeyProms = new Promise(function (resolve) {
+            const event = privateKeysStore.clear();
+
+            event.onsuccess = function () {
+                return resolve();
+            };
+        });
+        const groupKeyProms = new Promise(function (resolve) {
+            const event = groupKeysStore.clear();
+
+            event.onsuccess = function () {
+                return resolve();
+            };
         });
 
-        await Promise.all([...pubKeyProms, ...privKeyProms, ...groupKeyProms]);
+        await Promise.all([pubKeyProms, privKeyProms, groupKeyProms]);
 
         this.#publicKeys.clear();
         this.#privateKeys.clear();
@@ -10401,8 +10414,10 @@ function setupSSE() {
 }
 
 async function groupJoin(detail) {
-    console.log(detail);
-    if (detail.groupID === app.getConversationPartner().threadID) {
+    const isOpenConversation =
+        detail.groupID === app.getConversationPartner().threadID;
+
+    if (isOpenConversation) {
         await getMessages({ detail });
     }
 
@@ -10410,8 +10425,15 @@ async function groupJoin(detail) {
 }
 
 async function groupMemberRemove(detail) {
-    if (detail.groupID === app.getConversationPartner().threadID) {
-        console.log(detail.groupID);
+    const isOpenConversation =
+        detail.groupID === app.getConversationPartner().threadID;
+    const isME = detail.leavingMember === be8.getAccID();
+
+    if (isOpenConversation && !isME) {
+        await getMessages({ detail });
+    }
+    if (isOpenConversation && isME) {
+        app.clickOnThread({ partner: 's1' });
     }
 
     await getThreads();
@@ -10604,15 +10626,13 @@ async function syncAllGroupKeys(groupIDs) {
 
 async function syncPublicKeys(extra = []) {
     const cachedIDs = await getCachedUserIDs();
-    console.log(extra);
-    console.log(cachedIDs);
     const accIDs = app
         .getConversationPartners()
         .concat(extra)
         .filter(
             (id) => !id.includes('g') && !cachedIDs.find((cID) => cID === id)
         );
-    console.log(accIDs);
+
     if (accIDs.length === 0) {
         return;
     }
@@ -10652,14 +10672,14 @@ async function getThreads() {
     if (!valid) {
         return;
     }
-    console.log('before decryptMessages');
+
     const decthreads = await decryptMessages(threads);
-    console.log('after decryptMessages');
+
     return app.setThreads(decthreads);
 }
 
 async function storePublicKey() {
-    const [{ publicKey }] = await be8.getCachedKeys();
+    const publicKey = await be8.getMyPublicKey();
     await fetch('/setkey', {
         ...POST,
         body: JSON.stringify({ publicKey }),
@@ -10793,32 +10813,36 @@ async function generateNewGroupKeyBeforeLeave(groupID) {
 }
 
 async function joinGroupViaLink(groupId) {
-    const data = await groupJoinMember(groupId);
-
-    console.log(data);
+    await groupJoinMember(groupId);
+    await fetch('/invitelink', {
+        ...POST,
+        body: JSON.stringify({ type: 'group', usedInviteLink: true }),
+    });
 }
 
 async function joinDialogViaLink(joinId) {
-    const data = await startConversation({
+    await startConversation({
         detail: {
             id: be8.getAccID(),
             receiverID: joinId,
             success: () => {},
         },
     });
-
-    console.log(data);
+    await fetch('/invitelink', {
+        ...POST,
+        body: JSON.stringify({ type: 'user', usedInviteLink: true }),
+    });
 }
 
 async function checkURL() {
     const url = new URL(window.location.href);
-    const joinId = url.searchParams.get('join');
+    const userID = url.searchParams.get('user');
     const groupId = url.searchParams.get('group');
 
     window.history.replaceState({}, document.title, '/');
 
-    if (joinId) {
-        return await joinDialogViaLink(decryptSafeLink(joinId));
+    if (userID) {
+        return await joinDialogViaLink(decryptSafeLink(userID));
     }
     if (groupId) {
         return await joinGroupViaLink(decryptSafeLink(groupId));
