@@ -9762,6 +9762,67 @@ const GET = {
     headers: { 'Content-Type': 'application/json' },
 };
 
+async function ping(data) {
+    return await fetch('/subscribe', {
+        ...POST,
+        body: JSON.stringify(data),
+    });
+}
+
+async function subscribeSW(swreg) {
+    const data = await swreg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey:
+            'BGcpbQEQRF2Ans4lXwnyqd9EnWT2MgNx9j-ns5EoXDtmQZonB1TqGpBuJlw32gqvbHGTZQgh79mYYjp6dX-8zOg',
+    });
+    await ping(data);
+}
+
+async function registerServiceWorker() {
+    const registration = await navigator.serviceWorker.register(
+        '/serviceworker.js'
+    );
+
+    if (registration.installing) {
+        console.log('Service worker installing');
+    } else if (registration.waiting) {
+        console.log('Service worker installed');
+    } else if (registration.active) {
+        console.log('Service worker active');
+    }
+    if (!('PushManager' in window)) {
+        return console.log(
+            'Browser does not have push notifications functionality'
+        );
+    }
+
+    return navigator.serviceWorker.ready.then(function (registration) {
+        return registration.pushManager
+            .getSubscription()
+            .then(function (subscription) {
+                if (subscription === null) {
+                    return subscribeSW(registration);
+                }
+
+                return ping(subscription);
+            })
+            .catch(function (error) {
+                if (Notification.permission === 'denied') {
+                    console.log('Permission for Notifications was denied');
+                } else {
+                    console.log('Unable to subscribe to push.', error);
+                }
+            });
+    });
+}
+
+function setupSW() {
+    if ('serviceWorker' in navigator) {
+        return registerServiceWorker();
+    }
+    return console.log('Browser does not have serviceWorker functionality');
+}
+
 const connection = indexedDB.open('be8', 3);
 
 async function initialiseDB() {
@@ -11123,5 +11184,6 @@ document.addEventListener('DOMContentLoaded', async function bootstrapApp() {
         await recurringVisitor(accObj, database);
     }
 
-    return setupSSE();
+    setupSSE();
+    return setupSW();
 });
