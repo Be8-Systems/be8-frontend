@@ -7553,7 +7553,7 @@ function generateSafeLink(parameterName, content) {
         content,
         'hamburgerANDpizza0987654e3'
     ).toString();
-
+    console.log(content);
     return `${urlObj.origin}?${parameterName}=${encodeURIComponent(cipherPW)}`;
 }
 
@@ -8686,7 +8686,7 @@ class GroupUsermodal extends Modal {
 
     #renderSideGroup(amIAdmin) {
         const isPrivate = this.conversationPartner.groupType === 'private';
-        const url = generateSafeLink('group', this.conversationPartner.id);
+        const url = generateSafeLink('group', this.conversationPartner.groupID);
         const backToMain = $`<i @click="${
             this.#clickOnBackToMain
         }" class="fa-solid fa-arrow-left float-left hover-font"></i>`;
@@ -8963,17 +8963,23 @@ class Messages extends s$1 {
     }
 
     #sendImage(content) {
+        const isGroup = !!this.conversationPartner.groupID;
+        const groupOptions = {
+            groupID: this.conversationPartner.groupID,
+        };
         const uploadEvent = new CustomEvent('uploadMedia', {
             bubbles: false,
             detail: {
                 contentID: randomString(),
                 contentType: 'image',
                 content,
-                isGroup: !!this.conversationPartner.groupID,
+                isGroup,
                 receiver: this.conversationPartner.partner,
                 sender: this.ME.id,
                 threadID: this.conversationPartner.threadID,
                 messageType: 'image',
+                ...(isGroup ? groupOptions : {}),
+                type: isGroup ? 'group' : 'user',
                 done: () => {},
             },
         });
@@ -9047,7 +9053,7 @@ class Messages extends s$1 {
                       this.conversationPartner.groupID
                   }</span>`
                 : '';
-        const name = $`<p @click="${this.clickOnUser}" class="hover-font">${icon} ${this.conversationPartner.nickname}</p>${idIndicator}`;
+        const name = $`<p @click="${this.clickOnUser}" class="font-hover">${icon} ${this.conversationPartner.nickname} ${idIndicator}</p>`;
         const back = $`<i @click="${
             this.clickOnBack
         }" class="fa-solid fa-arrow-left ${
@@ -9055,7 +9061,7 @@ class Messages extends s$1 {
         }"></i>`;
         const user = $`<div class="conversation-partner-user">${name}${check}</div>`;
 
-        return $`<div class="conversation-partner">${back}${user}</div>`;
+        return $`<div class="conversation-partner hover-font">${back}${user}</div>`;
     }
 
     #renderMessageContent(message, timeIndicator) {
@@ -10369,12 +10375,15 @@ class Be8 {
 
 const app = document.querySelector('app-layout');
 const refreshAppComponent = (accObj) => (app.ME = accObj);
-const actions = {
+const actions = Object.freeze({
     newMessage,
     messageRead,
     expiredAcc,
     newConversation,
-};
+    groupMemberRemove,
+    groupJoin,
+    groupCreate: newConversation,
+});
 let be8 = {};
 
 function setupSSE() {
@@ -10389,6 +10398,22 @@ function setupSSE() {
         },
         false
     );
+}
+
+async function groupJoin(detail) {
+    if (detail.groupID === app.getConversationPartner().threadID) {
+        await getMessages({ detail });
+    }
+
+    await getThreads();
+}
+
+async function groupMemberRemove(detail) {
+    if (detail.groupID === app.getConversationPartner().threadID) {
+        console.log(detail.groupID);
+    }
+
+    await getThreads();
 }
 
 async function newConversation(detail) {
@@ -10764,11 +10789,13 @@ async function generateNewGroupKeyBeforeLeave(groupID) {
     return await syncGroupKeys(groupID);
 }
 
-async function joinGroup(groupId) {
-    return groupId;
+async function joinGroupViaLink(groupId) {
+    const data = await groupJoinMember(groupId);
+
+    console.log(data);
 }
 
-async function joinDialog(joinId) {
+async function joinDialogViaLink(joinId) {
     const data = await startConversation({
         detail: {
             id: be8.getAccID(),
@@ -10788,10 +10815,10 @@ async function checkURL() {
     window.history.replaceState({}, document.title, '/');
 
     if (joinId) {
-        return await joinDialog(decryptSafeLink(joinId));
+        return await joinDialogViaLink(decryptSafeLink(joinId));
     }
     if (groupId) {
-        return await joinGroup(decryptSafeLink(groupId));
+        return await joinGroupViaLink(decryptSafeLink(groupId));
     }
 }
 
@@ -11024,7 +11051,6 @@ app.addEventListener('writeMessage', async function ({ detail }) {
     await getMessages({ detail: options });
     return detail.done();
 });
-// build same options like write message or getGroupmembers breaks
 app.addEventListener('uploadMedia', async function ({ detail }) {
     const groupVersion = detail.isGroup
         ? await groupGetVersion(detail.receiver)
@@ -11045,7 +11071,6 @@ app.addEventListener('uploadMedia', async function ({ detail }) {
             : {}),
         content: cipherImage,
         iv,
-        type: detail.isGroup ? 'group' : 'user',
     };
     const raw = await fetch('/imageupload', {
         ...POST,
