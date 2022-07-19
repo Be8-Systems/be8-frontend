@@ -7553,7 +7553,7 @@ function generateSafeLink(parameterName, content) {
         content,
         'hamburgerANDpizza0987654e3'
     ).toString();
-    console.log(content);
+
     return `${urlObj.origin}?${parameterName}=${encodeURIComponent(cipherPW)}`;
 }
 
@@ -9888,10 +9888,10 @@ class Be8 {
         });
 
         if (!privateKey) {
-            console.log('engine: brand new acc');
+            console.log(`engine: brand new acc, set id: #${this.#accID}`);
             await this.generatePrivAndPubKey();
         } else {
-            console.log('engine: old acc');
+            console.log(`engine: old acc, used id: #${this.#accID}`);
             this.#privateKeys.set(this.#accID, privateKey);
         }
 
@@ -10401,6 +10401,7 @@ function setupSSE() {
 }
 
 async function groupJoin(detail) {
+    console.log(detail);
     if (detail.groupID === app.getConversationPartner().threadID) {
         await getMessages({ detail });
     }
@@ -10603,13 +10604,15 @@ async function syncAllGroupKeys(groupIDs) {
 
 async function syncPublicKeys(extra = []) {
     const cachedIDs = await getCachedUserIDs();
+    console.log(extra);
+    console.log(cachedIDs);
     const accIDs = app
         .getConversationPartners()
         .concat(extra)
         .filter(
             (id) => !id.includes('g') && !cachedIDs.find((cID) => cID === id)
         );
-
+    console.log(accIDs);
     if (accIDs.length === 0) {
         return;
     }
@@ -10649,9 +10652,9 @@ async function getThreads() {
     if (!valid) {
         return;
     }
-
+    console.log('before decryptMessages');
     const decthreads = await decryptMessages(threads);
-
+    console.log('after decryptMessages');
     return app.setThreads(decthreads);
 }
 
