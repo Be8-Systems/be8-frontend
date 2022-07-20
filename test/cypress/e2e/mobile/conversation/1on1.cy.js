@@ -20,9 +20,16 @@ describe('Dialog settings', () => {
     });
 
     it('check id with success toast', () => {
-        cy.get('.fa-pen-clip').click();
-        cy.get('conversation-modal-window.modal .modal-content input').type('1234{enter}');
-        cy.get('toast-notification').should('have.class', 'active');
-        cy.get('toast-notification.active .progress.success').should('have.class', 'active');
+        cy.get('.modal-content p i')
+            .first()
+            .invoke('text')
+            .then((id) => {
+                const otherID = parseInt(id.slice(1)) - 1;
+                
+                cy.get('.fa-pen-clip').click();
+                cy.get('conversation-modal-window.modal .modal-content input').type(`${otherID}{enter}`);
+                cy.get('toast-notification').should('have.class', 'active');
+                cy.get('toast-notification.active .progress.success').should('have.class', 'active');
+            });
     });
 });

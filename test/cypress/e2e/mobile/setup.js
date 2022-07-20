@@ -10,5 +10,6 @@ export default function () {
                 });    
             }, 
         });
+        cy.get('.close-modal').first().click();
     });
 }
