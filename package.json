@@ -7,7 +7,9 @@
     "build": "npm run buildDev && npm run buildProd",
     "buildDev": "rollup -c build/rollup.dev.config.js",
     "buildProd": "node build/replace/ && rollup -c build/rollup.dist.config.js",
-    "test": "node_modules/cypress/bin/cypress open"
+    "test": "node_modules/cypress/bin/cypress open",
+    "production": "NODE_ENV=production node build/server.mjs &>> be8log.log 2>&1&",
+    "productionLogs": "NODE_ENV=production node build/server.mjs"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.18.2",
