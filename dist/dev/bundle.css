@@ -494,7 +494,8 @@ messages-menu {
 }
 
 .message-text {
-  white-space: pre;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .message-top-line {
