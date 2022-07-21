@@ -1,5 +1,5 @@
-const PRECACHE = 'v0.1.5';
-const RUNTIME = 'v0.1.5';
+const PRECACHE = 'v0.1.9';
+const RUNTIME = 'v0.1.9';
 const PRECACHE_URLS = Object.freeze([
     '/',
     'bundle.css'
@@ -38,8 +38,12 @@ self.addEventListener('fetch', event => {
 
             return caches.open(RUNTIME).then(cache => {
                 return fetch(event.request).then(response => {
-                        // Put a copy of the response in the runtime cache.
-                        return cache.put(event.request, response.clone()).then(() => {
+                    if (response.status == 206) {
+                        return response;                    
+                    }
+
+                    // Put a copy of the response in the runtime cache.
+                    return cache.put(event.request, response.clone()).then(() => {
                         return response;
                     });
                 });

@@ -7594,7 +7594,7 @@ class InviteModal extends Modal {
 
         super.open();
         navigator.clipboard.writeText(this.url).then(() => {
-            this.focus();
+            qr.focus();
         });
 
         qr.innerHTML = '';
@@ -9783,17 +9783,8 @@ async function subscribeSW(swreg) {
 }
 
 async function registerServiceWorker() {
-    const registration = await navigator.serviceWorker.register(
-        '/serviceworker.js'
-    );
+    await navigator.serviceWorker.register('/serviceworker.js');
 
-    if (registration.installing) {
-        console.log('Service worker installing');
-    } else if (registration.waiting) {
-        console.log('Service worker installed');
-    } else if (registration.active) {
-        console.log('Service worker active');
-    }
     if (!('PushManager' in window)) {
         return console.log(
             'Browser does not have push notifications functionality'
@@ -10452,6 +10443,22 @@ class Be8 {
     }
 }
 
+let messageReceivedTimer = null;
+
+var sound = Object.freeze({
+    messageReceived() {
+        clearTimeout(messageReceivedTimer);
+
+        messageReceivedTimer = setTimeout(() => {
+            const audio = new Audio('assets/sounds/received.mp3').play();
+
+            if (audio) {
+                audio.catch(console.log);
+            }
+        }, 300);
+    },
+});
+
 const app = document.querySelector('app-layout');
 const refreshAppComponent = (accObj) => (app.ME = accObj);
 const actions = Object.freeze({
@@ -10521,6 +10528,9 @@ async function expiredAcc(detail) {
 async function newMessage(detail) {
     if (detail.threadID === app.getConversationPartner().threadID) {
         await getMessages({ detail });
+    }
+    if (document.hidden) {
+        sound.messageReceived();
     }
 
     return await getThreads();
