@@ -7565,6 +7565,13 @@ function decryptSafeLink(ciphter) {
     );
 }
 
+function findUrls(text) {
+    const urls = text.match(
+        /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/gi
+    );
+    return urls || [];
+}
+
 class InviteModal extends Modal {
     static properties = {
         inviteURL: { type: String },
@@ -9069,12 +9076,38 @@ class Messages extends s$1 {
         return $`<div class="conversation-partner">${back}${user}</div>`;
     }
 
+    #renderTextWithURL(text, urls, timeIndicator) {
+        let lastText = text;
+        const parts = urls.flatMap(function (url) {
+            const urlHTML = `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+            const [firstText, ...rest] = lastText.split(url);
+
+            lastText = rest.join(url);
+
+            return [firstText, o(urlHTML)];
+        });
+
+        parts.push(lastText);
+
+        return $`<p class="message-text">${parts} ${timeIndicator}</p>`;
+    }
+
+    #renderTextContent({ text }, timeIndicator) {
+        const urls = findUrls(text);
+
+        if (urls.length === 0) {
+            return $`<p class="message-text">${text} ${timeIndicator}</p>`;
+        }
+
+        return this.#renderTextWithURL(text, urls, timeIndicator);
+    }
+
     #renderMessageContent(message, timeIndicator) {
         if (message.messageType === 'image') {
             return $`<i class="fa-solid fa-spin fa-circle-notch"></i><img data-contentid="${message.contentID}" src=""><p>${timeIndicator}</p>`;
         }
 
-        return $`<p class="message-text">${message.text} ${timeIndicator}</p>`;
+        return this.#renderTextContent(message, timeIndicator);
     }
 
     #renderStatusIndicator(amIsender, status, isGroup) {
@@ -10879,7 +10912,6 @@ async function generateNewGroupKeyBeforeLeave(groupID) {
 }
 
 async function joinGroupViaLink(groupID) {
-    console.log('bin in joiknGroupViaLink: ', groupID);
     const { valid } = await groupJoinMember(groupID);
 
     if (valid) {
@@ -10909,7 +10941,6 @@ async function joinDialogViaLink(joinId) {
 }
 
 async function checkURL() {
-    console.log('bin in checkURL');
     const url = new URL(window.location.href);
     const userID = url.searchParams.get('user');
     const groupId = url.searchParams.get('group');
@@ -10920,7 +10951,6 @@ async function checkURL() {
         return await joinDialogViaLink(decryptSafeLink(userID));
     }
     if (groupId) {
-        console.log('bin in if');
         return await joinGroupViaLink(decryptSafeLink(groupId));
     }
 }
@@ -10935,11 +10965,9 @@ async function groupJoinMember(groupID) {
 }
 
 async function recurringVisitor(accObj, database) {
-    console.log('____________________: ', accObj);
     refreshAppComponent(accObj);
     await generateEngine(accObj, database);
     return await app.openLockModal(async () => {
-        console.log('bin unlocked');
         await getThreads();
         await checkURL();
     });
