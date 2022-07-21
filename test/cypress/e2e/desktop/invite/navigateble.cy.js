@@ -15,6 +15,6 @@ describe('Check if menu or modal is navigateable', () => {
         cy.get('.bottom-navi .fa-plus').click();
         cy.get('invite-modal-window').should('not.have.class', 'hide');
         cy.get('invite-modal-window a').should('have.attr', 'href');
-        cy.get('invite-modal-window small').focus().realClick();
+        cy.get('invite-modal-window small').focus().click();
     });
 });
