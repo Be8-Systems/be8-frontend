@@ -7592,8 +7592,10 @@ class InviteModal extends Modal {
         });
         const qr = this.querySelector('.qr');
 
-        navigator.clipboard.writeText(this.url).then(() => {});
         super.open();
+        navigator.clipboard.writeText(this.url).then(() => {
+            this.focus();
+        });
 
         qr.innerHTML = '';
         new QRCode(qr, { text: this.url });
