@@ -9322,10 +9322,6 @@ class SettingsMenu extends s$1 {
         return this; // prevents creating a shadow root
     }
 
-    clickOnNotifications() {
-        console.log('Notifications');
-    }
-
     clickOnCodes() {
         return this.#codesModal.open();
     }
@@ -9366,9 +9362,8 @@ class SettingsMenu extends s$1 {
         }" class="danger-background">${
             this.ME.codes ? 'Update' : 'Setup'
         }</button></div>`;
-        const notifications = $`<div class="settings-container"><p>Notifications</p><button @click="${this.clickOnNotifications}">Activate</button></div>`;
 
-        return $`<h1>Settings</h1>${nickname}${notifications}${codes}`;
+        return $`<h1>Settings</h1>${nickname}${codes}`;
     }
 }
 
