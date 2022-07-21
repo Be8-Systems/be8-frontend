@@ -7565,6 +7565,13 @@ function decryptSafeLink(ciphter) {
     );
 }
 
+function findUrls(text) {
+    const urls = text.match(
+        /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/gi
+    );
+    return urls || [];
+}
+
 class InviteModal extends Modal {
     static properties = {
         inviteURL: { type: String },
@@ -9069,12 +9076,39 @@ class Messages extends s$1 {
         return $`<div class="conversation-partner">${back}${user}</div>`;
     }
 
+    #renderTextWithURL(text, urls, timeIndicator) {
+        let lastText = text;
+        console.log('___________________');
+        const parts = urls.flatMap(function (url) {
+            const urlHTML = `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+            const [firstText, ...rest] = lastText.split(url);
+            console.log(rest);
+            lastText = rest.join(url);
+
+            return [firstText, o(urlHTML)];
+        });
+
+        parts.push(lastText);
+
+        return $`<p class="message-text">${parts} ${timeIndicator}</p>`;
+    }
+
+    #renderTextContent({ text }, timeIndicator) {
+        const urls = findUrls(text);
+
+        if (urls.length === 0) {
+            return $`<p class="message-text">${text} ${timeIndicator}</p>`;
+        }
+
+        return this.#renderTextWithURL(text, urls, timeIndicator);
+    }
+
     #renderMessageContent(message, timeIndicator) {
         if (message.messageType === 'image') {
             return $`<i class="fa-solid fa-spin fa-circle-notch"></i><img data-contentid="${message.contentID}" src=""><p>${timeIndicator}</p>`;
         }
 
-        return $`<p class="message-text">${message.text} ${timeIndicator}</p>`;
+        return this.#renderTextContent(message, timeIndicator);
     }
 
     #renderStatusIndicator(amIsender, status, isGroup) {
