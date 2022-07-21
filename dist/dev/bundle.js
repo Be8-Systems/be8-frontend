@@ -9082,7 +9082,7 @@ class Messages extends s$1 {
         const parts = urls.flatMap(function (url) {
             const urlHTML = `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
             const [firstText, ...rest] = lastText.split(url);
-            console.log(rest);
+
             lastText = rest.join(url);
 
             return [firstText, o(urlHTML)];
