@@ -827,3 +827,8 @@ user-menu {
     left: 30px;
   }
 }
+@media not all and (min-resolution: 0.001dpcm) {
+  button {
+    outline: none;
+  }
+}
