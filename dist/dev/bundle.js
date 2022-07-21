@@ -10878,12 +10878,20 @@ async function generateNewGroupKeyBeforeLeave(groupID) {
     return await syncGroupKeys(groupID);
 }
 
-async function joinGroupViaLink(groupId) {
-    await groupJoinMember(groupId);
-    await fetch('/invitelink', {
-        ...POST,
-        body: JSON.stringify({ type: 'group', usedInviteLink: true }),
-    });
+async function joinGroupViaLink(groupID) {
+    console.log('bin in joiknGroupViaLink: ', groupID);
+    const { valid } = await groupJoinMember(groupID);
+
+    if (valid) {
+        const groupKey = await generateGroupKey(groupID);
+
+        await updateGroupKeyForParticipants(groupID, groupKey);
+        await syncGroupKeys(groupID);
+        await fetch('/invitelink', {
+            ...POST,
+            body: JSON.stringify({ type: 'group', usedInviteLink: true }),
+        });
+    }
 }
 
 async function joinDialogViaLink(joinId) {
@@ -10901,6 +10909,7 @@ async function joinDialogViaLink(joinId) {
 }
 
 async function checkURL() {
+    console.log('bin in checkURL');
     const url = new URL(window.location.href);
     const userID = url.searchParams.get('user');
     const groupId = url.searchParams.get('group');
@@ -10911,6 +10920,7 @@ async function checkURL() {
         return await joinDialogViaLink(decryptSafeLink(userID));
     }
     if (groupId) {
+        console.log('bin in if');
         return await joinGroupViaLink(decryptSafeLink(groupId));
     }
 }
@@ -10925,9 +10935,11 @@ async function groupJoinMember(groupID) {
 }
 
 async function recurringVisitor(accObj, database) {
+    console.log('____________________: ', accObj);
     refreshAppComponent(accObj);
     await generateEngine(accObj, database);
     return await app.openLockModal(async () => {
+        console.log('bin unlocked');
         await getThreads();
         await checkURL();
     });
