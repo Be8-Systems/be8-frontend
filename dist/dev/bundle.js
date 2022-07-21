@@ -10479,7 +10479,6 @@ function setupSSE() {
         'message',
         async function (e) {
             const data = JSON.parse(e.data);
-            console.log(data);
             return await actions[data.action](data);
         },
         false
