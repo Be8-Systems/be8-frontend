@@ -9071,7 +9071,7 @@ class Messages extends s$1 {
 
     #renderMessageContent(message, timeIndicator) {
         if (message.messageType === 'image') {
-            return $`<i class="fa-solid fa-spin fa-circle-notch"></i><img data-contentid="${message.contentID}" src="">`;
+            return $`<i class="fa-solid fa-spin fa-circle-notch"></i><img data-contentid="${message.contentID}" src=""><p>${timeIndicator}</p>`;
         }
 
         return $`<p class="message-text">${message.text} ${timeIndicator}</p>`;
@@ -9114,8 +9114,6 @@ class Messages extends s$1 {
     #renderUserMessage(message, isGroup) {
         const { messageID, nickname, sender, status, ts } = message;
         const amIsender = sender === this.ME.id;
-        const dateTime = new Date(ts);
-        const time = dateTime.toLocaleTimeString();
         const firstLine =
             isGroup && !amIsender ? this.#getNicknameLine(message) : '';
         const statusIndicator = this.#renderStatusIndicator(
@@ -9123,6 +9121,8 @@ class Messages extends s$1 {
             status,
             isGroup
         );
+        const dateTime = new Date(ts);
+        const time = dateTime.toLocaleTimeString();
         const thirdLine = $`<small class="message-bottom-line float-right unselectable">${time}${statusIndicator}</small>`;
         const secondLine = this.#renderMessageContent(message, thirdLine);
 
@@ -9264,7 +9264,7 @@ class User extends s$1 {
         this.#statusTimer = setTimeout(() => {
             const status = event.target.value.trim();
 
-            if (this.ME.status === status) {
+            if (this.ME.userStatus === status) {
                 return clearTimeout(this.#statusTimer);
             }
 
@@ -9293,7 +9293,7 @@ class User extends s$1 {
         const status = $`<div class="settings-container"><p>Status</p><textarea @keydown="${(
             e
         ) => this.keyDownStatus(e)}" maxlength="280">${
-            this.ME.status
+            this.ME.userStatus
         }</textarea></div>`;
         const endlessToken = this.ME.endless
             ? ''
