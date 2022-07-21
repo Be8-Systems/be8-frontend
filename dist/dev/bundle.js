@@ -9078,7 +9078,6 @@ class Messages extends s$1 {
 
     #renderTextWithURL(text, urls, timeIndicator) {
         let lastText = text;
-        console.log('___________________');
         const parts = urls.flatMap(function (url) {
             const urlHTML = `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
             const [firstText, ...rest] = lastText.split(url);
