@@ -463,6 +463,7 @@ messages-menu {
 .message img {
   border-top-left-radius: var(--big-border-radius);
   border-bottom-right-radius: var(--big-border-radius);
+  max-height: 65vh;
 }
 
 .message p {
