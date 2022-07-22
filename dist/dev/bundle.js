@@ -8888,14 +8888,14 @@ class Messages extends s$1 {
         if (isSystem) {
             if (!this.#uploadButton.classList.contains('disabled')) {
                 this.#uploadButton.classList.add('disabled');
-                this.#uploadButton.classList.add('hover-font');
+                this.#uploadButton.classList.remove('hover-font');
             }
 
             this.#messageInput.disabled = true;
         } else {
             if (this.#uploadButton.classList.contains('disabled')) {
                 this.#uploadButton.classList.remove('disabled');
-                this.#uploadButton.classList.remove('hover-font');
+                this.#uploadButton.classList.add('hover-font');
             }
 
             this.#messageInput.disabled = false;
@@ -8983,10 +8983,20 @@ class Messages extends s$1 {
                 messageType: 'image',
                 ...(isGroup ? groupOptions : {}),
                 type: isGroup ? 'group' : 'user',
-                done: () => {},
+                done: () => {
+                    this.#uploadButton.disabled = false;
+                    this.#uploadButton.classList.add('fa-photo-film');
+                    this.#uploadButton.classList.remove(
+                        'fa-circle-notch',
+                        'fa-spin'
+                    );
+                },
             },
         });
 
+        this.#uploadButton.disabled = true;
+        this.#uploadButton.classList.remove('fa-photo-film');
+        this.#uploadButton.classList.add('fa-circle-notch', 'fa-spin');
         return domCache.app.dispatchEvent(uploadEvent);
     }
 
