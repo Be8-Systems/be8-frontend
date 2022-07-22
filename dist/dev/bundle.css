@@ -464,6 +464,10 @@ messages-menu {
   max-width: 80%;
 }
 
+.message .fa-circle-notch {
+  text-align: center;
+}
+
 .message img {
   border-top-left-radius: var(--big-border-radius);
   border-bottom-right-radius: var(--big-border-radius);
