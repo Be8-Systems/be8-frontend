@@ -9040,9 +9040,12 @@ class Messages extends s$1 {
             return domCache.toast.open();
         }
 
-        this.#uploadButton.disabled = true;
-        this.#uploadButton.classList.remove('fa-photo-film', 'disabled');
-        this.#uploadButton.classList.add('fa-circle-notch', 'fa-spin');
+        this.#uploadButton.classList.remove('fa-photo-film');
+        this.#uploadButton.classList.add(
+            'fa-circle-notch',
+            'fa-spin',
+            'disabled'
+        );
 
         this.#generateImageBlob(file);
         target.setAttribute('value', ''); // allow double upload of the same picture
