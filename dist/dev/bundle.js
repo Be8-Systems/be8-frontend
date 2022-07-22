@@ -8953,7 +8953,7 @@ class Messages extends s$1 {
     }
 
     uploadMedia() {
-        this.querySelector('input[type="file"]').click();
+        this.#uploadButton.click();
     }
 
     scrollToBottom() {
@@ -8994,9 +8994,6 @@ class Messages extends s$1 {
             },
         });
 
-        this.#uploadButton.disabled = true;
-        this.#uploadButton.classList.remove('fa-photo-film');
-        this.#uploadButton.classList.add('fa-circle-notch', 'fa-spin');
         return domCache.app.dispatchEvent(uploadEvent);
     }
 
@@ -9042,6 +9039,10 @@ class Messages extends s$1 {
 
             return domCache.toast.open();
         }
+
+        this.#uploadButton.disabled = true;
+        this.#uploadButton.classList.remove('fa-photo-film');
+        this.#uploadButton.classList.add('fa-circle-notch', 'fa-spin');
 
         this.#generateImageBlob(file);
         target.setAttribute('value', ''); // allow double upload of the same picture
