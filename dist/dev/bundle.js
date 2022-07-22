@@ -11172,7 +11172,6 @@ app.addEventListener('writeMessage', async function ({ detail }) {
         ...POST,
         body: JSON.stringify(options),
     });
-    await getMessages({ detail: options });
     return detail.done();
 });
 app.addEventListener('uploadMedia', async function ({ detail }) {
@@ -11203,8 +11202,7 @@ app.addEventListener('uploadMedia', async function ({ detail }) {
     const { valid } = await raw.json();
 
     if (valid) {
-        detail.done();
-        await getMessages({ detail: body });
+        return detail.done();
     }
 });
 document.addEventListener('DOMContentLoaded', async function bootstrapApp() {
