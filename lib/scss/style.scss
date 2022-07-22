@@ -120,3 +120,7 @@ a:hover {
 button.danger-background:hover {
     background-color: red;
 }
+
+button.hover-green {
+    background-color: var(--color-highlight);
+}

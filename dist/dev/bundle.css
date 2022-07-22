@@ -169,6 +169,10 @@ button.danger-background:hover {
   background-color: red;
 }
 
+button.hover-green {
+  background-color: var(--color-highlight);
+}
+
 app-layout {
   display: grid;
   row-gap: 0;
