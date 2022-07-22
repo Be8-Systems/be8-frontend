@@ -9015,11 +9015,10 @@ class Messages extends s$1 {
     }
 
     isImageRendered(message) {
-        return (
-            this.querySelector(
-                `img[data-contentid="${message.contentID}"]`
-            ).getAttribute('data-rendered') === 'true'
+        const img = this.querySelector(
+            `img[data-contentid="${message.contentID}"]`
         );
+        return img?.getAttribute('data-rendered') === 'true';
     }
 
     insertImage(image) {
