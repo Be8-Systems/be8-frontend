@@ -10992,8 +10992,8 @@ async function recurringVisitor(accObj, database) {
     refreshAppComponent(accObj);
     await generateEngine(accObj, database);
     return await app.openLockModal(async () => {
-        await getThreads();
         await checkURL();
+        await getThreads();
     });
 }
 
