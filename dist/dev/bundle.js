@@ -9026,7 +9026,7 @@ class Messages extends s$1 {
         const domImage = this.querySelector(
             `[data-contentid="${image.contentID}"]`
         );
-        const spinner = domImage.previousSibling;
+        const spinner = domImage?.previousSibling;
 
         if (!spinner) {
             return;
