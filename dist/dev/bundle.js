@@ -8953,7 +8953,7 @@ class Messages extends s$1 {
     }
 
     uploadMedia() {
-        this.#uploadButton.click();
+        this.querySelector('[type="file"]').click();
     }
 
     scrollToBottom() {
@@ -8984,9 +8984,9 @@ class Messages extends s$1 {
                 ...(isGroup ? groupOptions : {}),
                 type: isGroup ? 'group' : 'user',
                 done: () => {
-                    this.#uploadButton.disabled = false;
                     this.#uploadButton.classList.add('fa-photo-film');
                     this.#uploadButton.classList.remove(
+                        'disabled',
                         'fa-circle-notch',
                         'fa-spin'
                     );
@@ -9041,7 +9041,7 @@ class Messages extends s$1 {
         }
 
         this.#uploadButton.disabled = true;
-        this.#uploadButton.classList.remove('fa-photo-film');
+        this.#uploadButton.classList.remove('fa-photo-film', 'disabled');
         this.#uploadButton.classList.add('fa-circle-notch', 'fa-spin');
 
         this.#generateImageBlob(file);
