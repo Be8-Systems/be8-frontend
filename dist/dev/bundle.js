@@ -8808,14 +8808,14 @@ const SYSTEMMESSAGES = Object.freeze({
         'Group <i class="highlight-color">{{extra2}}</i> with id <i class="highlight-color">#{{extra1}}</i> was deleted.',
 });
 
-// max 30 chars, yeah intendation like this is no allowed
+// max 28 chars, yeah intendation like this is no allowed
 // but in this case it helps to figure out how long your title is.
 const SYSTEMTITLES = Object.freeze({
     WELCOME: 'Welcome to the Be8 messenger',
     STARTCONVERSATION: 'A new conversation started',
     CREATEDGROUP: 'You created a new group',
-    ADDEDTOGROUP: 'You were added to the group',
-    ACCADDEDTOGROUP: 'User was added to the group',
+    ADDEDTOGROUP: 'You were added to a group',
+    ACCADDEDTOGROUP: 'User was added to a group',
     ACCJOINEDGROUP: 'Acc joined group',
     ACCDELETED: 'Acc you know is destroyed',
     LEFTGROUP: 'An user left the group',
@@ -9118,7 +9118,7 @@ class Messages extends s$1 {
 
     #renderMessageContent(message, timeIndicator) {
         if (message.messageType === 'image') {
-            return $`<i class="fa-solid fa-spin fa-circle-notch"></i><img data-contentid="${message.contentID}" src=""><p>${timeIndicator}</p>`;
+            return $`<i class="fa-solid fa-spin fa-circle-notch"></i><img data-contentid="${message.contentID}" data-rendered="false" src=""><p>${timeIndicator}</p>`;
         }
 
         return this.#renderTextContent(message, timeIndicator);
@@ -10615,7 +10615,6 @@ async function startConversation({ detail }) {
 async function decryptImages(messages) {
     const imageMessages = messages.filter(function (message) {
         if (message.messageType === 'image') {
-            console.log(app.isImageRendered(message));
             return !app.isImageRendered(message);
         }
     });
@@ -10854,7 +10853,7 @@ async function getGroupMessages(detail) {
 
         const sanMessages = await decryptMessages(messages);
         await app.setMessages(sanMessages);
-        app.setGroupMember(members);
+        await app.setGroupMember(members);
         return await decryptImages(sanMessages);
     }
 }
