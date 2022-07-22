@@ -9014,6 +9014,14 @@ class Messages extends s$1 {
         return reader.readAsDataURL(file);
     }
 
+    isImageRendered(message) {
+        return (
+            this.querySelector(
+                `img[data-contentid="${message.contentID}"]`
+            ).getAttribute('data-rendered') === 'true'
+        );
+    }
+
     insertImage(image) {
         const domImage = this.querySelector(
             `[data-contentid="${image.contentID}"]`
@@ -9024,6 +9032,7 @@ class Messages extends s$1 {
             return;
         }
 
+        domImage.setAttribute('data-rendered', true);
         domImage.setAttribute('src', image.content);
         return domImage.parentNode.removeChild(spinner);
     }
@@ -9718,6 +9727,10 @@ class AppLayout extends s$1 {
 
     getConversationPartner() {
         return this.#menus.messagesMenu.conversationPartner;
+    }
+
+    isImageRendered(message) {
+        return this.#menus.messagesMenu.isImageRendered(message);
     }
 
     insertImage(image) {
@@ -10600,7 +10613,12 @@ async function startConversation({ detail }) {
 }
 
 async function decryptImages(messages) {
-    const imageMessages = messages.filter((m) => m.messageType === 'image');
+    const imageMessages = messages.filter(function (message) {
+        if (message.messageType === 'image') {
+            console.log(app.isImageRendered(message));
+            return !app.isImageRendered(message);
+        }
+    });
     const imageProms = await imageMessages.map(async function (imageMessage) {
         const raw = await fetch('/imageget', {
             ...POST,
@@ -10619,9 +10637,7 @@ async function decryptImages(messages) {
     const brokenImages = images.filter((image) => !image.valid);
     const yourID = be8.getAccID();
 
-    brokenImages.forEach((imagesMessage) => {
-        return app.insertImage({ ...imagesMessage, content: image });
-    });
+    brokenImages.forEach((igM) => app.insertImage({ ...igM, content: image }));
     workingImages.forEach((imageMessage) => {
         const dialogPublicId =
             imageMessage.sender === yourID
@@ -10814,7 +10830,7 @@ async function getDialogMessages(detail) {
     if (valid) {
         const sanMessages = await decryptMessages(messages);
 
-        app.setMessages(sanMessages);
+        await app.setMessages(sanMessages);
         return await decryptImages(sanMessages);
     }
 }
@@ -10837,7 +10853,7 @@ async function getGroupMessages(detail) {
         await syncPublicKeys(memberIDs);
 
         const sanMessages = await decryptMessages(messages);
-        app.setMessages(sanMessages);
+        await app.setMessages(sanMessages);
         app.setGroupMember(members);
         return await decryptImages(sanMessages);
     }
