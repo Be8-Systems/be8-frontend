@@ -129,6 +129,7 @@ error.txt
 node_modules/
 bower_components/
 .nyc_output/
+images/
 
 # Apple Stuff
 .DS_Store
