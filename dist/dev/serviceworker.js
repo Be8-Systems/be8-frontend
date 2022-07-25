@@ -76,7 +76,7 @@ self.addEventListener('notificationclick', event => {
     event.notification.close();
     event.waitUntil(clients.matchAll({ type: 'window' }).then(function (clientList) {
         // focus on tab
-        console.log(client);
+        console.log(clientList);
         for (const client of clientList) {
             const isCorrectURL = client.url === 'http://localhost:3000/' || client.url === 'https://be8.live'
             console.log(isCorrectURL);
