@@ -10853,8 +10853,8 @@ async function getGroupMessages(detail) {
         await syncPublicKeys(memberIDs);
 
         const sanMessages = await decryptMessages(messages);
-        await app.setMessages(sanMessages);
         await app.setGroupMember(members);
+        await app.setMessages(sanMessages);
         return await decryptImages(sanMessages);
     }
 }
