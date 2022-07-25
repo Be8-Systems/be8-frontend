@@ -11239,10 +11239,10 @@ app.addEventListener('uploadMedia', async function ({ detail }) {
         return detail.done();
     }
 });
-
 document.addEventListener('DOMContentLoaded', async function bootstrapApp() {
     console.log('Beginning of function');
     const database = await initialiseDB$1();
+    console.log('after db init');
     const raw = await fetch('/me', GET);
     const { error, accObj } = await raw.json();
     console.log('after me');
