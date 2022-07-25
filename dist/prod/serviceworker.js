@@ -1,5 +1,5 @@
-const PRECACHE = 'v0.0.19';
-const RUNTIME = 'v0.0.19';
+const PRECACHE = 'v0.0.20';
+const RUNTIME = 'v0.0.20';
 const PRECACHE_URLS = Object.freeze([
     '/',
     'bundle.css'
@@ -65,8 +65,8 @@ function triggerNotification (data) {
 
     self.registration.showNotification('Be8 Messenger', {
         body: text,
-        icon: '/assets/img/icon-96x96.png',
-        badge: '/assets/img/icon-96x96.png',
+        icon: '/assets/img/icon/icon-96x96.png',
+        badge: '/assets/img/icon/icon-96x96.png',
         vibrate: [150, 150, 150, 150, 75, 75, 150, 150, 150, 150, 450]
     });
 
