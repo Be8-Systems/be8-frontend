@@ -1,5 +1,5 @@
-const PRECACHE = 'v0.0.15';
-const RUNTIME = 'v0.0.15';
+const PRECACHE = 'v0.0.16';
+const RUNTIME = 'v0.0.16';
 const PRECACHE_URLS = Object.freeze([
     '/',
     'bundle.css'
