@@ -1215,6 +1215,7 @@ const isPhone =
     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
         navigator.userAgent
     );
+const isFirefox = navigator.userAgent.indexOf('Firefox') !== -1;
 const isDesktop = !isPhone;
 const domCache = {
     app: {},
@@ -11238,7 +11239,15 @@ app.addEventListener('uploadMedia', async function ({ detail }) {
         return detail.done();
     }
 });
-document.addEventListener('DOMContentLoaded', async function bootstrapApp() {
+
+async function ffFIX(accObj) {
+    console.log(accObj);
+    if (isFirefox && !accObj) {
+        await bootstrapApp();
+    }
+}
+
+async function bootstrapApp() {
     const database = await initialiseDB$1();
     const raw = await fetch('/me', GET);
     const { error, accObj } = await raw.json();
@@ -11250,5 +11259,8 @@ document.addEventListener('DOMContentLoaded', async function bootstrapApp() {
     }
 
     setupSSE();
+    await ffFIX(accObj);
     return setupSW();
-});
+}
+
+document.addEventListener('DOMContentLoaded', bootstrapApp);
