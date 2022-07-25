@@ -4,6 +4,7 @@
     "short_name": "Be8",
     "start_url": ".",
     "display": "minimal-ui",
+    "scope": ".",
     "background_color": "#181818",
     "theme_color": "#39af52",
     "description": "A privacy first self destructing E2EE Messenger",
