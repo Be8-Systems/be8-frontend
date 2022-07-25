@@ -9155,9 +9155,9 @@ class Messages extends s$1 {
         const amIsender = sender === this.ME.id;
         return $`<div class="message-container"><div class="message ${
             amIsender ? 'sent-message' : 'received-message'
-        }"><i class="fa-solid fa-trash-can"></i>${
+        }"><p><i class="fa-solid fa-trash-can"></i>${
             LANG.MESSAGEREMOVED
-        }</div></div>`;
+        }</p></div></div>`;
     }
 
     #renderUserMessage(message, isGroup) {
