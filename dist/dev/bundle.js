@@ -8837,7 +8837,6 @@ class Messages extends s$1 {
         ME: { type: Object },
     };
 
-    #inputActive = true;
     #userModal = document.querySelector('user-modal-window');
     #userGroupModal = document.querySelector('groupuser-modal-window');
     #userSysModal = document.querySelector('sysuser-modal-window');
@@ -8917,7 +8916,7 @@ class Messages extends s$1 {
     }
 
     writeMessage(e) {
-        if (e.key === 'Enter' && this.#inputActive) {
+        if (e.key === 'Enter') {
             const text = this.#messageInput.value.trim();
             const isGroup = !!this.conversationPartner.groupID;
             const receiver = this.conversationPartner.partner;
@@ -8936,19 +8935,18 @@ class Messages extends s$1 {
                     ...(isGroup ? groupOptions : {}),
                     messageType: 'text',
                     done: () => {
-                        this.#inputActive = true;
+                        this.#messageInput.disabled = false;
                         this.#messageInput.value = ''; // to prevent double ^ insert after enter
                         return this.#focus();
                     },
                 },
             });
 
-            this.#inputActive = false;
-
             if (text.length === 0) {
                 return;
             }
 
+            this.#messageInput.disabled = true;
             return domCache.app.dispatchEvent(writeEvent);
         }
     }
@@ -9155,7 +9153,7 @@ class Messages extends s$1 {
         const amIsender = sender === this.ME.id;
         return $`<div class="message-container"><div class="message ${
             amIsender ? 'sent-message' : 'received-message'
-        }"><p><i class="fa-solid fa-trash-can"></i>   ${
+        }"><p><i class="fa-solid fa-trash-can"></i> ${
             LANG.MESSAGEREMOVED
         }</p></div></div>`;
     }
