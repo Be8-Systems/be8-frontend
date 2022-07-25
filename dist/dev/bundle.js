@@ -9866,7 +9866,7 @@ function setupSW() {
     return console.log('Browser does not have serviceWorker functionality');
 }
 
-const connection = indexedDB.open('be8', 3);
+const connection = indexedDB.open('be8', 1);
 
 async function initialiseDB() {
     return new Promise(function (success, error) {
