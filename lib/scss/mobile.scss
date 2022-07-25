@@ -1,6 +1,11 @@
 @media (max-width: 749px) {
     app-layout {
+        height: auto;
         grid-template-columns: 100%;
+    }
+
+    nav {
+        height: calc(100vh - var(--top-navi-height) - 192px);
     }
 
     nav,
