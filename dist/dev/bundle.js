@@ -9900,10 +9900,12 @@ async function initialiseDB() {
         };
 
         connection.onsuccess = function () {
+            console.log('IndexedDB connection success');
             return success();
         };
 
         connection.onerror = function (event) {
+            console.log('IndexedDB error');
             console.log(event);
             return error();
         };
@@ -11240,7 +11242,6 @@ app.addEventListener('uploadMedia', async function ({ detail }) {
     }
 });
 document.addEventListener('DOMContentLoaded', async function bootstrapApp() {
-    console.log('Beginning of function');
     const database = await initialiseDB$1();
     console.log('after db init');
     const raw = await fetch('/me', GET);
