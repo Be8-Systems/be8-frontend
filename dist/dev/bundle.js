@@ -8697,7 +8697,7 @@ class GroupUsermodal extends Modal {
         }" class="fa-solid fa-arrow-left float-left hover-font"></i>`;
         const addUser = $`<div class="adduser-group-modal hide"><p class="create-group-headline">${backToMain} Add new Member</p><small>Enter a valid be8 id.</small><input @keydown="${(
             e
-        ) => this.enterBe8Id(e)}" type="text"></div>`;
+        ) => this.enterBe8Id(e)}" type="number" min="0"></div>`;
         const leaveText = amIAdmin
             ? LANG.LEAVEGROUPADMIN
             : LANG.LEAVEGROUPMEMBER;
