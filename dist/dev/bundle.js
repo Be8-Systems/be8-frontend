@@ -9900,7 +9900,6 @@ async function initialiseDB() {
         };
 
         connection.onsuccess = function () {
-            console.log('IndexedDB connection success');
             return success(connection);
         };
 
