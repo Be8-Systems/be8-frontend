@@ -78,7 +78,8 @@ self.addEventListener('notificationclick', event => {
         // focus on tab
         console.log(clientList);
         for (const client of clientList) {
-            const isCorrectURL = client.url === 'http://localhost:3000/' || client.url === 'https://be8.live'
+            const url = new URL(client.url).origin;
+            const isCorrectURL = url === 'http://localhost:3000' || url === 'https://be8.live';
             console.log(isCorrectURL);
             console.log(client.url);
             console.log('focus' in client);
