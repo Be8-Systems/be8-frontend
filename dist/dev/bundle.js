@@ -9901,7 +9901,7 @@ async function initialiseDB() {
 
         connection.onsuccess = function () {
             console.log('IndexedDB connection success');
-            return success();
+            return success(connection);
         };
 
         connection.onerror = function (event) {
@@ -9913,8 +9913,7 @@ async function initialiseDB() {
 }
 
 async function initialiseDB$1() {
-    await initialiseDB();
-    return connection;
+    return await initialiseDB();
 }
 
 // generates an Initialization vector
