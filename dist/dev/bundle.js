@@ -9403,14 +9403,16 @@ class SettingsMenu extends s$1 {
     }
 
     render() {
+        const version = domCache.app.getAttribute('data-version');
         const nickname = $`<div class="settings-container"><p>Nickname is ${this.ME.nickname}</p><input @input="${this.changeName}" type="text" value="${this.ME.nickname}" maxlength="20"></div>`;
         const codes = $`<div class="settings-container"><p>Destroy and Unlock</p><button @click="${
             this.clickOnCodes
         }" class="danger-background">${
             this.ME.codes ? 'Update' : 'Setup'
         }</button></div>`;
+        const versionContainer = $`<div class="settings-container"><p>Version: ${version}</p></div>`;
 
-        return $`<h1>Settings</h1>${nickname}${codes}`;
+        return $`<h1>Settings</h1>${nickname}${codes}${versionContainer}`;
     }
 }
 

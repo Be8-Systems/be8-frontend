@@ -1,16 +1,33 @@
 const fs = require('fs');
 const Applause = require('applause');
 const { version } = require('../package'); 
-const options = [{
+const versionReplace = {
+    //match: /\"..\//g,
+    match: /{{version}}/g,
+    replacement: version
+};
+const options = [{ // index html
     options: {
         patterns: [{
             //match: /\"..\//g,
-            match: /{{timestamp}}/g,
+            match: /{{urlVersion}}/g,
             replacement: `?v=${version}`
-        }]
+        }, versionReplace]
     },
     path: './lib/html/template.html',
     write: './lib/html/index.html',
+}, { // serviceWorker
+    options: {
+        patterns: [versionReplace]
+    },
+    path: './lib/js/serviceworker.js',
+    write: './dist/prod/serviceworker.js',
+}, { // serviceWorker
+    options: {
+        patterns: [versionReplace]
+    },
+    path: './lib/js/serviceworker.js',
+    write: './dist/dev/serviceworker.js',
 }];
 
 options.forEach(function ({ options, path, write }) {

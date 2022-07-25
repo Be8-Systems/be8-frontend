@@ -9,9 +9,6 @@ const copyConfig = {
   targets: [{  
     src: 'lib/html/index.html', 
     dest: 'dist/dev'
-  }, { 
-    src: './lib/js/serviceworker.js', 
-    dest: 'dist/dev/' 
   }],
 };
 const scssConfig = {

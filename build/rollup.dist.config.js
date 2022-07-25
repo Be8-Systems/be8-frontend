@@ -21,9 +21,6 @@ const copyConfig = {
   }, { 
     src: 'node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2', 
     dest: 'dist/assets/webfonts/' 
-  }, { 
-    src: './lib/js/serviceworker.js', 
-    dest: 'dist/prod/' 
   }],
 };
 const minifyHTMLConfig = {
