@@ -10646,6 +10646,11 @@ async function decryptImages(messages) {
             ? imageMessage.sender
             : dialogPublicId;
         const idForPrivateKey = imageMessage.groupVersionKey || yourID;
+        const hasKey = be8.hasKey(idForPrivateKey);
+
+        if (!hasKey) {
+            return;
+        }
 
         return be8
             .decryptImageSimple(
