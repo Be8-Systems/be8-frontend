@@ -11242,16 +11242,15 @@ app.addEventListener('uploadMedia', async function ({ detail }) {
 });
 document.addEventListener('DOMContentLoaded', async function bootstrapApp() {
     const database = await initialiseDB$1();
-    console.log('after db init');
     const raw = await fetch('/me', GET);
     const { error, accObj } = await raw.json();
-    console.log('after me');
+
     if (error === 'NOTAUTH') {
         await firstTimeVisitor(database);
     } else {
         await recurringVisitor(accObj, database);
     }
-    console.log('before SSE');
+
     setupSSE();
     return setupSW();
 });
