@@ -7567,7 +7567,7 @@ function findUrls(text) {
 function safariIOSFix() {
     const isPWA = window.navigator.standalone;
 
-    function fixHeight() {
+    function fixHeight(messageMENU, appLayout) {
         // the bottom element of safari is not calculated into the view port
         messageMENU.style.height = 'fit-content';
         appLayout.style.height = `${window.innerHeight}px`;
@@ -7578,7 +7578,7 @@ function safariIOSFix() {
         const appLayout = document.querySelector('app-layout');
         const messageBox = document.querySelector('.write-message-input');
 
-        fixHeight();
+        fixHeight(messageMENU, appLayout);
         messageBox.onfocus = function () {
             requestAnimationFrame(() => {
                 messageMENU.style.height = `${window.innerHeight - 400}px`;
@@ -7589,7 +7589,7 @@ function safariIOSFix() {
         };
         messageBox.onblur = function () {
             requestAnimationFrame(() => {
-                fixHeight();
+                fixHeight(messageMENU, appLayout);
             });
         };
     }
