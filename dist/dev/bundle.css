@@ -495,10 +495,12 @@ messages-menu {
 
 .system-message {
   text-align: center;
+  flex-direction: column;
 }
 
 .system-message .message {
   max-width: 870px;
+  flex-direction: column;
   background-color: var(--colorsurface);
   color: var(--color-on-surface);
 }
