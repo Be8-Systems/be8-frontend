@@ -7578,6 +7578,8 @@ function safariIOSFix() {
             e.preventDefault();
         };
         document.querySelector('.write-message-input').onfocus = function () {
+            window.scrollTo(0, 0);
+            console.log('focus');
             document.body.scrollTop = 0;
         };
     }
