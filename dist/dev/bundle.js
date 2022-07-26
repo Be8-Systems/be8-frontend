@@ -7577,7 +7577,7 @@ function safariIOSFix() {
         document.ontouchmove = function (e) {
             e.preventDefault();
         };
-        document.querySelector('write-message-input').onfocus = function () {
+        document.querySelector('.write-message-input').onfocus = function () {
             document.body.scrollTop = 0;
         };
     }
