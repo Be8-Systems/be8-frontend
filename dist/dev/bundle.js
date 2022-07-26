@@ -9790,6 +9790,7 @@ class AppLayout extends s$1 {
     }
     // @touchstart="${e => this.#touchStart(e)}" @touchend="${e => this.#touchEnd(e)}"
     render() {
+        alert(window.navigator.standalone);
         const header = $`<header><i @click="${(e) =>
             this.clickOnUser(
                 e
