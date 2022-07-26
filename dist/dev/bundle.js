@@ -7576,10 +7576,12 @@ function safariIOSFix() {
         appLayout.style.height = `${window.innerHeight}px`;
 
         document.querySelector('.write-message-input').onfocus = function () {
-            messageMENU.style.height = `${window.innerHeight}px`;
-            appLayout.style.height = `${window.innerHeight}px`;
+            requestAnimationFrame(() => {
+                messageMENU.style.height = `${window.innerHeight - 400}px`;
+                appLayout.style.height = `${window.innerHeight - 400}px`;
 
-            window.scrollTo(0, 0);
+                return window.scrollTo(0, 0);
+            });
         };
     }
 }
