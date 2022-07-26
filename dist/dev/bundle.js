@@ -9583,6 +9583,8 @@ class AppLayout extends s$1 {
     #converModal = document.querySelector('conversation-modal-window');
     #lockModal = document.querySelector('lock-modal-window');
     #codesModal = document.querySelector('codes-modal-window');
+    #touchstartX = 0;
+    #touchendX = 0;
 
     set ME(val) {
         Object.values(this.#menus).forEach(function (menu) {
@@ -9763,6 +9765,21 @@ class AppLayout extends s$1 {
             .filter((id) => id !== 's1');
     }
 
+    #checkDirection() {
+        if (this.#touchendX > this.#touchstartX) {
+            domCache.menus.messagesMenu.clickOnBack();
+        }
+    }
+
+    #touchStart(e) {
+        this.#touchstartX = e.changedTouches[0].screenX;
+    }
+
+    #touchEnd(e) {
+        this.#touchendX = e.changedTouches[0].screenX;
+        return this.#checkDirection();
+    }
+
     render() {
         const header = $`<header><i @click="${(e) =>
             this.clickOnUser(
@@ -9792,7 +9809,9 @@ class AppLayout extends s$1 {
             this.clickOnPanic(
                 e
             )}" class="hover-font"><i class="fa-solid fa-bomb"></i><small>Panic</small></div></div>`;
-        const menus = $`<messages-menu class="${
+        const menus = $`<messages-menu @touchstart="${(e) =>
+            this.#touchStart(e)}" @touchend="${(e) =>
+            this.#touchEnd(e)}" class="${
             isPhone ? 'hide' : ''
         }"></messages-menu><settings-menu class="hide"></settings-menu><user-menu class="hide"></user-menu>`;
 
