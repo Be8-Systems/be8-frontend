@@ -7569,9 +7569,9 @@ function safariIOSFix() {
     if (!isPWA && isPhone) {
         // the bottom element of safari is not calculated into the view port
         //document.querySelector('app-layout').classList.add('ios-safari-fix');
-        document.querySelector('app-layout').style.height = `${
-            window.innerHeight - 200
-        }px`;
+        document.querySelector(
+            'app-layout'
+        ).style.height = `${window.innerHeight}px`;
     }
 }
 
