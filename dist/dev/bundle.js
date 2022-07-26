@@ -7580,17 +7580,20 @@ function safariIOSFix() {
 
         fixHeight(messageMENU, appLayout);
         messageBox.onfocus = function () {
-            requestAnimationFrame(() => {
-                messageMENU.style.height = `${window.innerHeight - 400}px`;
-                appLayout.style.height = `${window.innerHeight - 400}px`;
+            setTimeout(() => {
+                const offset = 295;
+                console.log(window.innerHeight);
+                messageMENU.style.height = `${window.innerHeight - offset}px`;
+                appLayout.style.height = `${window.innerHeight - offset}px`;
 
                 return window.scrollTo(0, 0);
-            });
+            }, 500);
         };
         messageBox.onblur = function () {
-            requestAnimationFrame(() => {
-                fixHeight(messageMENU, appLayout);
-            });
+            setTimeout(() => {
+                console.log(window.innerHeight);
+                return fixHeight(messageMENU, appLayout);
+            }, 500);
         };
     }
 }
