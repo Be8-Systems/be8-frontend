@@ -12,7 +12,7 @@
     "orientation": "portrait",
     "icons": [{
         "src": "/assets/img/icon/icon-32x32.png",
-        "sizes": "32x32",
+        "sizes": "32x32", 
         "type": "image/png"
       }, {
         "src": "/assets/img/icon/icon-48x48.png",
