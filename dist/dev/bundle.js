@@ -7569,7 +7569,8 @@ function safariIOSFix() {
     console.log(isPWA, isPhone);
     if (!isPWA && isPhone) {
         // the bottom element of safari is not calculated into the view port
-        document.querySelector('app-layout').style.height = 'auto';
+        document.querySelector('app-layout').style.height =
+            'height: calc(100vh - 115px);';
     }
 }
 
