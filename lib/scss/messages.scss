@@ -52,8 +52,7 @@ messages-menu {
 }
 
 .message img {
-    border-top-left-radius: var(--big-border-radius);
-    border-bottom-right-radius: var(--big-border-radius);
+    border-radius: var(--small-border-radius);
     width: 100%;
     height: 100%;
 }
