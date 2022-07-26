@@ -7568,7 +7568,7 @@ function safariIOSFix() {
     const isPWA = window.navigator.standalone;
     if (!isPWA && isPhone) {
         // the bottom element of safari is not calculated into the view port
-        document.querySelector('message-menu').style.height = 'fit-content;';
+        document.querySelector('messages-menu').style.height = 'fit-content;';
         document.querySelector(
             'app-layout'
         ).style.height = `${window.innerHeight}px`;
