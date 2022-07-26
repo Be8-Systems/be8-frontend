@@ -9768,18 +9768,10 @@ class AppLayout extends s$1 {
     }
 
     #checkDirection() {
-        if (this.#touchendX < this.#touchstartX) {
-            return;
-        }
-        if (this.#touchendY < this.#touchstartY) {
-            return;
-        }
-        if (this.#touchendY > this.#touchstartY) {
-            return;
-        }
-        if (this.#touchendY === this.#touchstartY) {
-            return;
-        }
+        if (this.#touchendX < this.#touchstartX);
+        if (this.#touchendY < this.#touchstartY);
+        if (this.#touchendY > this.#touchstartY);
+        if (this.#touchendY === this.#touchstartY);
         if (this.#touchendX > this.#touchstartX) {
             domCache.menus.messagesMenu.clickOnBack();
         }
