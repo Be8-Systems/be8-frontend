@@ -7566,12 +7566,19 @@ function findUrls(text) {
 
 function safariIOSFix() {
     const isPWA = window.navigator.standalone;
+
     if (!isPWA && isPhone) {
         // the bottom element of safari is not calculated into the view port
         document.querySelector('messages-menu').style.height = 'fit-content';
         document.querySelector(
             'app-layout'
         ).style.height = `${window.innerHeight}px`;
+
+        document
+            .querySelector('messages-menu')
+            .addEventListener('resize', function () {
+                console.log(window.innerHeight);
+            });
     }
 }
 

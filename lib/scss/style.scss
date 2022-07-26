@@ -1,3 +1,7 @@
+html {
+    overflow: hidden;
+}
+
 html, body, main, div, p, span, input, textarea, button, select {
     font-size: var(--font-size);
     padding: 0;
