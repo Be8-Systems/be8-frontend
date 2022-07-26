@@ -7589,7 +7589,7 @@ function safariIOSFix() {
                 appLayout.style.height = `${window.innerHeight}px`;
 
                 window.scrollTo(0, 0);
-                return messageMENU.scrollTo(0, messageMENU.scrollHeight);
+                return messageMENU.scrollToBottom();
             }, 350);
         };
         messageBox.onblur = function () {
