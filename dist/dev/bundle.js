@@ -7567,7 +7567,7 @@ function findUrls(text) {
 function safariIOSFix() {
     const isPWA = window.navigator.standalone;
     console.log(isPWA, isPhone);
-    if (isPWA && isPhone) {
+    if (!isPWA && isPhone) {
         // the bottom element of safari is not calculated into the view port
         document.querySelector('nav').style.height = '300px';
     }
