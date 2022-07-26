@@ -7574,9 +7574,20 @@ function safariIOSFix() {
             'app-layout'
         ).style.height = `${window.innerHeight}px`;
 
+        document.querySelector('html').addEventListener('resize', function () {
+            console.log('HTML');
+            console.log(window.innerHeight);
+        });
+        document
+            .querySelector('app-layout')
+            .addEventListener('resize', function () {
+                console.log('app-layout');
+                console.log(window.innerHeight);
+            });
         document
             .querySelector('messages-menu')
             .addEventListener('resize', function () {
+                console.log('messages-menu');
                 console.log(window.innerHeight);
             });
     }
