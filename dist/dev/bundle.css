@@ -458,8 +458,6 @@ messages-menu {
 .message {
   position: relative;
   padding: var(--verysmall-padding) var(--small-padding);
-  display: inline-flex;
-  flex-direction: column;
   border-radius: var(--small-border-radius);
   max-width: 80%;
 }
