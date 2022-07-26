@@ -464,6 +464,10 @@ messages-menu {
   max-width: 80%;
 }
 
+.message-image {
+  padding: var(--small-padding);
+}
+
 .message .fa-circle-notch {
   position: absolute;
   top: 50%;

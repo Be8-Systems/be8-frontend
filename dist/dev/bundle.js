@@ -9178,6 +9178,8 @@ class Messages extends s$1 {
 
         return $`<div alt="${nickname}" data-messageid="${messageID}" class="message-container"><div class="message ${
             amIsender ? 'sent-message' : 'received-message'
+        } message-${
+            message.messageType
         }">${firstLine}${secondLine}</div></div>`;
     }
 
