@@ -45,6 +45,7 @@ messages-menu {
 
 .message-image {
     padding: var(--small-padding);
+    flex-direction: column;
 }
 
 .message .fa-circle-notch {

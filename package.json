@@ -1,6 +1,6 @@
 {
   "name": "be8-frontend",
-  "version": "0.0.76",
+  "version": "0.0.77",
   "scripts": {
     "serve": "node build/server.mjs",
     "watch": "npm run serve & rollup -w -c build/rollup.dev.config.js & rollup -w -c build/rollup.dist.config.js",
