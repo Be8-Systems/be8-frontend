@@ -814,7 +814,7 @@ toast-notification .progress.error:before {
     grid-template-columns: 100%;
   }
   nav {
-    height: calc(100vh - var(--top-navi-height) - 192px);
+    height: calc(100vh - var(--top-navi-height) - 186px);
   }
   nav,
 .bottom-navi {
