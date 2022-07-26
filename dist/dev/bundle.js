@@ -9120,7 +9120,7 @@ class Messages extends s$1 {
 
     #renderMessageContent(message, timeIndicator) {
         if (message.messageType === 'image') {
-            return $`<i class="fa-solid fa-spin fa-circle-notch"></i><img height="${message.imgHeight}" width="${message.imgWidth}" data-contentid="${message.contentID}" data-rendered="false" src=""><p>${timeIndicator}</p>`;
+            return $`<i class="fa-solid fa-spin fa-circle-notch"></i><img height="500" width="500" data-contentid="${message.contentID}" data-rendered="false" src=""><p>${timeIndicator}</p>`;
         }
 
         return this.#renderTextContent(message, timeIndicator);

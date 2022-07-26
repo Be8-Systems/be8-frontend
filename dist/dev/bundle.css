@@ -456,6 +456,7 @@ messages-menu {
 }
 
 .message {
+  position: relative;
   padding: var(--small-padding);
   display: inline-flex;
   flex-direction: column;
@@ -465,13 +466,16 @@ messages-menu {
 }
 
 .message .fa-circle-notch {
+  position: absolute;
+  top: 50%;
+  right: 50%;
   text-align: center;
 }
 
 .message img {
   border-top-left-radius: var(--big-border-radius);
   border-bottom-right-radius: var(--big-border-radius);
-  max-height: 65vh;
+  max-width: 500px;
 }
 
 .message p {
