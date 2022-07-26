@@ -7581,17 +7581,15 @@ function safariIOSFix() {
         fixHeight(messageMENU, appLayout);
         messageBox.onfocus = function () {
             setTimeout(() => {
-                const offset = 295;
                 console.log(window.innerHeight);
-                messageMENU.style.height = `${window.innerHeight - offset}px`;
-                appLayout.style.height = `${window.innerHeight - offset}px`;
+                messageMENU.style.height = `${window.innerHeight}px`;
+                appLayout.style.height = `${window.innerHeight}px`;
 
                 return window.scrollTo(0, 0);
             }, 750);
         };
         messageBox.onblur = function () {
             setTimeout(() => {
-                console.log(window.innerHeight);
                 return fixHeight(messageMENU, appLayout);
             }, 500);
         };
