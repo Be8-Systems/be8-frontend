@@ -9585,6 +9585,8 @@ class AppLayout extends s$1 {
     #codesModal = document.querySelector('codes-modal-window');
     #touchstartX = 0;
     #touchendX = 0;
+    #touchstartY = 0;
+    #touchendY = 0;
 
     set ME(val) {
         Object.values(this.#menus).forEach(function (menu) {
@@ -9769,14 +9771,28 @@ class AppLayout extends s$1 {
         if (this.#touchendX > this.#touchstartX) {
             domCache.menus.messagesMenu.clickOnBack();
         }
+        if (this.#touchendX < this.#touchstartX) {
+            console.log('Swiped Left');
+        }
+        if (this.#touchendY < this.#touchstartY) {
+            return;
+        }
+        if (this.#touchendY > this.#touchstartY) {
+            return;
+        }
+        if (this.#touchendY === this.#touchstartY) {
+            return;
+        }
     }
 
     #touchStart(e) {
         this.#touchstartX = e.changedTouches[0].screenX;
+        this.#touchstartY = e.changedTouches[0].screenY;
     }
 
     #touchEnd(e) {
         this.#touchendX = e.changedTouches[0].screenX;
+        this.#touchendY = e.changedTouches[0].screenY;
         return this.#checkDirection();
     }
 
