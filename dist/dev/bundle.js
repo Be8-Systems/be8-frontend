@@ -9032,8 +9032,7 @@ class Messages extends s$1 {
             return;
         }
 
-        domImage.removeAttribute('width');
-        domImage.removeAttribute('height');
+        domImage.style = '';
         domImage.setAttribute('data-rendered', true);
         domImage.setAttribute('src', image.content);
         return domImage.parentNode.removeChild(spinner);
@@ -9120,7 +9119,7 @@ class Messages extends s$1 {
 
     #renderMessageContent(message, timeIndicator) {
         if (message.messageType === 'image') {
-            return $`<i class="fa-solid fa-spin fa-circle-notch"></i><img height="500" width="500" data-contentid="${message.contentID}" data-rendered="false" src=""><p>${timeIndicator}</p>`;
+            return $`<i class="fa-solid fa-spin fa-circle-notch"></i><img style="height:500px" data-contentid="${message.contentID}" data-rendered="false" src=""><p>${timeIndicator}</p>`;
         }
 
         return this.#renderTextContent(message, timeIndicator);
