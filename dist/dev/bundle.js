@@ -7566,11 +7566,10 @@ function findUrls(text) {
 
 function safariIOSFix() {
     const isPWA = window.navigator.standalone;
-    console.log(isPWA, isPhone);
     if (!isPWA && isPhone) {
         // the bottom element of safari is not calculated into the view port
         document.querySelector('app-layout').style.height =
-            'height: calc(100vh - 115px);';
+            'calc(100vh - 115px);';
     }
 }
 
