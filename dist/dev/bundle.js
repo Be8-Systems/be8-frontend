@@ -7570,17 +7570,26 @@ function safariIOSFix() {
     if (!isPWA && isPhone) {
         const messageMENU = document.querySelector('messages-menu');
         const appLayout = document.querySelector('app-layout');
+        const messageBox = document.querySelector('.write-message-input');
 
-        // the bottom element of safari is not calculated into the view port
-        messageMENU.style.height = 'fit-content';
-        appLayout.style.height = `${window.innerHeight}px`;
+        function fixHeight() {
+            // the bottom element of safari is not calculated into the view port
+            messageMENU.style.height = 'fit-content';
+            appLayout.style.height = `${window.innerHeight}px`;
+        }
 
-        document.querySelector('.write-message-input').onfocus = function () {
+        fixHeight();
+        messageBox.onfocus = function () {
             requestAnimationFrame(() => {
                 messageMENU.style.height = `${window.innerHeight - 400}px`;
                 appLayout.style.height = `${window.innerHeight - 400}px`;
 
                 return window.scrollTo(0, 0);
+            });
+        };
+        messageBox.onblur = function () {
+            requestAnimationFrame(() => {
+                fixHeight();
             });
         };
     }
@@ -8929,7 +8938,9 @@ class Messages extends s$1 {
     }
 
     #focus() {
-        requestAnimationFrame(() => this.#messageInput.focus());
+        if (!isPhone) {
+            requestAnimationFrame(() => this.#messageInput.focus());
+        }
     }
 
     firstUpdated() {
