@@ -8994,7 +8994,7 @@ class Messages extends s$1 {
     scrollToBottom() {
         requestAnimationFrame(() => {
             const messages = this.querySelector('.messages');
-
+            console.log(messages.scrollHeight);
             messages.scrollTop = messages.scrollHeight;
         });
     }
