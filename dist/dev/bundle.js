@@ -7583,17 +7583,17 @@ function safariIOSFix() {
         }
 
         messageBox.onfocus = function () {
-            setTimeout(() => {
+            requestAnimationFrame(() => {
                 console.log(window.innerHeight);
                 messageMENU.style.height = `${window.innerHeight}px`;
                 appLayout.style.height = `${window.innerHeight}px`;
 
                 window.scrollTo(0, 0);
                 return messageMENU.scrollToBottom();
-            }, 350);
+            });
         };
         messageBox.onblur = function () {
-            setTimeout(() => fixHeight(messageMENU, appLayout), 350);
+            requestAnimationFrame(() => fixHeight(messageMENU, appLayout));
         };
     }
 }
