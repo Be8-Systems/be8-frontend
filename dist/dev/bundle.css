@@ -49,6 +49,7 @@
 
 html {
   overflow: hidden;
+  overflow-y: hidden;
 }
 
 html, body, main, div, p, span, input, textarea, button, select {
