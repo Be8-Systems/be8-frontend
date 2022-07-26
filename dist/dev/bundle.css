@@ -456,6 +456,7 @@ messages-menu {
 }
 
 .message {
+  display: inline-flex;
   position: relative;
   padding: var(--verysmall-padding) var(--small-padding);
   border-radius: var(--small-border-radius);
