@@ -855,3 +855,6 @@ user-menu {
     outline: none;
   }
 }
+.ios-safari-fix {
+  height: calc(100vh - 115px) !important;
+}
