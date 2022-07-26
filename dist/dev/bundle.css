@@ -457,11 +457,10 @@ messages-menu {
 
 .message {
   position: relative;
-  padding: var(--small-padding);
+  padding: var(--verysmall-padding) var(--small-padding);
   display: inline-flex;
   flex-direction: column;
-  border-top-left-radius: var(--big-border-radius);
-  border-bottom-right-radius: var(--big-border-radius);
+  border-radius: var(--small-border-radius);
   max-width: 80%;
 }
 
