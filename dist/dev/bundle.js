@@ -7564,6 +7564,14 @@ function findUrls(text) {
     return urls || [];
 }
 
+function safariIOSFix() {
+    const isPWA = window.navigator.standalone;
+
+    if (isPWA && isPhone) {
+        document.querySelector('nav').height = '300px';
+    }
+}
+
 class InviteModal extends Modal {
     static properties = {
         inviteURL: { type: String },
@@ -9790,7 +9798,6 @@ class AppLayout extends s$1 {
     }
     // @touchstart="${e => this.#touchStart(e)}" @touchend="${e => this.#touchEnd(e)}"
     render() {
-        alert(window.navigator.standalone);
         const header = $`<header><i @click="${(e) =>
             this.clickOnUser(
                 e
@@ -11288,6 +11295,7 @@ document.addEventListener('DOMContentLoaded', async function bootstrapApp() {
         await recurringVisitor(accObj, database);
     }
 
+    safariIOSFix();
     setupSSE();
     return setupSW();
 });
