@@ -8963,7 +8963,7 @@ class Messages extends s$1 {
         });
     }
 
-    #sendImage(content) {
+    #sendImage(content, imgTag) {
         const isGroup = !!this.conversationPartner.groupID;
         const groupOptions = {
             groupID: this.conversationPartner.groupID,
@@ -8974,6 +8974,8 @@ class Messages extends s$1 {
                 contentID: randomString(),
                 contentType: 'image',
                 content,
+                imgHeight: imgTag.height,
+                imgWidth: imgTag.width,
                 isGroup,
                 receiver: this.conversationPartner.partner,
                 nickname: this.ME.nickname,
@@ -9005,7 +9007,7 @@ class Messages extends s$1 {
             imgTag.src = url;
 
             imgTag.onload = () => {
-                this.#sendImage(reader.result);
+                this.#sendImage(reader.result, imgTag);
                 return URL.revokeObjectURL(url);
             };
         };
@@ -9030,6 +9032,8 @@ class Messages extends s$1 {
             return;
         }
 
+        domImage.removeAttribute('width');
+        domImage.removeAttribute('height');
         domImage.setAttribute('data-rendered', true);
         domImage.setAttribute('src', image.content);
         return domImage.parentNode.removeChild(spinner);
@@ -9116,7 +9120,7 @@ class Messages extends s$1 {
 
     #renderMessageContent(message, timeIndicator) {
         if (message.messageType === 'image') {
-            return $`<i class="fa-solid fa-spin fa-circle-notch"></i><img data-contentid="${message.contentID}" data-rendered="false" src=""><p>${timeIndicator}</p>`;
+            return $`<i class="fa-solid fa-spin fa-circle-notch"></i><img height="${message.imgHeight}" width="${message.imgWidth}" data-contentid="${message.contentID}" data-rendered="false" src=""><p>${timeIndicator}</p>`;
         }
 
         return this.#renderTextContent(message, timeIndicator);
