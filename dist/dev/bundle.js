@@ -9768,11 +9768,8 @@ class AppLayout extends s$1 {
     }
 
     #checkDirection() {
-        if (this.#touchendX > this.#touchstartX) {
-            domCache.menus.messagesMenu.clickOnBack();
-        }
         if (this.#touchendX < this.#touchstartX) {
-            console.log('Swiped Left');
+            return;
         }
         if (this.#touchendY < this.#touchstartY) {
             return;
@@ -9782,6 +9779,9 @@ class AppLayout extends s$1 {
         }
         if (this.#touchendY === this.#touchstartY) {
             return;
+        }
+        if (this.#touchendX > this.#touchstartX) {
+            domCache.menus.messagesMenu.clickOnBack();
         }
     }
 
