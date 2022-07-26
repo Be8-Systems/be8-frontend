@@ -7567,16 +7567,16 @@ function findUrls(text) {
 function safariIOSFix() {
     const isPWA = window.navigator.standalone;
 
+    function fixHeight() {
+        // the bottom element of safari is not calculated into the view port
+        messageMENU.style.height = 'fit-content';
+        appLayout.style.height = `${window.innerHeight}px`;
+    }
+
     if (!isPWA && isPhone) {
         const messageMENU = document.querySelector('messages-menu');
         const appLayout = document.querySelector('app-layout');
         const messageBox = document.querySelector('.write-message-input');
-
-        function fixHeight() {
-            // the bottom element of safari is not calculated into the view port
-            messageMENU.style.height = 'fit-content';
-            appLayout.style.height = `${window.innerHeight}px`;
-        }
 
         fixHeight();
         messageBox.onfocus = function () {
