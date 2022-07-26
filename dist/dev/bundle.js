@@ -9787,7 +9787,7 @@ class AppLayout extends s$1 {
         this.#touchendY = e.changedTouches[0].screenY;
         return this.#checkDirection();
     }
-
+    // @touchstart="${e => this.#touchStart(e)}" @touchend="${e => this.#touchEnd(e)}"
     render() {
         const header = $`<header><i @click="${(e) =>
             this.clickOnUser(
@@ -9817,9 +9817,7 @@ class AppLayout extends s$1 {
             this.clickOnPanic(
                 e
             )}" class="hover-font"><i class="fa-solid fa-bomb"></i><small>Panic</small></div></div>`;
-        const menus = $`<messages-menu @touchstart="${(e) =>
-            this.#touchStart(e)}" @touchend="${(e) =>
-            this.#touchEnd(e)}" class="${
+        const menus = $`<messages-menu class="${
             isPhone ? 'hide' : ''
         }"></messages-menu><settings-menu class="hide"></settings-menu><user-menu class="hide"></user-menu>`;
 
