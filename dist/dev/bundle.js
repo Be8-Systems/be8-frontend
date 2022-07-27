@@ -10604,6 +10604,11 @@ function setupSSE() {
         },
         false
     );
+    source.onerror = function (err) {
+        console.log(`Reconnect SSE because of: ${err}`);
+        source.close();
+        return setupSSE();
+    };
 }
 
 async function groupJoin(detail) {
