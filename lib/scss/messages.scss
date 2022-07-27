@@ -37,6 +37,7 @@ messages-menu {
 
 .message {
     display: inline-flex;
+    flex-direction: column;
     position: relative;
     padding: var(--verysmall-padding) var(--small-padding);
     border-radius: var(--small-border-radius);
@@ -76,12 +77,10 @@ messages-menu {
 
 .system-message {
     text-align: center;
-    flex-direction: column;
 }
 
 .system-message .message {
     max-width: 870px;
-    flex-direction: column;
     background-color: var(--colorsurface);
     color: var(--color-on-surface);
 }
