@@ -10588,10 +10588,12 @@ const actions = Object.freeze({
     groupCreate: newConversation,
 });
 let be8 = {};
+let SSErefreshCounter = 0;
 
 function setupSSE() {
     const source = new EventSource('/events');
 
+    SSErefreshCounter++;
     source.addEventListener(
         'message',
         async function (e) {
@@ -10603,6 +10605,12 @@ function setupSSE() {
     source.addEventListener(
         'error',
         async function (err) {
+            if (SSErefreshCounter === 100) {
+                return console.log(
+                    'Tried 100 reconnections, no success please refresh'
+                );
+            }
+
             console.log(`Reconnect SSE because of: ${err}`);
             source.close();
             return setupSSE();
