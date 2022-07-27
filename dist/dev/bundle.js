@@ -7571,6 +7571,8 @@ function safariIOSFix() {
         // the bottom element of safari is not calculated into the view port
         messageMENU.style.height = 'fit-content';
         appLayout.style.height = `${window.innerHeight}px`;
+        document.getElementsByTagName('html')[0].style.height =
+            window.visualViewport.height.toString() + 'px';
     }
 
     if (isPhone) {
@@ -7587,6 +7589,8 @@ function safariIOSFix() {
                 console.log(window.innerHeight);
                 messageMENU.style.height = `${window.innerHeight}px`;
                 appLayout.style.height = `${window.innerHeight}px`;
+                document.getElementsByTagName('html')[0].style.height =
+                    window.visualViewport.height.toString() + 'px';
 
                 window.scrollTo(0, 0);
                 return messageMENU.scrollToBottom();
