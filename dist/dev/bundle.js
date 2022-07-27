@@ -1216,7 +1216,7 @@ const isPhone =
         navigator.userAgent
     );
 const isIOS =
-    /iPad|iPhone|iPod/.test(ua) ||
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 navigator.userAgent.indexOf('Firefox') !== -1;
 const isDesktop = !isPhone;
