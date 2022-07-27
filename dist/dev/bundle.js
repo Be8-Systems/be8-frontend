@@ -7569,7 +7569,7 @@ function safariIOSFix() {
 
     function fixHeight(messageMENU, appLayout) {
         // the bottom element of safari is not calculated into the view port
-        messageMENU.style.height = `${window.innerHeight}px`;
+        messageMENU.style.height = 'fit-content';
         appLayout.style.height = `${window.innerHeight}px`;
     }
 
