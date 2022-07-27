@@ -7585,8 +7585,8 @@ function safariIOSFix() {
         messageBox.onfocus = function () {
             setTimeout(() => {
                 console.log(window.innerHeight);
-                //messageMENU.style.height = `${window.innerHeight}px`;
-                //appLayout.style.height = `${window.innerHeight}px`;
+                messageMENU.style.height = `${window.innerHeight}px`;
+                appLayout.style.height = `${window.innerHeight}px`;
 
                 window.scrollTo(0, 0);
                 return messageMENU.scrollToBottom();
