@@ -7569,7 +7569,7 @@ function safariIOSFix() {
 
     function fixHeight(messageMENU, appLayout) {
         // the bottom element of safari is not calculated into the view port
-        messageMENU.style.height = 'fit-content';
+        messageMENU.style.height = `${window.innerHeight}px`;
         appLayout.style.height = `${window.innerHeight}px`;
     }
 
@@ -8994,7 +8994,6 @@ class Messages extends s$1 {
     scrollToBottom() {
         requestAnimationFrame(() => {
             const messages = this.querySelector('.messages');
-            console.log(messages.scrollHeight);
             messages.scrollTop = messages.scrollHeight;
         });
     }
