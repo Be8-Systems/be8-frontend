@@ -7564,6 +7564,44 @@ function findUrls(text) {
     return urls || [];
 }
 
+function safariIOSFix() {
+    const isPWA = window.navigator.standalone;
+
+    function fixHeight(messageMENU, appLayout) {
+        // the bottom element of safari is not calculated into the view port
+        messageMENU.style.height = 'fit-content';
+        appLayout.style.height = `${window.innerHeight}px`;
+        document.getElementsByTagName('html')[0].style.height =
+            window.visualViewport.height.toString() + 'px';
+    }
+
+    if (isPhone) {
+        const messageMENU = document.querySelector('messages-menu');
+        const appLayout = document.querySelector('app-layout');
+        const messageBox = document.querySelector('.write-message-input');
+
+        if (!isPWA) {
+            fixHeight(messageMENU, appLayout);
+        }
+
+        messageBox.onfocus = function () {
+            setTimeout(() => {
+                console.log(window.innerHeight);
+                messageMENU.style.height = `${window.innerHeight}px`;
+                appLayout.style.height = `${window.innerHeight}px`;
+                document.getElementsByTagName('html')[0].style.height =
+                    window.visualViewport.height.toString() + 'px';
+
+                window.scrollTo(0, 0);
+                return messageMENU.scrollToBottom();
+            }, 350);
+        };
+        messageBox.onblur = function () {
+            setTimeout(() => fixHeight(messageMENU, appLayout), 350);
+        };
+    }
+}
+
 class InviteModal extends Modal {
     static properties = {
         inviteURL: { type: String },
@@ -8907,7 +8945,9 @@ class Messages extends s$1 {
     }
 
     #focus() {
-        requestAnimationFrame(() => this.#messageInput.focus());
+        if (!isPhone) {
+            requestAnimationFrame(() => this.#messageInput.focus());
+        }
     }
 
     firstUpdated() {
@@ -8958,7 +8998,7 @@ class Messages extends s$1 {
     scrollToBottom() {
         requestAnimationFrame(() => {
             const messages = this.querySelector('.messages');
-
+            console.log(messages.scrollHeight);
             messages.scrollTop = messages.scrollHeight;
         });
     }
@@ -9178,6 +9218,8 @@ class Messages extends s$1 {
 
         return $`<div alt="${nickname}" data-messageid="${messageID}" class="message-container"><div class="message ${
             amIsender ? 'sent-message' : 'received-message'
+        } message-${
+            message.messageType
         }">${firstLine}${secondLine}</div></div>`;
     }
 
@@ -11285,6 +11327,7 @@ document.addEventListener('DOMContentLoaded', async function bootstrapApp() {
         await recurringVisitor(accObj, database);
     }
 
+    safariIOSFix();
     setupSSE();
     return setupSW();
 });

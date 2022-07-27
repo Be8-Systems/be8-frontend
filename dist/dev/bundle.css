@@ -34,7 +34,7 @@
   --color-on-surface: #000;
   --color-on-error: #FFF;
   --font: "Lato", sans-serif;
-  --font-size: 18px;
+  --font-size: 16px;
   /* Sizes */
   --verysmall-padding: 2.5px;
   --small-padding: 10px;
@@ -45,6 +45,11 @@
   --bottom-navi-height: 60px;
   --big-border-radius: 1em;
   --small-border-radius: 0.5em;
+}
+
+html {
+  overflow: hidden;
+  overflow-y: hidden;
 }
 
 html, body, main, div, p, span, input, textarea, button, select {
@@ -456,13 +461,16 @@ messages-menu {
 }
 
 .message {
-  position: relative;
-  padding: var(--small-padding);
   display: inline-flex;
-  flex-direction: column;
-  border-top-left-radius: var(--big-border-radius);
-  border-bottom-right-radius: var(--big-border-radius);
+  position: relative;
+  padding: var(--verysmall-padding) var(--small-padding);
+  border-radius: var(--small-border-radius);
   max-width: 80%;
+}
+
+.message-image {
+  padding: var(--small-padding);
+  flex-direction: column;
 }
 
 .message .fa-circle-notch {
@@ -473,8 +481,7 @@ messages-menu {
 }
 
 .message img {
-  border-top-left-radius: var(--big-border-radius);
-  border-bottom-right-radius: var(--big-border-radius);
+  border-radius: var(--small-border-radius);
   width: 100%;
   height: 100%;
 }
@@ -494,10 +501,12 @@ messages-menu {
 
 .system-message {
   text-align: center;
+  flex-direction: column;
 }
 
 .system-message .message {
   max-width: 870px;
+  flex-direction: column;
   background-color: var(--colorsurface);
   color: var(--color-on-surface);
 }
@@ -524,6 +533,10 @@ messages-menu {
   color: var(--color-secondary-variant);
   margin-top: 10px;
   margin-left: 5px;
+}
+
+.message-image .message-bottom-line {
+  margin: 0;
 }
 
 .write-container {
@@ -807,7 +820,7 @@ toast-notification .progress.error:before {
     grid-template-columns: 100%;
   }
   nav {
-    height: calc(100vh - var(--top-navi-height) - 192px);
+    height: calc(100vh - var(--top-navi-height) - 186px);
   }
   nav,
 .bottom-navi {
@@ -847,4 +860,7 @@ user-menu {
   button {
     outline: none;
   }
+}
+.ios-safari-fix {
+  height: calc(100vh - 115px) !important;
 }
