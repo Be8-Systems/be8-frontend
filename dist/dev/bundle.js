@@ -10594,6 +10594,9 @@ function setupSSE() {
     const source = new EventSource('/events');
 
     SSErefreshCounter++;
+    source.addEventListener('open', function () {
+        SSErefreshCounter = 0;
+    });
     source.addEventListener(
         'message',
         async function (e) {
