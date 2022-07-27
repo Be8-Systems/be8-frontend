@@ -1215,6 +1215,9 @@ const isPhone =
     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
         navigator.userAgent
     );
+const isIOS =
+    /iPad|iPhone|iPod/.test(ua) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 navigator.userAgent.indexOf('Firefox') !== -1;
 const isDesktop = !isPhone;
 const domCache = {
@@ -7569,7 +7572,12 @@ function safariIOSFix() {
 
     function fixHeight(messageMENU, appLayout) {
         // the bottom element of safari is not calculated into the view port
-        messageMENU.style.height = 'fit-content';
+        if (isIOS) {
+            messageMENU.style.height = 'fit-content';
+        } else {
+            messageMENU.style.height = `${window.innerHeight}px`;
+        }
+
         appLayout.style.height = `${window.innerHeight}px`;
     }
 
