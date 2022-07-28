@@ -9164,7 +9164,10 @@ class Messages extends s$1 {
         const urls = findUrls(text);
 
         if (urls.length === 0) {
-            return $`<p class="message-text">${text} ${timeIndicator}</p>`;
+            return $`<p class="message-text">${text.replaceAll(
+                '\n',
+                '<br/>'
+            )} ${timeIndicator}</p>`;
         }
 
         return this.#renderTextWithURL(text, urls, timeIndicator);
