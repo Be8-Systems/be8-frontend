@@ -9164,6 +9164,7 @@ class Messages extends s$1 {
         const urls = findUrls(text);
 
         if (urls.length === 0) {
+            console.log(text);
             return $`<p class="message-text">${text.replaceAll(
                 '\n',
                 '<br/>'
