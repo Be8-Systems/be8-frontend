@@ -7571,20 +7571,23 @@ function safariIOSFix() {
     const isPWA = window.navigator.standalone;
 
     function fixHeight(messageMENU, appLayout) {
+        const fullHeight = `${window.innerHeight}px`;
         // the bottom element of safari is not calculated into the view port
         if (isIOS) {
             messageMENU.style.height = 'fit-content';
         } else {
-            messageMENU.style.height = '';
+            messageMENU.style.height = fullHeight;
         }
 
-        appLayout.style.height = `${window.innerHeight}px`;
+        appLayout.style.height = fullHeight;
     }
 
     function fixHeightOpenKeyBoard(messageMENU, appLayout) {
+        const fullHeight = `${window.innerHeight}px`;
+
         if (isIOS) {
-            messageMENU.style.height = `${window.innerHeight}px`;
-            appLayout.style.height = `${window.innerHeight}px`;
+            messageMENU.style.height = fullHeight;
+            appLayout.style.height = fullHeight;
         } else {
             messageMENU.style.height = '-webkit-fill-available';
         }
