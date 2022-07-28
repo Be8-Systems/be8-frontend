@@ -2,6 +2,7 @@ messages-menu {
     display: grid;
     grid-template-rows: 40px 1fr 60px;
     width: calc(100vw - 395px);
+    max-width: 850px;
 }
 
 .conversation-partner {
