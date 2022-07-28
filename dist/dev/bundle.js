@@ -7575,7 +7575,7 @@ function safariIOSFix() {
         if (isIOS) {
             messageMENU.style.height = 'fit-content';
         } else {
-            messageMENU.style.height = `${window.innerHeight}px`;
+            messageMENU.style.height = `${window.innerHeight - 49}px`;
         }
 
         appLayout.style.height = `${window.innerHeight}px`;
@@ -7592,7 +7592,6 @@ function safariIOSFix() {
 
         messageBox.onfocus = function () {
             setTimeout(() => {
-                console.log(window.innerHeight);
                 messageMENU.style.height = `${window.innerHeight}px`;
                 appLayout.style.height = `${window.innerHeight}px`;
 
