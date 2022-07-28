@@ -8970,6 +8970,7 @@ class Messages extends s$1 {
     }
 
     writeMessage(e) {
+        console.log(e);
         if (e.key === 'Enter') {
             const text = this.#messageInput.value.trim();
             const isGroup = !!this.conversationPartner.groupID;
@@ -9116,7 +9117,7 @@ class Messages extends s$1 {
     }
 
     renderWriteContainer() {
-        return $`<div class="write-container"><input @keydown="${this.writeMessage}" class="write-message-input" type="text" maxlength="1000"><div><i @click="${this.uploadMedia}" class="fa-solid fa-photo-film hover-font"></i><input class="hide" @change="${this.changeInputEvent}" type="file" accept="image/png, image/gif, image/jpeg"></div></div>`;
+        return $`<div class="write-container"><textarea @keydown="${this.writeMessage}" class="write-message-input" type="text" maxlength="1000"><div><i @click="${this.uploadMedia}" class="fa-solid fa-photo-film hover-font"></i><input class="hide" @change="${this.changeInputEvent}" type="file" accept="image/png, image/gif, image/jpeg"></div></textarea></div>`;
     }
 
     renderConversationPartner() {
@@ -9164,7 +9165,6 @@ class Messages extends s$1 {
         const urls = findUrls(text);
 
         if (urls.length === 0) {
-            console.log(text);
             return $`<p class="message-text">${text.replaceAll(
                 '\n',
                 '<br/>'

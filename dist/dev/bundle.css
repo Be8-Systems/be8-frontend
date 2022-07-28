@@ -547,7 +547,7 @@ messages-menu {
   padding: var(--small-padding);
 }
 
-.write-container input {
+.write-message-input {
   padding: var(--verysmall-padding) var(--small-padding);
   border-radius: var(--small-border-radius);
   background: var(--color-primary-variant);
