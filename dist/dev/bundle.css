@@ -425,7 +425,7 @@ user-menu {
 
 messages-menu {
   display: grid;
-  grid-template-rows: 40px 1fr 60px;
+  grid-template-rows: auto 1fr auto;
   width: calc(100vw - 395px);
   max-width: 850px;
 }
@@ -554,6 +554,7 @@ messages-menu {
   color: var(--color-on-primary);
   border-top-style: solid;
   width: 100%;
+  resize: none;
 }
 
 .write-container i {

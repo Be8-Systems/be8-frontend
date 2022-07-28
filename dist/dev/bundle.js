@@ -9117,7 +9117,7 @@ class Messages extends s$1 {
     }
 
     renderWriteContainer() {
-        return $`<div class="write-container"><textarea @keydown="${this.writeMessage}" class="write-message-input" type="text" maxlength="1000"><div><i @click="${this.uploadMedia}" class="fa-solid fa-photo-film hover-font"></i><input class="hide" @change="${this.changeInputEvent}" type="file" accept="image/png, image/gif, image/jpeg"></div></textarea></div>`;
+        return $`<div class="write-container"><textarea placeholder="write a new message" @keydown="${this.writeMessage}" class="write-message-input" type="text" maxlength="1000"></textarea><div><i @click="${this.uploadMedia}" class="fa-solid fa-photo-film hover-font"></i><input class="hide" @change="${this.changeInputEvent}" type="file" accept="image/png, image/gif, image/jpeg"></div></div>`;
     }
 
     renderConversationPartner() {
@@ -9165,10 +9165,7 @@ class Messages extends s$1 {
         const urls = findUrls(text);
 
         if (urls.length === 0) {
-            return $`<p class="message-text">${text.replaceAll(
-                '\n',
-                '<br/>'
-            )} ${timeIndicator}</p>`;
+            return $`<p class="message-text">${text} ${timeIndicator}</p>`;
         }
 
         return this.#renderTextWithURL(text, urls, timeIndicator);
