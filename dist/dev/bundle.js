@@ -8971,7 +8971,7 @@ class Messages extends s$1 {
 
     writeMessage(e) {
         console.log(e);
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && !e.shiftKey) {
             const text = this.#messageInput.value.trim();
             const isGroup = !!this.conversationPartner.groupID;
             const receiver = this.conversationPartner.partner;
