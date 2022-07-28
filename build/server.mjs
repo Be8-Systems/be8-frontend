@@ -1,7 +1,7 @@
 import start from 'be8-backend';
 
 start({
-    staticFiles: './dist/',
+    staticFiles: ['./dist/', './node_modules/be8-insights/dist/'],
     fakeTokens: [{
         token: '12345678901234567890123456789012',
         type: 'endless'
