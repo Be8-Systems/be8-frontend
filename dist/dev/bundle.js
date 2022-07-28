@@ -7575,10 +7575,19 @@ function safariIOSFix() {
         if (isIOS) {
             messageMENU.style.height = 'fit-content';
         } else {
-            messageMENU.style.height = `${window.innerHeight}px`;
+            messageMENU.style.height = '';
         }
 
         appLayout.style.height = `${window.innerHeight}px`;
+    }
+
+    function fixHeightOpenKeyBoard(messageMENU, appLayout) {
+        if (isIOS) {
+            messageMENU.style.height = `${window.innerHeight}px`;
+            appLayout.style.height = `${window.innerHeight}px`;
+        } else {
+            messageMENU.style.height = '-webkit-fill-available';
+        }
     }
 
     if (isPhone) {
@@ -7592,8 +7601,7 @@ function safariIOSFix() {
 
         messageBox.onfocus = function () {
             setTimeout(() => {
-                messageMENU.style.height = `${window.innerHeight - 49}px`;
-                appLayout.style.height = `${window.innerHeight - 49}px`;
+                fixHeightOpenKeyBoard(messageMENU, appLayout);
 
                 window.scrollTo(0, 0);
                 return messageMENU.scrollToBottom();
