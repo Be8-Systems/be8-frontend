@@ -10625,14 +10625,19 @@ function setupSSE() {
     source.addEventListener(
         'error',
         async function (err) {
+            source.close();
+
             if (SSErefreshCounter === 100) {
+                document.querySelector('modal-window').set({
+                    HTML: 'Can not connect to server please refresh',
+                });
                 return console.log(
                     'Tried 100 reconnections, no success please refresh'
                 );
             }
 
-            console.log(`Reconnect SSE because of: ${err}`);
-            source.close();
+            console.log('Reconnect SSE because of:');
+            console.log(err);
             return setupSSE();
         },
         false
