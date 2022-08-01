@@ -10629,7 +10629,7 @@ function setupSSE() {
 
             source.close();
 
-            if (SSErefreshCounter === 100) {
+            if (SSErefreshCounter > 99) {
                 document.querySelector('modal-window').set({
                     HTML: 'Can not connect to server please refresh',
                 });
