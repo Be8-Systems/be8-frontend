@@ -10630,7 +10630,7 @@ function setupSSE() {
             source.close();
 
             if (SSErefreshCounter > 99) {
-                document.querySelector('modal-window').set({
+                document.querySelector('modal-window').setAndOpen({
                     HTML: 'Can not connect to server please refresh',
                 });
                 return console.log(
@@ -10640,7 +10640,7 @@ function setupSSE() {
 
             console.log(`${ts} Reconnect SSE because of:`);
             console.log(err);
-            return setupSSE();
+            return setTimeout(() => setupSSE(), 1000);
         },
         false
     );
