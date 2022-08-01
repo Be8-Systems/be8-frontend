@@ -8847,7 +8847,7 @@ const SYSTEMMESSAGES = Object.freeze({
     ACCADDEDTOGROUP:
         '<i class="highlight-color">{{extra1}}</i> id <i class="highlight-color">#{{extra2}}</i> was added to the group.',
     ACCJOINEDGROUP:
-        '<i class="highlight-color">{{extra2}}</i> with id <i class="highlight-color">{{extra1}}</i> joined {{threadID}}.',
+        '<i class="highlight-color">{{extra2}}</i> with id <i class="highlight-color">#{{extra1}}</i> joined <i class="highlight-color">{{threadID}}</i>.',
     ACCDELETED:
         'Account <i class="highlight-color">#{{extra1}}</i> has been destroyed.',
     LEFTGROUP:
