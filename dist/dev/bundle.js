@@ -10625,6 +10625,8 @@ function setupSSE() {
     source.addEventListener(
         'error',
         async function (err) {
+            const ts = new Date().toISOString();
+
             source.close();
 
             if (SSErefreshCounter === 100) {
@@ -10632,11 +10634,11 @@ function setupSSE() {
                     HTML: 'Can not connect to server please refresh',
                 });
                 return console.log(
-                    'Tried 100 reconnections, no success please refresh'
+                    `${ts} Tried 100 reconnections, no success please refresh`
                 );
             }
 
-            console.log('Reconnect SSE because of:');
+            console.log(`${ts} Reconnect SSE because of:`);
             console.log(err);
             return setupSSE();
         },
