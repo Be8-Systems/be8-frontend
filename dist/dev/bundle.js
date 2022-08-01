@@ -10640,7 +10640,7 @@ function setupSSE() {
 
             console.log(`${ts} Reconnect SSE because of:`);
             console.log(err);
-            return setTimeout(() => setupSSE(), 1000);
+            return setTimeout(() => setupSSE(), 2500);
         },
         false
     );
