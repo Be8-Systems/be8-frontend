@@ -8825,7 +8825,7 @@ class GroupUsermodal extends Modal {
                 )}${kick}</p></div>`;
             }
         );
-        const maxMembers = `<p>members: ${this.members.length} / ${this.conversationPartner.maxMembers}</p>`;
+        const maxMembers = $`<p>Members: ${this.members.length} / ${this.conversationPartner.maxMembers}</p>`;
         const content = $`${hl}${maxMembers}<div class="group-members">${members}</div>${settings}`;
         const sideContent = this.#renderSideGroup(amIAdmin);
 
