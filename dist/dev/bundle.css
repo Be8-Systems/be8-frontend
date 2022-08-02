@@ -388,7 +388,7 @@ user-menu {
 }
 
 .group-color-14 {
-  color: #641a12;
+  color: #ff1900;
 }
 
 .group-color-15 {
@@ -615,6 +615,10 @@ input {
 .close-modal:hover {
   cursor: pointer;
   color: var(--color-on-background);
+}
+
+.qr img {
+  margin: 0 auto;
 }
 
 .qr canvas {
