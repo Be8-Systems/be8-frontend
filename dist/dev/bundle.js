@@ -9789,8 +9789,8 @@ class AppLayout extends s$1 {
         }
 
         this.#userGroupModal.members = members.map(function (member, i) {
-            member.memberIcon = memberIcons[i <= 16 ? i : i - 16];
-            member.color = i + 1;
+            member.memberIcon = i + 1;
+            member.color = memberIcons[i <= 16 ? i : i - 16];
 
             return member;
         });
