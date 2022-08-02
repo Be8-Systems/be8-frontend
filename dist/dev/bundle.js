@@ -1077,6 +1077,18 @@ class Modal extends s$1 {
         this.#hasClose = hasClose;
         this.classList = 'hide modal';
         this.setAttribute('data-open', 'false');
+
+        if (hasClose) {
+            return this.#addClickEvent();
+        }
+    }
+
+    #addClickEvent() {
+        this.addEventListener('click', ({ target }) => {
+            if (target.isSameNode(this)) {
+                return this.close();
+            }
+        });
     }
 
     createRenderRoot() {
