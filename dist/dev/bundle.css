@@ -617,7 +617,7 @@ input {
   color: var(--color-on-background);
 }
 
-.qr img {
+.qr canvas {
   width: 100%;
   height: 100%;
 }
