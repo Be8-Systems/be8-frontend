@@ -8984,6 +8984,7 @@ class Messages extends s$1 {
                     text: this.#messageInput.value,
                     nickname: this.ME.nickname,
                     sender: this.ME.id,
+                    endless: this.ME.endless,
                     receiver,
                     threadID: this.conversationPartner.threadID,
                     type: isGroup ? 'group' : 'user',
@@ -9200,11 +9201,15 @@ class Messages extends s$1 {
     }
 
     #getNicknameLine(message) {
-        const { nickname, id, memberIcon, color } =
+        const { nickname, id, memberIcon, color, endless } =
             this.#userGroupModal.members.find(
                 (member) => member.id === message.sender
             );
-        return $`<p class="group-color-${color} message-top-line"><span>${memberIcon} ${nickname}</span>  <span>#${id}</span></p>`;
+        const endlessIcon = message.endless
+            ? $`<i class="fa-solid fa-check danger-color"></i>`
+            : '';
+
+        return $`<p class="group-color-${color} message-top-line"><span>${memberIcon} ${nickname} ${endlessIcon}</span>  <span>#${id}</span></p>`;
     }
 
     #renderRemoveMessage({ sender }) {
