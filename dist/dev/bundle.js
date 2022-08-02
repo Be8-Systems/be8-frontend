@@ -9087,6 +9087,7 @@ class Messages extends s$1 {
         }
 
         domImage.style = '';
+        domImage.parentNode.setAttribute('href', image.content);
         domImage.setAttribute('data-rendered', true);
         domImage.setAttribute('src', image.content);
         return domImage.parentNode.removeChild(spinner);
@@ -9173,7 +9174,7 @@ class Messages extends s$1 {
 
     #renderMessageContent(message, timeIndicator) {
         if (message.messageType === 'image') {
-            return $`<i class="fa-solid fa-spin fa-circle-notch"></i><img style="height:500px" data-contentid="${message.contentID}" data-rendered="false" src=""><p>${timeIndicator}</p>`;
+            return $`<a href="" download="${message.contentID}.png"><i class="fa-solid fa-spin fa-circle-notch"></i><img download="${message.contentID}" style="height:500px" data-contentid="${message.contentID}" data-rendered="false" src=""><p>${timeIndicator}</p></a>`;
         }
 
         return this.#renderTextContent(message, timeIndicator);
@@ -9216,7 +9217,7 @@ class Messages extends s$1 {
     }
 
     #renderUserMessage(message, isGroup) {
-        const { messageID, nickname, sender, status, ts } = message;
+        const { messageID, sender, status, ts } = message;
         const amIsender = sender === this.ME.id;
         const firstLine =
             isGroup && !amIsender ? this.#getNicknameLine(message) : '';
@@ -9230,7 +9231,7 @@ class Messages extends s$1 {
         const thirdLine = $`<small class="message-bottom-line float-right unselectable">${time}${statusIndicator}</small>`;
         const secondLine = this.#renderMessageContent(message, thirdLine);
 
-        return $`<div alt="${nickname}" data-messageid="${messageID}" class="message-container"><div class="message ${
+        return $`<div data-messageid="${messageID}" class="message-container"><div class="message ${
             amIsender ? 'sent-message' : 'received-message'
         } message-${
             message.messageType
