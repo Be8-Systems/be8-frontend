@@ -9801,8 +9801,11 @@ class AppLayout extends s$1 {
         }
 
         this.#userGroupModal.members = members.map(function (member, i) {
-            member.memberIcon = memberIcons[i + 1];
-            member.color = i <= 16 ? i : i - 16;
+            const overflow = Math.abs(Math.floor(i / 16));
+            const sani = i + 1;
+
+            member.memberIcon = memberIcons[sani];
+            member.color = sani - 16 * overflow + 1;
 
             return member;
         });
