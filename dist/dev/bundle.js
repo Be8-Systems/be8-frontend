@@ -9217,7 +9217,7 @@ class Messages extends s$1 {
             this.#userGroupModal.members.find(
                 (member) => member.id === message.sender
             );
-        const endlessIcon = message.endless
+        const endlessIcon = endless
             ? $`<i class="fa-solid fa-check danger-color"></i>`
             : '';
 
@@ -9801,8 +9801,8 @@ class AppLayout extends s$1 {
         }
 
         this.#userGroupModal.members = members.map(function (member, i) {
-            member.memberIcon = i + 1;
-            member.color = memberIcons[i <= 16 ? i : i - 16];
+            member.memberIcon = memberIcons[i + 1];
+            member.color = i <= 16 ? i : i - 16;
 
             return member;
         });
