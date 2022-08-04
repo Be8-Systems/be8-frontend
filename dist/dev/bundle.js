@@ -10964,16 +10964,9 @@ async function fetchKeysAndAdd(groupID, cachedVersions) {
 
 async function syncGroupKeys(groupID) {
     const cachedVersions = await be8.getCachedGroupVersions(groupID);
-    console.log('____________________', cachedVersions);
     const lastVersion = cachedVersions[0];
     const groupVersion = await groupGetVersion(groupID);
-    console.log(
-        'syncGroupKeys',
-        groupID,
-        lastVersion,
-        groupVersion,
-        !lastVersion || parseInt(groupVersion) > parseInt(lastVersion)
-    );
+
     if (!lastVersion || parseInt(groupVersion) > parseInt(lastVersion)) {
         return await fetchKeysAndAdd(groupID, cachedVersions);
     }
