@@ -90,3 +90,15 @@ input {
 .setup-unlock-container {
     margin-bottom: var(--big-padding);
 }
+
+status-modal-window .read-container {
+    margin-bottom: var(--small-padding);
+}
+
+status-modal-window .read-container .fa-solid {
+    color: var(--color-check);
+}
+
+status-modal-window h2 {
+    margin-bottom: var(--verysmall-padding);
+}
