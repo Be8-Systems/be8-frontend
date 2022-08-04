@@ -10371,14 +10371,24 @@ class Be8 {
     async getCachedGroupVersions(groupID) {
         const tx = this.#indexedDB.result.transaction('groupKeys', 'readwrite');
         const groupKeysStore = tx.objectStore('groupKeys');
-        const all = groupKeysStore.getAllKeys();
+        const all = groupKeysStore.getAll();
 
         return await new Promise(function (success) {
             all.onsuccess = function (event) {
-                const allVersions = event.target.result;
-                const groupVersions = allVersions
-                    .filter((v) => v[0] === groupID)
-                    .map((v) => v.pop());
+                const allKeys = event.target.result;
+                const groupVersions = allKeys
+                    .filter((key) => key.groupID === groupID)
+                    .map((v) => v.version)
+                    .sort(function (a, b) {
+                        const aNum = parseInt(a);
+                        const bNum = parseInt(b);
+
+                        if (aNum < bNum) {
+                            return 1;
+                        }
+
+                        return -1;
+                    });
 
                 return success(groupVersions);
             };
