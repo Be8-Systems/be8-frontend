@@ -10763,6 +10763,7 @@ async function groupJoin(detail) {
         detail.groupID === app.getConversationPartner().threadID;
 
     if (isOpenConversation) {
+        await syncGroupKeys(detail.groupID);
         await getMessages({ detail });
     }
 
