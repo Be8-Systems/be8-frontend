@@ -92,6 +92,10 @@ ul {
     animation: spin 0.3s linear;
 }
 
+.hover-cursor:hover {
+    cursor: pointer;
+}
+
 @keyframes spin { 
     100% { 
         transform: rotate(90deg); 

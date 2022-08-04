@@ -7853,7 +7853,7 @@ class StatusModal extends Modal {
             this.status.find((statu) => statu === i.id)
         );
         const render = (member) => {
-            return $`<li class="group-color-${member.color}">${member.memberIcon} ${member.nickname} #${member.id}</li>`;
+            return $`<li><span class="group-color-${member.color}">${member.memberIcon} ${member.nickname} #${member.id}</span></li>`;
         };
         const sent = c(memberSent, (memberSent) => memberSent.id, render);
         const read = c(memberRead, (memberRead) => memberRead.id, render);
@@ -9273,18 +9273,18 @@ class Messages extends s$1 {
                 this.#viewStatus(
                     status,
                     isGroup
-                )}" class="fa-solid fa-check read-check"></i><i @click="${() =>
+                )}" class="fa-solid fa-check read-check hover-cursor"></i><i @click="${() =>
                 this.#viewStatus(
                     status,
                     isGroup
-                )}" class="fa-solid fa-check read-check"></i>`;
+                )}" class="fa-solid fa-check read-check hover-cursor"></i>`;
         }
         if (isGroup) {
             return $`  <i @click="${() =>
                 this.#viewStatus(
                     status,
                     isGroup
-                )}" class="fa-solid fa-check sent-check"></i>`;
+                )}" class="fa-solid fa-check sent-check hover-cursor"></i>`;
         }
 
         return $`  <i class="fa-solid fa-check sent-check"></i>`;
@@ -10371,24 +10371,14 @@ class Be8 {
     async getCachedGroupVersions(groupID) {
         const tx = this.#indexedDB.result.transaction('groupKeys', 'readwrite');
         const groupKeysStore = tx.objectStore('groupKeys');
-        const all = groupKeysStore.getAll();
+        const all = groupKeysStore.getAllKeys();
 
         return await new Promise(function (success) {
             all.onsuccess = function (event) {
-                const allKeys = event.target.result;
-                const groupVersions = allKeys
-                    .filter((key) => key.groupID === groupID)
-                    .map((v) => v.version)
-                    .sort(function (a, b) {
-                        const aNum = parseInt(a);
-                        const bNum = parseInt(b);
-
-                        if (aNum < bNum) {
-                            return 1;
-                        }
-
-                        return -1;
-                    });
+                const allVersions = event.target.result;
+                const groupVersions = allVersions
+                    .filter((v) => v[0] === groupID)
+                    .map((v) => v.pop());
 
                 return success(groupVersions);
             };
