@@ -101,6 +101,11 @@ a:hover {
   text-decoration: none;
 }
 
+ul {
+  margin: 0;
+  padding: 0 var(--big-padding);
+}
+
 .hide {
   display: none !important;
 }
@@ -653,6 +658,18 @@ input {
 
 .setup-unlock-container {
   margin-bottom: var(--big-padding);
+}
+
+status-modal-window .read-container {
+  margin-bottom: var(--small-padding);
+}
+
+status-modal-window .read-container .fa-solid {
+  color: var(--color-check);
+}
+
+status-modal-window h2 {
+  margin-bottom: var(--verysmall-padding);
 }
 
 @media (pointer: none), (pointer: coarse) {
