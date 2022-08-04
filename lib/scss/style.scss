@@ -52,6 +52,11 @@ a:hover {
     text-decoration: none;
 }
 
+ul {
+    margin: 0;
+    padding: 0 var(--big-padding);
+}
+
 .hide {
     display: none !important;
 }

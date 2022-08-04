@@ -7679,6 +7679,199 @@ class InviteModal extends Modal {
 
 customElements.define('invite-modal-window', InviteModal);
 
+/**
+ * @license
+ * Copyright 2020 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */ const { H: l } = L,
+    c$1 = () => document.createComment(''),
+    r = (o, t, i) => {
+        var n;
+        const d = o._$AA.parentNode,
+            v = void 0 === t ? o._$AB : t._$AA;
+        if (void 0 === i) {
+            const t = d.insertBefore(c$1(), v),
+                n = d.insertBefore(c$1(), v);
+            i = new l(t, n, o, o.options);
+        } else {
+            const l = i._$AB.nextSibling,
+                t = i._$AM,
+                e = t !== o;
+            if (e) {
+                let l;
+                null === (n = i._$AQ) || void 0 === n || n.call(i, o),
+                    (i._$AM = o),
+                    void 0 !== i._$AP && (l = o._$AU) !== t._$AU && i._$AP(l);
+            }
+            if (l !== v || e) {
+                let o = i._$AA;
+                for (; o !== l; ) {
+                    const l = o.nextSibling;
+                    d.insertBefore(o, v), (o = l);
+                }
+            }
+        }
+        return i;
+    },
+    u$1 = (o, l, t = o) => (o._$AI(l, t), o),
+    f = {},
+    s = (o, l = f) => (o._$AH = l),
+    m = (o) => o._$AH,
+    p = (o) => {
+        var l;
+        null === (l = o._$AP) || void 0 === l || l.call(o, !1, !0);
+        let t = o._$AA;
+        const i = o._$AB.nextSibling;
+        for (; t !== i; ) {
+            const o = t.nextSibling;
+            t.remove(), (t = o);
+        }
+    };
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+const u = (e, s, t) => {
+        const r = new Map();
+        for (let l = s; l <= t; l++) r.set(e[l], l);
+        return r;
+    },
+    c = e$1(
+        class extends i {
+            constructor(e) {
+                if ((super(e), e.type !== t.CHILD))
+                    throw Error(
+                        'repeat() can only be used in text expressions'
+                    );
+            }
+            ht(e, s, t) {
+                let r;
+                void 0 === t ? (t = s) : void 0 !== s && (r = s);
+                const l = [],
+                    o = [];
+                let i = 0;
+                for (const s of e)
+                    (l[i] = r ? r(s, i) : i), (o[i] = t(s, i)), i++;
+                return { values: o, keys: l };
+            }
+            render(e, s, t) {
+                return this.ht(e, s, t).values;
+            }
+            update(s$1, [t, r$1, c]) {
+                var d;
+                const a = m(s$1),
+                    { values: p$1, keys: v } = this.ht(t, r$1, c);
+                if (!Array.isArray(a)) return (this.ut = v), p$1;
+                const h =
+                        null !== (d = this.ut) && void 0 !== d
+                            ? d
+                            : (this.ut = []),
+                    m$1 = [];
+                let y,
+                    x,
+                    j = 0,
+                    k = a.length - 1,
+                    w = 0,
+                    A = p$1.length - 1;
+                for (; j <= k && w <= A; )
+                    if (null === a[j]) j++;
+                    else if (null === a[k]) k--;
+                    else if (h[j] === v[w])
+                        (m$1[w] = u$1(a[j], p$1[w])), j++, w++;
+                    else if (h[k] === v[A])
+                        (m$1[A] = u$1(a[k], p$1[A])), k--, A--;
+                    else if (h[j] === v[A])
+                        (m$1[A] = u$1(a[j], p$1[A])),
+                            r(s$1, m$1[A + 1], a[j]),
+                            j++,
+                            A--;
+                    else if (h[k] === v[w])
+                        (m$1[w] = u$1(a[k], p$1[w])),
+                            r(s$1, a[j], a[k]),
+                            k--,
+                            w++;
+                    else if (
+                        (void 0 === y && ((y = u(v, w, A)), (x = u(h, j, k))),
+                        y.has(h[j]))
+                    )
+                        if (y.has(h[k])) {
+                            const e = x.get(v[w]),
+                                t = void 0 !== e ? a[e] : null;
+                            if (null === t) {
+                                const e = r(s$1, a[j]);
+                                u$1(e, p$1[w]), (m$1[w] = e);
+                            } else
+                                (m$1[w] = u$1(t, p$1[w])),
+                                    r(s$1, a[j], t),
+                                    (a[e] = null);
+                            w++;
+                        } else p(a[k]), k--;
+                    else p(a[j]), j++;
+                for (; w <= A; ) {
+                    const e = r(s$1, m$1[A + 1]);
+                    u$1(e, p$1[w]), (m$1[w++] = e);
+                }
+                for (; j <= k; ) {
+                    const e = a[j++];
+                    null !== e && p(e);
+                }
+                return (this.ut = v), s(s$1, m$1), b;
+            }
+        }
+    );
+
+class StatusModal extends Modal {
+    static properties = {
+        status: { type: Array },
+        groupMembers: { type: Array },
+        type: { type: String },
+        ME: { type: Object },
+    };
+
+    constructor() {
+        super();
+
+        this.isGroup = false;
+        this.status = [];
+        this.groupMembers = [];
+    }
+
+    createRenderRoot() {
+        return this; // prevents creating a shadow root
+    }
+
+    #renderGroup() {
+        const member = this.groupMembers.filter(
+            (member) => member.id !== this.ME.id
+        );
+        const memberSent = member.filter(
+            (i) => !this.status.find((statu) => statu === i.id)
+        );
+        const memberRead = member.filter((i) =>
+            this.status.find((statu) => statu === i.id)
+        );
+        const render = (member) => {
+            return $`<li class="group-color-${member.color}">${member.memberIcon} ${member.nickname} #${member.id}</li>`;
+        };
+        const sent = c(memberSent, (memberSent) => memberSent.id, render);
+        const read = c(memberRead, (memberRead) => memberRead.id, render);
+
+        return $`<div class="read-container"><h2>Read <i class="fa-solid fa-check read-check float-right"><i class="fa-solid fa-check read-check float-right"></i></i></h2><ul>${read}</ul></div><div><h2>Not read <i class="fa-solid fa-check sent-check float-right"></i></h2><ul>${sent}</ul></div>`;
+    }
+
+    render() {
+        if (this.type === 'group') {
+            return super.render(this.#renderGroup());
+        }
+
+        return super.render(`groups only`);
+    }
+}
+
+customElements.define('status-modal-window', StatusModal);
+
 class PanicModal extends Modal {
     static properties = {
         ME: { type: Object },
@@ -8428,149 +8621,6 @@ class SysUsermodal extends Modal {
 
 customElements.define('sysuser-modal-window', SysUsermodal);
 
-/**
- * @license
- * Copyright 2020 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */ const { H: l } = L,
-    c$1 = () => document.createComment(''),
-    r = (o, t, i) => {
-        var n;
-        const d = o._$AA.parentNode,
-            v = void 0 === t ? o._$AB : t._$AA;
-        if (void 0 === i) {
-            const t = d.insertBefore(c$1(), v),
-                n = d.insertBefore(c$1(), v);
-            i = new l(t, n, o, o.options);
-        } else {
-            const l = i._$AB.nextSibling,
-                t = i._$AM,
-                e = t !== o;
-            if (e) {
-                let l;
-                null === (n = i._$AQ) || void 0 === n || n.call(i, o),
-                    (i._$AM = o),
-                    void 0 !== i._$AP && (l = o._$AU) !== t._$AU && i._$AP(l);
-            }
-            if (l !== v || e) {
-                let o = i._$AA;
-                for (; o !== l; ) {
-                    const l = o.nextSibling;
-                    d.insertBefore(o, v), (o = l);
-                }
-            }
-        }
-        return i;
-    },
-    u$1 = (o, l, t = o) => (o._$AI(l, t), o),
-    f = {},
-    s = (o, l = f) => (o._$AH = l),
-    m = (o) => o._$AH,
-    p = (o) => {
-        var l;
-        null === (l = o._$AP) || void 0 === l || l.call(o, !1, !0);
-        let t = o._$AA;
-        const i = o._$AB.nextSibling;
-        for (; t !== i; ) {
-            const o = t.nextSibling;
-            t.remove(), (t = o);
-        }
-    };
-
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */
-const u = (e, s, t) => {
-        const r = new Map();
-        for (let l = s; l <= t; l++) r.set(e[l], l);
-        return r;
-    },
-    c = e$1(
-        class extends i {
-            constructor(e) {
-                if ((super(e), e.type !== t.CHILD))
-                    throw Error(
-                        'repeat() can only be used in text expressions'
-                    );
-            }
-            ht(e, s, t) {
-                let r;
-                void 0 === t ? (t = s) : void 0 !== s && (r = s);
-                const l = [],
-                    o = [];
-                let i = 0;
-                for (const s of e)
-                    (l[i] = r ? r(s, i) : i), (o[i] = t(s, i)), i++;
-                return { values: o, keys: l };
-            }
-            render(e, s, t) {
-                return this.ht(e, s, t).values;
-            }
-            update(s$1, [t, r$1, c]) {
-                var d;
-                const a = m(s$1),
-                    { values: p$1, keys: v } = this.ht(t, r$1, c);
-                if (!Array.isArray(a)) return (this.ut = v), p$1;
-                const h =
-                        null !== (d = this.ut) && void 0 !== d
-                            ? d
-                            : (this.ut = []),
-                    m$1 = [];
-                let y,
-                    x,
-                    j = 0,
-                    k = a.length - 1,
-                    w = 0,
-                    A = p$1.length - 1;
-                for (; j <= k && w <= A; )
-                    if (null === a[j]) j++;
-                    else if (null === a[k]) k--;
-                    else if (h[j] === v[w])
-                        (m$1[w] = u$1(a[j], p$1[w])), j++, w++;
-                    else if (h[k] === v[A])
-                        (m$1[A] = u$1(a[k], p$1[A])), k--, A--;
-                    else if (h[j] === v[A])
-                        (m$1[A] = u$1(a[j], p$1[A])),
-                            r(s$1, m$1[A + 1], a[j]),
-                            j++,
-                            A--;
-                    else if (h[k] === v[w])
-                        (m$1[w] = u$1(a[k], p$1[w])),
-                            r(s$1, a[j], a[k]),
-                            k--,
-                            w++;
-                    else if (
-                        (void 0 === y && ((y = u(v, w, A)), (x = u(h, j, k))),
-                        y.has(h[j]))
-                    )
-                        if (y.has(h[k])) {
-                            const e = x.get(v[w]),
-                                t = void 0 !== e ? a[e] : null;
-                            if (null === t) {
-                                const e = r(s$1, a[j]);
-                                u$1(e, p$1[w]), (m$1[w] = e);
-                            } else
-                                (m$1[w] = u$1(t, p$1[w])),
-                                    r(s$1, a[j], t),
-                                    (a[e] = null);
-                            w++;
-                        } else p(a[k]), k--;
-                    else p(a[j]), j++;
-                for (; w <= A; ) {
-                    const e = r(s$1, m$1[A + 1]);
-                    u$1(e, p$1[w]), (m$1[w++] = e);
-                }
-                for (; j <= k; ) {
-                    const e = a[j++];
-                    null !== e && p(e);
-                }
-                return (this.ut = v), s(s$1, m$1), b;
-            }
-        }
-    );
-
 class GroupUsermodal extends Modal {
     static properties = {
         ME: { type: Object },
@@ -8905,6 +8955,7 @@ class Messages extends s$1 {
     #userModal = document.querySelector('user-modal-window');
     #userGroupModal = document.querySelector('groupuser-modal-window');
     #userSysModal = document.querySelector('sysuser-modal-window');
+    #statusModal = document.querySelector('status-modal-window');
     #messageInput = {};
     #uploadButton = {};
 
@@ -9187,10 +9238,22 @@ class Messages extends s$1 {
 
     #renderMessageContent(message, timeIndicator) {
         if (message.messageType === 'image') {
-            return $`<a href="" download="${message.contentID}.png"><i class="fa-solid fa-spin fa-circle-notch"></i><img download="${message.contentID}" style="height:500px" data-contentid="${message.contentID}" data-rendered="false" src=""><p>${timeIndicator}</p></a>`;
+            return $`<a href="" download="${message.contentID}.png"><i class="fa-solid fa-spin fa-circle-notch"></i><img download="${message.contentID}" style="height:500px" data-contentid="${message.contentID}" data-rendered="false" src=""></a><p>${timeIndicator}</p>`;
         }
 
         return this.#renderTextContent(message, timeIndicator);
+    }
+
+    #viewStatus(status, isGroup) {
+        this.#statusModal.status = status;
+        this.#statusModal.groupMembers = this.#userGroupModal.members;
+        this.#statusModal.type = isGroup ? 'group' : 'unkown';
+
+        if (!isGroup) {
+            return;
+        }
+
+        return this.#statusModal.open();
     }
 
     #renderStatusIndicator(amIsender, status, isGroup) {
@@ -9206,7 +9269,22 @@ class Messages extends s$1 {
                 (m) => status.includes(m.id) || m.id === this.ME.id
             )
         ) {
-            return $`  <i class="fa-solid fa-check read-check"></i><i class="fa-solid fa-check read-check"></i>`;
+            return $`  <i @click="${() =>
+                this.#viewStatus(
+                    status,
+                    isGroup
+                )}" class="fa-solid fa-check read-check"></i><i @click="${() =>
+                this.#viewStatus(
+                    status,
+                    isGroup
+                )}" class="fa-solid fa-check read-check"></i>`;
+        }
+        if (isGroup) {
+            return $`  <i @click="${() =>
+                this.#viewStatus(
+                    status,
+                    isGroup
+                )}" class="fa-solid fa-check sent-check"></i>`;
         }
 
         return $`  <i class="fa-solid fa-check sent-check"></i>`;
@@ -9656,6 +9734,7 @@ class AppLayout extends s$1 {
     #converModal = document.querySelector('conversation-modal-window');
     #lockModal = document.querySelector('lock-modal-window');
     #codesModal = document.querySelector('codes-modal-window');
+    #statusModal = document.querySelector('status-modal-window');
     #touchstartX = 0;
     #touchendX = 0;
     #touchstartY = 0;
@@ -9666,6 +9745,7 @@ class AppLayout extends s$1 {
             menu.ME = val;
         });
 
+        this.#statusModal.ME = val;
         this.#userGroupModal.ME = val;
         this.#codesModal.ME = val;
         this.#lockModal.ME = val;
