@@ -1070,6 +1070,7 @@ customElements.define('toast-notification', Toast);
 
 class Modal extends s$1 {
     #hasClose = true;
+    #outside = true;
 
     constructor(hasClose = true) {
         super();
@@ -1085,10 +1086,18 @@ class Modal extends s$1 {
 
     #addClickEvent() {
         this.addEventListener('click', ({ target }) => {
-            if (target.isSameNode(this)) {
+            if (target.isSameNode(this) && this.#outside) {
                 return this.close();
             }
         });
+    }
+
+    #mouseLeave() {
+        this.#outside = true;
+    }
+
+    #mouseEnter() {
+        this.#outside = false;
     }
 
     createRenderRoot() {
@@ -1149,7 +1158,11 @@ class Modal extends s$1 {
         const close = this.#hasClose
             ? $`<small @click="${this.close}" class="close-modal unselectable">close</small>`
             : $``;
-        return $`<div class="inner-modal">${close}<div class="modal-content">${content}</div><div class="modal-side">${sideContent}</div></div>`;
+        return $`<div class="inner-modal" @mouseenter="${
+            this.#mouseEnter
+        }" @mouseleave="${
+            this.#mouseLeave
+        }">${close}<div class="modal-content">${content}</div><div class="modal-side">${sideContent}</div></div>`;
     }
 }
 
@@ -8897,9 +8910,83 @@ class GroupUsermodal extends Modal {
 
 customElements.define('groupuser-modal-window', GroupUsermodal);
 
+class Welcome extends Modal {
+    static properties = {
+        ME: { type: Object },
+    };
+
+    #nicknameTimer = {};
+
+    constructor() {
+        super();
+        this.ME = {};
+    }
+
+    createRenderRoot() {
+        return this; // prevents creating a shadow root
+    }
+
+    open() {
+        requestAnimationFrame(() => this.querySelector('input').focus());
+        return super.open();
+    }
+
+    #clickOnLogin() {
+        return super.close();
+    }
+
+    #sendChangeNichnameEvent(newNickname, oldNickname) {
+        const nickName = new CustomEvent('changeNickName', {
+            bubbles: false,
+            detail: {
+                oldNickname,
+                newNickname,
+            },
+        });
+
+        return domCache.app.dispatchEvent(nickName);
+    }
+
+    #enterNewNickname(event) {
+        clearTimeout(this.#nicknameTimer);
+
+        this.#nicknameTimer = setTimeout(() => {
+            const input = event.target;
+            const newNickname = input.value;
+            const oldNickname = this.ME.nickname;
+
+            this.ME = {
+                ...this.ME,
+                nickname: newNickname,
+            };
+
+            this.#sendChangeNichnameEvent(newNickname, oldNickname);
+
+            if (event.key === 'Enter') {
+                return super.close();
+            }
+        }, 450);
+    }
+
+    render() {
+        const text = $`<div class="welcome-text"><h1>Welcome to Be8</h1><p>your new ID is <i class="highlight-color">#${this.ME.id}</i>, your nickname is <i class="highlight-color">${this.ME.nickname}</i>. Everything gets deleted after 30 Days you can create as many accs as you want.</p></div>`;
+        const input = $`<div><p>Change your Nickname:</p><input @keydown="${(
+            e
+        ) => this.#enterNewNickname(e)}" type="text" value="${
+            this.ME.nickname
+        }" maxlength="20"></div><button @click="${
+            this.#clickOnLogin
+        }" class="full-width">Login</button>`;
+
+        return super.render([text, input]);
+    }
+}
+
+customElements.define('welcome-modal-window', Welcome);
+
 const SYSTEMMESSAGES = Object.freeze({
     WELCOME:
-        'Welcome to Be8, your nickname is <i class="highlight-color">{{nickname}}</i>. Be8 is the first ever real privacy messenger. Everything is End-to-End encrypted, only your device knows your key! Everything gets deleted after 30 days even your account, but you can create as much accounts as you want. Your id is <i class="highlight-color">#{{id}}</i>. You can find your expire date on the top left. Have fun.',
+        'Welcome to Be8, your nickname is <i class="highlight-color">{{nickname}}</i>. Be8 is the first ever real privacy messenger. Everything is End-to-End encrypted, only your device knows your key! Everything gets deleted after 30 days even your account, but you can create as much accounts as you want. Your id is <i class="highlight-color">#{{id}}</i>. You can find your expire date in the user settings on the top right. Have fun.',
     STARTCONVERSATION:
         'Start conversation with <i class="highlight-color">#{{conversationID}}</i>',
     CREATEDGROUP:
@@ -9727,6 +9814,7 @@ class AppLayout extends s$1 {
         userMenu: {},
     };
     #threads = {};
+    #welcomeModal = document.querySelector('welcome-modal-window');
     #userGroupModal = document.querySelector('groupuser-modal-window');
     #modal = document.querySelector('modal-window');
     #inviteModal = document.querySelector('invite-modal-window');
@@ -9745,6 +9833,7 @@ class AppLayout extends s$1 {
             menu.ME = val;
         });
 
+        this.#welcomeModal.ME = val;
         this.#statusModal.ME = val;
         this.#userGroupModal.ME = val;
         this.#codesModal.ME = val;
@@ -9752,6 +9841,7 @@ class AppLayout extends s$1 {
         this.#panicModal.ME = val;
         this.#inviteModal.ME = val;
         this.#converModal.ME = val;
+        this.#userGroupModal.ME = val;
         this.requestUpdate('ME', val);
     }
 
@@ -9834,10 +9924,8 @@ class AppLayout extends s$1 {
         return this.#panicModal.open();
     }
 
-    openWelcomeWindow({ id, nickname }) {
-        return this.#modal.setAndOpen({
-            HTML: `<h1>Welcome to Be8</h1><p>your new ID is <i class="highlight-color">#${id}</i>, your nickname is <i class="highlight-color">${nickname}</i>. Everything gets deleted after 30 Days you can create as many accs as you want.</p>`,
-        });
+    openWelcomeWindow() {
+        return this.#welcomeModal.open();
     }
 
     firstUpdated() {
