@@ -8927,8 +8927,13 @@ class Welcome extends Modal {
     }
 
     open() {
-        setTimeout(() => this.querySelector('input').focus(), 450);
-        return super.open();
+        const input = this.querySelector('input');
+
+        super.open();
+        requestAnimationFrame(() => {
+            input.focus();
+            input.select();
+        });
     }
 
     #clickOnLogin() {
