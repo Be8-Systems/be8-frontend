@@ -8927,7 +8927,7 @@ class Welcome extends Modal {
     }
 
     open() {
-        requestAnimationFrame(() => this.querySelector('input').focus());
+        setTimeout(() => this.querySelector('input').focus(), 450);
         return super.open();
     }
 
