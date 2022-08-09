@@ -9169,7 +9169,11 @@ class Messages extends s$1 {
     scrollToBottom() {
         requestAnimationFrame(() => {
             const messages = this.querySelector('.messages');
-            messages.scrollTop = messages.scrollHeight;
+            const diff = messages.scrollHeight - messages.scrollTop;
+
+            if (diff < 350) {
+                messages.scrollTop = messages.scrollHeight;
+            }
         });
     }
 
