@@ -9,7 +9,7 @@ From idea to useable application backed by incubators in just 8 weeks!
 
 ### Desktop & PWA
 
-<img src="/doc/desktop.png" width="300"><img src="/doc/pwa.png" width="300">
+<img src="/doc/desktop.png" width="300"> <img src="/doc/pwa.png" width="300">
 
 
 ## Bootstrap flow
