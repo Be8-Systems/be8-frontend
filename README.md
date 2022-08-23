@@ -4,11 +4,11 @@ From idea to useable application backed by incubators in just 8 weeks!
 ## Gallery
 ### mobile
 
-![](/doc/mobile.png)
+![](/doc/mobile.png | width=300)
 
 ### Desktop
 
-![](/doc/desktop.png)
+![](/doc/desktop.png | width=300)
 
 ### PWA
 
@@ -17,4 +17,4 @@ From idea to useable application backed by incubators in just 8 weeks!
 
 ## Bootstrap flow
 
-![](/doc/user_bootstrap.png "flow diagram")
+![](/doc/user_bootstrap.png "flow diagram" | width=300)
