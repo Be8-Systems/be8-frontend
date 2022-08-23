@@ -4,7 +4,7 @@ From idea to useable application backed by incubators in just 8 weeks!
 ## Gallery
 ### mobile
 
-<img src="/doc/mobile.png" width="300">
+<img src="/doc/mobile.png" width="225">
 
 ### Desktop
 
@@ -17,4 +17,4 @@ From idea to useable application backed by incubators in just 8 weeks!
 
 ## Bootstrap flow
 
-![](/doc/user_bootstrap.png "flow diagram" | width=300)
+<img src="/doc/user_bootstrap.png" width="300">
