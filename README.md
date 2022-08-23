@@ -4,11 +4,11 @@ From idea to useable application backed by incubators in just 8 weeks!
 ## Gallery
 ### mobile
 
-<img src="/doc/mobile.png" width="225">
+<img src="/doc/mobile.png" width="225"><img src="/doc/desktop.png" width="300">
 
 ### Desktop
 
-<img src="/doc/desktop.png" width="300">
+
 
 ### PWA
 
