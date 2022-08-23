@@ -4,15 +4,15 @@ From idea to useable application backed by incubators in just 8 weeks!
 ## Gallery
 ### mobile
 
-![](/doc/mobile.png | width=300)
+<img src="/doc/mobile.png" width="300">
 
 ### Desktop
 
-![](/doc/desktop.png | width=300)
+<img src="/doc/desktop.png" width="300">
 
 ### PWA
 
-![](/doc/pwa.png)
+<img src="/doc/pwa.png" width="300">
 
 
 ## Bootstrap flow
