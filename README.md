@@ -1,8 +1,8 @@
 # Be8-Frontend
-From idea to useable application backed by incubators in just 8 weeks!
+From idea to useable application backed by incubators in just 8 weeks! Visit https://be8.live
 
 ## Gallery
-### mobile
+### Mobile
 
 <img src="/doc/mobile.png" width="225">
 
